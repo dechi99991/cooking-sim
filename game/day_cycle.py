@@ -20,14 +20,46 @@ class MealTime(Enum):
 
 
 class GamePhase(Enum):
+    # 共通フェーズ
     BREAKFAST = auto()
+    # 平日フェーズ
     GO_TO_WORK = auto()
     LUNCH = auto()
     LEAVE_WORK = auto()
-    SHOPPING = auto()  # 買い出し（退勤後、夕食前）
+    SHOPPING = auto()
+    # 休日フェーズ
+    HOLIDAY_SHOPPING_1 = auto()  # 朝食後の買い出し
+    HOLIDAY_LUNCH = auto()
+    HOLIDAY_SHOPPING_2 = auto()  # 昼食後の買い出し
+    # 共通フェーズ
     DINNER = auto()
     SLEEP = auto()
     DAY_END = auto()
+
+
+# 平日のフェーズ順序
+WEEKDAY_PHASES = [
+    GamePhase.BREAKFAST,
+    GamePhase.GO_TO_WORK,
+    GamePhase.LUNCH,
+    GamePhase.LEAVE_WORK,
+    GamePhase.SHOPPING,
+    GamePhase.DINNER,
+    GamePhase.SLEEP,
+]
+
+# 休日のフェーズ順序
+HOLIDAY_PHASES = [
+    GamePhase.BREAKFAST,
+    GamePhase.HOLIDAY_SHOPPING_1,
+    GamePhase.HOLIDAY_LUNCH,
+    GamePhase.HOLIDAY_SHOPPING_2,
+    GamePhase.DINNER,
+    GamePhase.SLEEP,
+]
+
+# 曜日名
+WEEKDAY_NAMES = ['月', '火', '水', '木', '金', '土', '日']
 
 
 @dataclass
@@ -40,9 +72,27 @@ class DayState:
     has_bento: bool = False
     bento: Dish | None = None
 
+    def get_weekday(self) -> int:
+        """曜日を取得 (0=月, 1=火, ..., 5=土, 6=日)"""
+        # 4月1日を火曜日(1)とする
+        return (self.day) % 7
+
+    def get_weekday_name(self) -> str:
+        """曜日名を取得"""
+        return WEEKDAY_NAMES[self.get_weekday()]
+
+    def is_holiday(self) -> bool:
+        """休日かどうか (土日)"""
+        weekday = self.get_weekday()
+        return weekday >= 5  # 5=土, 6=日
+
+    def get_current_phases(self) -> list:
+        """現在の日のフェーズ順序を取得"""
+        return HOLIDAY_PHASES if self.is_holiday() else WEEKDAY_PHASES
+
     def next_phase(self):
         """次のフェーズへ進む"""
-        phases = list(GamePhase)
+        phases = self.get_current_phases()
         current_index = phases.index(self.phase)
         if current_index < len(phases) - 1:
             self.phase = phases[current_index + 1]
@@ -57,7 +107,7 @@ class DayState:
 
     def get_date_string(self) -> str:
         """日付文字列を取得"""
-        return f"{self.month}月{self.day}日"
+        return f"{self.month}月{self.day}日({self.get_weekday_name()})"
 
     def is_game_complete(self) -> bool:
         """ゲームクリア判定"""
@@ -166,3 +216,7 @@ class GameManager:
     def reset_fullness_for_meal(self):
         """食事ターン開始時に満腹感をリセット"""
         self.player.reset_fullness()
+
+    def is_holiday(self) -> bool:
+        """休日かどうか"""
+        return self.day_state.is_holiday()

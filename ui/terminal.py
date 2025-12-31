@@ -142,11 +142,15 @@ def show_phase_header(phase: GamePhase, day_state):
         GamePhase.LUNCH: "昼食",
         GamePhase.LEAVE_WORK: "退勤",
         GamePhase.SHOPPING: "買い出し",
+        GamePhase.HOLIDAY_SHOPPING_1: "買い出し",
+        GamePhase.HOLIDAY_LUNCH: "昼食",
+        GamePhase.HOLIDAY_SHOPPING_2: "買い出し",
         GamePhase.DINNER: "夕食",
         GamePhase.SLEEP: "就寝",
     }
     name = phase_names.get(phase, "")
-    print(f"\n{'─' * 20} {name} {'─' * 20}\n")
+    holiday_mark = "【休日】" if day_state.is_holiday() else ""
+    print(f"\n{'─' * 20} {holiday_mark}{name} {'─' * 20}\n")
 
 
 def show_breakfast_menu(game: GameManager) -> str:
@@ -173,7 +177,7 @@ def show_breakfast_menu(game: GameManager) -> str:
 
 
 def show_lunch_menu(game: GameManager) -> str:
-    """昼食メニュー表示"""
+    """昼食メニュー表示（平日）"""
     print("昼食の選択:")
     options = []
 
@@ -191,6 +195,40 @@ def show_lunch_menu(game: GameManager) -> str:
 
     print("  3. 食べない")
     options.append("3")
+
+    return get_input("選択: ", options)
+
+
+def show_holiday_breakfast_menu(game: GameManager) -> str:
+    """休日朝食メニュー表示（弁当作成なし）"""
+    print("朝食の選択:")
+    options = []
+
+    if game.can_cook():
+        print("  1. 自炊する")
+        options.append("1")
+    else:
+        print("  1. 自炊する (気力または食材不足)")
+
+    print("  2. 食べない")
+    options.append("2")
+
+    return get_input("選択: ", options)
+
+
+def show_holiday_lunch_menu(game: GameManager) -> str:
+    """休日昼食メニュー表示（自炊可能）"""
+    print("昼食の選択:")
+    options = []
+
+    if game.can_cook():
+        print("  1. 自炊する")
+        options.append("1")
+    else:
+        print("  1. 自炊する (気力または食材不足)")
+
+    print("  2. 食べない")
+    options.append("2")
 
     return get_input("選択: ", options)
 

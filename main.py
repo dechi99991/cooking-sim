@@ -11,13 +11,14 @@ from ui.terminal import (
     clear_screen, show_status, show_nutrition, show_stock,
     show_recipe_suggestions, show_phase_header, show_dish,
     show_breakfast_menu, show_lunch_menu, show_dinner_menu,
+    show_holiday_breakfast_menu, show_holiday_lunch_menu,
     show_shopping_menu, show_shop,
     show_game_over, show_game_clear, show_title, select_ingredients
 )
 
 
 def handle_breakfast(game: GameManager):
-    """朝食フェーズの処理"""
+    """朝食フェーズの処理（平日）"""
     show_phase_header(GamePhase.BREAKFAST, game.day_state)
     game.reset_fullness_for_meal()
 
@@ -61,6 +62,31 @@ def handle_breakfast(game: GameManager):
                     game.set_bento(bento)
 
     elif choice == "3":
+        print("朝食を抜きました。")
+
+
+def handle_holiday_breakfast(game: GameManager):
+    """休日朝食フェーズの処理"""
+    show_phase_header(GamePhase.BREAKFAST, game.day_state)
+    game.reset_fullness_for_meal()
+
+    show_status(game.player, game.day_state)
+    show_stock(game.stock)
+    show_recipe_suggestions(game.stock)
+
+    choice = show_holiday_breakfast_menu(game)
+
+    if choice == "1":
+        ingredients = select_ingredients(game.stock)
+        if ingredients:
+            dish = cook(ingredients, game.stock)
+            if dish:
+                game.consume_cooking_energy()
+                show_dish(dish)
+                game.eat_dish(dish)
+                print(f"満腹感: {game.player.fullness}")
+
+    elif choice == "2":
         print("朝食を抜きました。")
 
 
@@ -145,6 +171,67 @@ def handle_shopping(game: GameManager):
         print("まっすぐ帰宅します。")
 
 
+def handle_holiday_shopping(game: GameManager, phase: GamePhase):
+    """休日の買い出しフェーズの処理"""
+    show_phase_header(phase, game.day_state)
+    show_status(game.player, game.day_state)
+    show_stock(game.stock)
+
+    choice = show_shopping_menu(game)
+
+    if choice == "1":
+        game.go_shopping()
+        print(f"スーパーへ向かいます... (気力: {game.player.energy}, 体力: {game.player.stamina})")
+        print()
+
+        purchases = show_shop(game.player)
+
+        if purchases:
+            total_cost = 0
+            print("\n【購入品】")
+            for name, qty in purchases:
+                from game.ingredients import get_ingredient
+                ingredient = get_ingredient(name)
+                if ingredient:
+                    cost = ingredient.price * qty
+                    total_cost += cost
+                    game.player.consume_money(cost)
+                    game.stock.add(name, qty)
+                    print(f"  {name} x{qty}")
+            print(f"合計: {total_cost}円")
+            print(f"残り所持金: {game.player.money:,}円")
+        else:
+            print("何も買いませんでした。")
+
+    elif choice == "2":
+        print("買い出しに行きませんでした。")
+
+
+def handle_holiday_lunch(game: GameManager):
+    """休日昼食フェーズの処理"""
+    show_phase_header(GamePhase.HOLIDAY_LUNCH, game.day_state)
+    game.reset_fullness_for_meal()
+
+    show_status(game.player, game.day_state)
+    show_stock(game.stock)
+    show_recipe_suggestions(game.stock)
+
+    choice = show_holiday_lunch_menu(game)
+
+    if choice == "1":
+        ingredients = select_ingredients(game.stock)
+        if ingredients:
+            dish = cook(ingredients, game.stock)
+            if dish:
+                game.consume_cooking_energy()
+                show_dish(dish)
+                game.eat_dish(dish)
+                print(f"満腹感: {game.player.fullness}")
+
+    elif choice == "2":
+        print("昼食を抜きました。")
+
+
 def handle_dinner(game: GameManager):
     """夕食フェーズの処理"""
     show_phase_header(GamePhase.DINNER, game.day_state)
@@ -202,9 +289,16 @@ def game_loop(game: GameManager):
     """メインゲームループ"""
     while True:
         phase = game.get_current_phase()
+        is_holiday = game.is_holiday()
 
+        # 朝食
         if phase == GamePhase.BREAKFAST:
-            handle_breakfast(game)
+            if is_holiday:
+                handle_holiday_breakfast(game)
+            else:
+                handle_breakfast(game)
+
+        # 平日フェーズ
         elif phase == GamePhase.GO_TO_WORK:
             handle_go_to_work(game)
         elif phase == GamePhase.LUNCH:
@@ -213,6 +307,16 @@ def game_loop(game: GameManager):
             handle_leave_work(game)
         elif phase == GamePhase.SHOPPING:
             handle_shopping(game)
+
+        # 休日フェーズ
+        elif phase == GamePhase.HOLIDAY_SHOPPING_1:
+            handle_holiday_shopping(game, phase)
+        elif phase == GamePhase.HOLIDAY_LUNCH:
+            handle_holiday_lunch(game)
+        elif phase == GamePhase.HOLIDAY_SHOPPING_2:
+            handle_holiday_shopping(game, phase)
+
+        # 共通フェーズ
         elif phase == GamePhase.DINNER:
             handle_dinner(game)
         elif phase == GamePhase.SLEEP:
