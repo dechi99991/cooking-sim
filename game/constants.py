@@ -1,0 +1,43 @@
+"""ゲーム定数・初期値"""
+
+# プレイヤー初期値
+INITIAL_MONEY = 30000
+INITIAL_ENERGY = 10
+INITIAL_STAMINA = 10
+INITIAL_FULLNESS = 0
+
+MAX_ENERGY = 10
+MAX_STAMINA = 10
+MAX_FULLNESS = 10
+
+# 栄養素の1日最低ライン
+NUTRITION_MIN_THRESHOLD = 5
+
+# 栄養不足ペナルティ
+PENALTY_VITALITY = 2  # 活力素不足: 体力回復-2
+PENALTY_MENTAL = 2    # 心力素不足: 気力回復-2
+PENALTY_SUSTAIN = 2   # 持続素不足: 満腹感減少量+2
+
+# アクション消費
+COOKING_ENERGY_COST = 2      # 調理の気力消費
+BENTO_ENERGY_COST = 3        # 弁当作成の気力消費
+COMMUTE_STAMINA_COST = 2     # 出退勤の体力消費
+
+# 社食
+CAFETERIA_PRICE = 500
+CAFETERIA_NUTRITION = 3  # 各栄養素
+CAFETERIA_FULLNESS = 5
+
+# 買い出し
+SHOPPING_ENERGY_COST = 2     # 買い出しの気力消費
+SHOPPING_STAMINA_COST = 1    # 買い出しの体力消費
+SHOPPING_MIN_ENERGY = 3      # 買い出しに必要な最低気力
+
+# 睡眠回復
+SLEEP_ENERGY_RECOVERY = 10   # 気力全回復
+SLEEP_STAMINA_RECOVERY = 5   # 体力回復量
+
+# ゲーム期間
+GAME_START_DAY = 1
+GAME_START_MONTH = 4
+GAME_DURATION_DAYS = 30  # 1ヶ月
