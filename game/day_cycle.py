@@ -127,7 +127,8 @@ class GameManager:
     def __init__(self, player: Player, stock: Stock,
                  has_bonus: bool = True,
                  salary_amount: int | None = None,
-                 bonus_amount: int | None = None):
+                 bonus_amount: int | None = None,
+                 rent_amount: int = 0):
         self.player = player
         self.stock = stock
         self.day_state = DayState()
@@ -135,9 +136,10 @@ class GameManager:
         self.relics = RelicInventory()  # レリック所持
         self.provisions = ProvisionStock()  # 食糧ストック
         self.has_bonus = has_bonus  # ボーナスの有無（キャラ設定用）
-        # キャラクター別の給料・ボーナス（Noneならデフォルト値を使用）
+        # キャラクター別の給料・ボーナス・家賃
         self._salary_amount = salary_amount if salary_amount is not None else SALARY_AMOUNT
         self._bonus_amount = bonus_amount if bonus_amount is not None else BONUS_AMOUNT
+        self._rent_amount = rent_amount  # 家賃（給料から天引き）
 
     def get_cooking_energy_cost(self) -> int:
         """レリック効果を反映した調理気力コストを取得"""
@@ -276,12 +278,14 @@ class GameManager:
             return False
         return self.day_state.month in BONUS_MONTHS and self.day_state.day == SALARY_DAY
 
-    def pay_salary(self) -> int:
-        """給料を支払う。支払った金額を返す"""
-        amount = self._salary_amount
-        self.player.money += amount
-        self.stats.record_salary(amount)
-        return amount
+    def pay_salary(self) -> tuple[int, int, int]:
+        """給料を支払う。(総支給額, 家賃, 手取り)を返す"""
+        gross = self._salary_amount
+        rent = self._rent_amount
+        net = gross - rent
+        self.player.money += net
+        self.stats.record_salary(net)
+        return gross, rent, net
 
     def pay_bonus(self) -> int:
         """ボーナスを支払う。支払った金額を返す"""

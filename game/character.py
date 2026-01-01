@@ -16,6 +16,7 @@ class Character:
     has_bonus: bool = True
     initial_energy: int = 10
     initial_stamina: int = 10
+    rent_amount: int = 60000   # 家賃（給料から天引き）
 
 
 # キャラクターマスターデータ
@@ -28,6 +29,7 @@ CHARACTERS = {
         salary_amount=200000,
         bonus_amount=400000,
         has_bonus=True,
+        rent_amount=60000,
     ),
     'contract': Character(
         id='contract',
@@ -37,6 +39,7 @@ CHARACTERS = {
         salary_amount=180000,
         bonus_amount=0,
         has_bonus=False,
+        rent_amount=50000,
     ),
     'freelance': Character(
         id='freelance',
@@ -48,6 +51,7 @@ CHARACTERS = {
         has_bonus=False,
         initial_energy=8,
         initial_stamina=8,
+        rent_amount=70000,
     ),
 }
 

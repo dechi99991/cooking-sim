@@ -24,12 +24,15 @@ from game.provisions import get_provision
 def check_and_pay_salary(game: GameManager):
     """給料日・ボーナスをチェックして支給"""
     if game.is_payday():
-        salary = game.pay_salary()
-        print(f"💰 給料日です！ {salary:,}円 を受け取りました。")
+        gross, rent, net = game.pay_salary()
+        print("💰 給料日です！")
+        print(f"   総支給額: {gross:,}円")
+        print(f"   家賃天引: -{rent:,}円")
+        print(f"   手取り:   {net:,}円")
 
         if game.is_bonus_day():
             bonus = game.pay_bonus()
-            print(f"🎉 ボーナス支給！ {bonus:,}円 を受け取りました。")
+            print(f"🎉 ボーナス支給！ {bonus:,}円")
 
         print(f"現在の所持金: {game.player.money:,}円")
         print()
@@ -514,6 +517,7 @@ def main():
         has_bonus=character.has_bonus,
         salary_amount=character.salary_amount,
         bonus_amount=character.bonus_amount,
+        rent_amount=character.rent_amount,
     )
 
     # ゲーム開始

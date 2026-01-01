@@ -623,11 +623,13 @@ def show_character_select():
     for i, char in enumerate(characters, 1):
         print(f"  {i}. {char.name}")
         print(f"     {char.description}")
-        print(f"     初期所持金: {char.initial_money:,}円 / 月給: {char.salary_amount:,}円", end="")
+        print(f"     初期所持金: {char.initial_money:,}円")
+        net_salary = char.salary_amount - char.rent_amount
+        print(f"     月給: {char.salary_amount:,}円 (家賃{char.rent_amount:,}円天引 → 手取{net_salary:,}円)", end="")
         if char.has_bonus:
             print(f" / ボーナス: {char.bonus_amount:,}円")
         else:
-            print(" / ボーナス: なし")
+            print()
         print()
 
     while True:
