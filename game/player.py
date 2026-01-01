@@ -19,6 +19,9 @@ class Player:
     stamina_recovery_penalty: int = 0
     fullness_decay_penalty: int = 0
 
+    # クレジットカード未払い残高
+    card_debt: int = 0
+
     def consume_energy(self, amount: int) -> bool:
         """気力を消費する。消費可能ならTrue"""
         if self.energy >= amount:
@@ -79,3 +82,18 @@ class Player:
     def can_cook(self, energy_cost: int) -> bool:
         """調理可能か判定"""
         return self.energy >= energy_cost
+
+    def add_card_debt(self, amount: int):
+        """カードで購入（未払い残高を増やす）"""
+        self.card_debt += amount
+
+    def settle_card(self) -> int:
+        """カード精算。精算後の残高を返す"""
+        self.money -= self.card_debt
+        settled_amount = self.card_debt
+        self.card_debt = 0
+        return self.money
+
+    def get_final_balance(self) -> int:
+        """カード精算後の残高を計算（実際には精算しない）"""
+        return self.money - self.card_debt

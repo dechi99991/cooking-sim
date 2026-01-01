@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from .nutrition import Nutrition, create_nutrition
 from .ingredients import get_ingredient, Stock
+from .relic import RelicInventory
 
 
 @dataclass
@@ -29,13 +30,15 @@ RECIPES = {
 }
 
 
-def cook(ingredient_names: list[str], stock: Stock, current_day: int = 1) -> Dish | None:
+def cook(ingredient_names: list[str], stock: Stock, current_day: int = 1,
+         relics: RelicInventory | None = None) -> Dish | None:
     """
-    食材から料理を作成する（鮮度補正適用）
+    食材から料理を作成する（鮮度補正・レリック効果適用）
     Args:
         ingredient_names: 使用する食材名のリスト
         stock: 食材ストック
         current_day: 現在のゲーム日（鮮度計算用）
+        relics: レリックインベントリ（効果適用用）
     Returns:
         作成された料理、または失敗時はNone
     """
@@ -51,12 +54,13 @@ def cook(ingredient_names: list[str], stock: Stock, current_day: int = 1) -> Dis
     ingredient_set = frozenset(ingredient_names)
     dish_name = RECIPES.get(ingredient_set, 'ミックス料理')
 
-    # 各食材の鮮度補正値を先に計算（消費前に）
+    # 各食材の鮮度補正値を先に計算（消費前に、レリック効果適用）
+    freshness_extend = relics.get_freshness_extend() if relics else 0
     freshness_modifiers = {}
     for name in ingredient_names:
-        freshness_modifiers[name] = stock.calculate_freshness_modifier(name, current_day)
+        freshness_modifiers[name] = stock.calculate_freshness_modifier(name, current_day, freshness_extend)
 
-    # 栄養値と満腹度を計算（食材の合算、鮮度補正適用）
+    # 栄養値と満腹度を計算（食材の合算、鮮度補正・レリック効果適用）
     total_nutrition = Nutrition()
     total_fullness = 0
 
@@ -66,9 +70,21 @@ def cook(ingredient_names: list[str], stock: Stock, current_day: int = 1) -> Dis
             modifier = freshness_modifiers[name]
             # 栄養値に鮮度補正を適用
             modified_nutrition = ingredient.nutrition.apply_modifier(modifier)
+
+            # レリックによる栄養ブースト（加算）
+            if relics:
+                nutrition_boost = relics.get_nutrition_boost(name)
+                if nutrition_boost > 0:
+                    boost_nutrition = ingredient.nutrition.apply_modifier(nutrition_boost)
+                    modified_nutrition.add(boost_nutrition)
+
             total_nutrition.add(modified_nutrition)
-            # 満腹度は補正しない（量は変わらない）
-            total_fullness += ingredient.fullness
+
+            # 満腹度（レリック効果で加算あり）
+            fullness = ingredient.fullness
+            if relics:
+                fullness += relics.get_fullness_boost(name)
+            total_fullness += fullness
 
     # ストックから消費
     for name in ingredient_names:

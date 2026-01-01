@@ -6,6 +6,8 @@ from .nutrition import Nutrition
 from .ingredients import Stock
 from .cooking import Dish
 from .result import GameStats, GameResult
+from .relic import RelicInventory
+from .provisions import ProvisionStock
 from .constants import (
     COOKING_ENERGY_COST, BENTO_ENERGY_COST, COMMUTE_STAMINA_COST,
     CAFETERIA_PRICE, SLEEP_ENERGY_RECOVERY, SLEEP_STAMINA_RECOVERY,
@@ -34,6 +36,7 @@ class GamePhase(Enum):
     HOLIDAY_SHOPPING_2 = auto()  # 昼食後の買い出し
     # 共通フェーズ
     DINNER = auto()
+    ONLINE_SHOPPING = auto()  # 通販（夕食後）
     SLEEP = auto()
     DAY_END = auto()
 
@@ -46,6 +49,7 @@ WEEKDAY_PHASES = [
     GamePhase.LEAVE_WORK,
     GamePhase.SHOPPING,
     GamePhase.DINNER,
+    GamePhase.ONLINE_SHOPPING,
     GamePhase.SLEEP,
 ]
 
@@ -56,6 +60,7 @@ HOLIDAY_PHASES = [
     GamePhase.HOLIDAY_LUNCH,
     GamePhase.HOLIDAY_SHOPPING_2,
     GamePhase.DINNER,
+    GamePhase.ONLINE_SHOPPING,
     GamePhase.SLEEP,
 ]
 
@@ -123,26 +128,40 @@ class GameManager:
         self.stock = stock
         self.day_state = DayState()
         self.stats = GameStats()  # 統計収集用
+        self.relics = RelicInventory()  # レリック所持
+        self.provisions = ProvisionStock()  # 食糧ストック
+
+    def get_cooking_energy_cost(self) -> int:
+        """レリック効果を反映した調理気力コストを取得"""
+        base_cost = COOKING_ENERGY_COST
+        save = self.relics.get_energy_save()
+        return max(1, base_cost - save)  # 最低1
+
+    def get_bento_energy_cost(self) -> int:
+        """レリック効果を反映した弁当作成気力コストを取得"""
+        base_cost = BENTO_ENERGY_COST
+        save = self.relics.get_energy_save()
+        return max(1, base_cost - save)  # 最低1
 
     def can_cook(self) -> bool:
         """調理可能か"""
-        return self.player.can_cook(COOKING_ENERGY_COST) and not self.stock.is_empty()
+        return self.player.can_cook(self.get_cooking_energy_cost()) and not self.stock.is_empty()
 
     def can_make_bento(self) -> bool:
         """弁当作成可能か"""
-        return self.player.can_cook(BENTO_ENERGY_COST) and not self.stock.is_empty()
+        return self.player.can_cook(self.get_bento_energy_cost()) and not self.stock.is_empty()
 
     def can_use_cafeteria(self) -> bool:
         """社食利用可能か"""
         return self.player.money >= CAFETERIA_PRICE
 
     def consume_cooking_energy(self):
-        """調理の気力を消費"""
-        self.player.consume_energy(COOKING_ENERGY_COST)
+        """調理の気力を消費（レリック効果適用）"""
+        self.player.consume_energy(self.get_cooking_energy_cost())
 
     def consume_bento_energy(self):
-        """弁当作成の気力を消費"""
-        self.player.consume_energy(BENTO_ENERGY_COST)
+        """弁当作成の気力を消費（レリック効果適用）"""
+        self.player.consume_energy(self.get_bento_energy_cost())
 
     def consume_cafeteria_cost(self):
         """社食の費用を消費"""
@@ -234,6 +253,10 @@ class GameManager:
     def is_holiday(self) -> bool:
         """休日かどうか"""
         return self.day_state.is_holiday()
+
+    def get_freshness_extend(self) -> int:
+        """レリック効果による鮮度延長日数を取得"""
+        return self.relics.get_freshness_extend()
 
     def get_game_over_reason(self) -> str | None:
         """ゲームオーバーの理由を取得"""

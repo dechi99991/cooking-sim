@@ -8,6 +8,7 @@ from game.constants import (
     MAX_ENERGY, MAX_STAMINA, MAX_FULLNESS, CAFETERIA_PRICE,
     SHOPPING_ENERGY_COST, SHOPPING_STAMINA_COST
 )
+from game.provisions import get_provision
 
 
 def clear_screen():
@@ -44,7 +45,7 @@ def show_nutrition(nutrition: Nutrition):
     print()
 
 
-def show_stock(stock: Stock, current_day: int = 1):
+def show_stock(stock: Stock, current_day: int = 1, freshness_extend: int = 0):
     """ストック表示（鮮度情報付き）"""
     items = stock.get_all()
     if items:
@@ -52,7 +53,7 @@ def show_stock(stock: Stock, current_day: int = 1):
         for name, qty in items.items():
             ingredient = get_ingredient(name)
             if ingredient:
-                freshness = stock.get_freshness_status(name, current_day)
+                freshness = stock.get_freshness_status(name, current_day, freshness_extend)
                 print(f"  {name}: {qty}個 ({freshness})")
         print()
     else:
@@ -68,6 +69,51 @@ def show_recipe_suggestions(stock: Stock):
         for dish_name, ingredients in suggestions:
             print(f"  {dish_name} ({', '.join(ingredients)})")
         print()
+
+
+def show_provision_stock(provisions):
+    """食糧ストック表示"""
+    items = provisions.get_all()
+    if items:
+        print("【食糧ストック】")
+        for name, qty in items.items():
+            prov = get_provision(name)
+            if prov:
+                print(f"  {name}: {qty}個 (満腹{prov.fullness})")
+        print()
+    else:
+        print("【食糧ストック】空\n")
+
+
+def select_provision(provisions) -> str | None:
+    """食糧選択UI
+    Returns: 選択した食糧名、キャンセルならNone
+    """
+    available = provisions.get_available()
+    if not available:
+        print("食糧がありません。")
+        return None
+
+    print("食べる食糧を選んでください:")
+    for i, name in enumerate(available, 1):
+        qty = provisions.get_quantity(name)
+        prov = get_provision(name)
+        if prov:
+            print(f"  {i}. {name} (残り{qty}個, 満腹{prov.fullness})")
+    print("  0. キャンセル")
+
+    while True:
+        choice = input("番号を入力: ").strip()
+        if choice == "0":
+            return None
+
+        try:
+            idx = int(choice)
+            if 1 <= idx <= len(available):
+                return available[idx - 1]
+            print("無効な番号です。")
+        except ValueError:
+            print("数値を入力してください。")
 
 
 def get_input(prompt: str, valid_options: list[str]) -> str:
@@ -91,7 +137,7 @@ def get_number_input(prompt: str, min_val: int, max_val: int) -> int:
             print("数値を入力してください。")
 
 
-def select_ingredients(stock: Stock, current_day: int = 1) -> list[str]:
+def select_ingredients(stock: Stock, current_day: int = 1, freshness_extend: int = 0) -> list[str]:
     """食材選択UI（鮮度情報付き）"""
     available = stock.get_available_ingredients()
     if not available:
@@ -101,7 +147,7 @@ def select_ingredients(stock: Stock, current_day: int = 1) -> list[str]:
     print("使う食材を選んでください（複数選択可、カンマ区切り）:")
     for i, name in enumerate(available, 1):
         qty = stock.get_quantity(name)
-        freshness = stock.get_freshness_status(name, current_day)
+        freshness = stock.get_freshness_status(name, current_day, freshness_extend)
         print(f"  {i}. {name} (残り{qty}個, {freshness})")
     print("  0. キャンセル")
 
@@ -148,6 +194,7 @@ def show_phase_header(phase: GamePhase, day_state):
         GamePhase.HOLIDAY_LUNCH: "昼食",
         GamePhase.HOLIDAY_SHOPPING_2: "買い出し",
         GamePhase.DINNER: "夕食",
+        GamePhase.ONLINE_SHOPPING: "通販",
         GamePhase.SLEEP: "就寝",
     }
     name = phase_names.get(phase, "")
@@ -172,8 +219,14 @@ def show_breakfast_menu(game: GameManager) -> str:
     else:
         print("  2. 自炊して弁当も作る (気力または食材不足)")
 
-    print("  3. 食べない")
-    options.append("3")
+    if not game.provisions.is_empty():
+        print("  3. 食糧を食べる")
+        options.append("3")
+    else:
+        print("  3. 食糧を食べる (食糧がありません)")
+
+    print("  4. 食べない")
+    options.append("4")
 
     return get_input("選択: ", options)
 
@@ -195,8 +248,15 @@ def show_lunch_menu(game: GameManager) -> str:
     else:
         print(f"  2. 社食 (お金が足りません)")
 
-    print("  3. 食べない")
-    options.append("3")
+    # 食糧は持参できる（職場で食べる）
+    if not game.provisions.is_empty():
+        print("  3. 食糧を食べる")
+        options.append("3")
+    else:
+        print("  3. 食糧を食べる (食糧がありません)")
+
+    print("  4. 食べない")
+    options.append("4")
 
     return get_input("選択: ", options)
 
@@ -212,8 +272,14 @@ def show_holiday_breakfast_menu(game: GameManager) -> str:
     else:
         print("  1. 自炊する (気力または食材不足)")
 
-    print("  2. 食べない")
-    options.append("2")
+    if not game.provisions.is_empty():
+        print("  2. 食糧を食べる")
+        options.append("2")
+    else:
+        print("  2. 食糧を食べる (食糧がありません)")
+
+    print("  3. 食べない")
+    options.append("3")
 
     return get_input("選択: ", options)
 
@@ -229,8 +295,14 @@ def show_holiday_lunch_menu(game: GameManager) -> str:
     else:
         print("  1. 自炊する (気力または食材不足)")
 
-    print("  2. 食べない")
-    options.append("2")
+    if not game.provisions.is_empty():
+        print("  2. 食糧を食べる")
+        options.append("2")
+    else:
+        print("  2. 食糧を食べる (食糧がありません)")
+
+    print("  3. 食べない")
+    options.append("3")
 
     return get_input("選択: ", options)
 
@@ -246,8 +318,14 @@ def show_dinner_menu(game: GameManager) -> str:
     else:
         print("  1. 自炊する (気力または食材不足)")
 
-    print("  2. 食べない")
-    options.append("2")
+    if not game.provisions.is_empty():
+        print("  2. 食糧を食べる")
+        options.append("2")
+    else:
+        print("  2. 食糧を食べる (食糧がありません)")
+
+    print("  3. 食べない")
+    options.append("3")
 
     return get_input("選択: ", options)
 
@@ -321,11 +399,11 @@ def show_shop(player: Player) -> list[tuple[str, int]]:
     return purchases
 
 
-def show_discard_menu(stock: Stock, current_day: int) -> list[tuple[str, int]]:
+def show_discard_menu(stock: Stock, current_day: int, freshness_extend: int = 0) -> list[tuple[str, int]]:
     """食材廃棄メニュー
     Returns: [(食材名, 廃棄数), ...]
     """
-    items = stock.get_items_for_discard(current_day)
+    items = stock.get_items_for_discard(current_day, freshness_extend)
     if not items:
         print("廃棄できる食材がありません。")
         return []
@@ -378,13 +456,122 @@ def show_discard_menu(stock: Stock, current_day: int) -> list[tuple[str, int]]:
     return discards
 
 
-def show_game_over():
+def show_online_shopping_menu() -> str:
+    """通販するか選択"""
+    print("通販サイトを見ますか？")
+    print("  1. 通販する")
+    print("  2. しない")
+    return get_input("選択: ", ["1", "2"])
+
+
+def show_online_shop(player, relics, provisions) -> tuple[list[str], list[tuple[str, int]]]:
+    """通販画面
+    Args:
+        player: プレイヤー
+        relics: RelicInventory
+        provisions: ProvisionStock
+    Returns:
+        (購入したレリック名リスト, [(食糧名, 数量), ...])
+    """
+    from game.relic import get_all_relics
+    from game.provisions import get_all_provisions
+
+    all_relics = get_all_relics()
+    all_provisions = get_all_provisions()
+
+    purchased_relics = []
+    purchased_provisions = []
+
+    while True:
+        print("\n【オンラインショップ】")
+        print(f"カード未払い残高: {player.card_debt:,}円")
+        print()
+
+        # レリック表示
+        print("[レリック]")
+        relic_options = []
+        for i, relic in enumerate(all_relics, 1):
+            owned = relics.has(relic.name)
+            status = " [購入済]" if owned else ""
+            print(f"  {i}. {relic.name} ({relic.price:,}円) - {relic.description}{status}")
+            if not owned:
+                relic_options.append((str(i), relic))
+
+        # 食糧表示
+        print("\n[食糧]")
+        provision_start = len(all_relics) + 1
+        for i, prov in enumerate(all_provisions, provision_start):
+            print(f"  {i}. {prov.name} ({prov.price:,}円) - 満腹{prov.fullness}")
+
+        print("\n  0. 購入完了")
+
+        choice = input("番号を入力: ").strip()
+        if choice == "0":
+            break
+
+        try:
+            idx = int(choice)
+            # レリック購入
+            if 1 <= idx <= len(all_relics):
+                relic = all_relics[idx - 1]
+                if relics.has(relic.name):
+                    print("すでに購入済みです。")
+                else:
+                    player.add_card_debt(relic.price)
+                    relics.add(relic.name)
+                    purchased_relics.append(relic.name)
+                    print(f"{relic.name}を購入しました！ (カード: +{relic.price:,}円)")
+
+            # 食糧購入
+            elif provision_start <= idx < provision_start + len(all_provisions):
+                prov = all_provisions[idx - provision_start]
+                qty_input = input(f"{prov.name}を何個買いますか？ (1-10): ").strip()
+                try:
+                    qty = int(qty_input)
+                    if 1 <= qty <= 10:
+                        total = prov.price * qty
+                        player.add_card_debt(total)
+                        provisions.add(prov.name, qty)
+                        purchased_provisions.append((prov.name, qty))
+                        print(f"{prov.name}を{qty}個購入しました！ (カード: +{total:,}円)")
+                    else:
+                        print("1から10の間で入力してください。")
+                except ValueError:
+                    print("数値を入力してください。")
+            else:
+                print("無効な番号です。")
+        except ValueError:
+            print("数値を入力してください。")
+
+    return purchased_relics, purchased_provisions
+
+
+def show_game_over(reason: str = "stamina"):
     """ゲームオーバー表示"""
     print("\n" + "=" * 50)
     print("       ゲームオーバー")
     print("=" * 50)
-    print("体力またはお金が尽きてしまいました...")
-    print("一人暮らしは大変ですね。")
+    if reason == "card":
+        print("カードの支払いができませんでした...")
+        print("計画的な買い物を心がけましょう。")
+    else:
+        print("体力またはお金が尽きてしまいました...")
+        print("一人暮らしは大変ですね。")
+
+
+def show_card_settlement(player: Player) -> bool:
+    """カード精算を表示。精算成功ならTrue"""
+    if player.card_debt == 0:
+        return True
+
+    print("\n【カード精算】")
+    print(f"  現金残高: {player.money:,}円")
+    print(f"  カード未払い: {player.card_debt:,}円")
+    print("  " + "─" * 20)
+    final = player.get_final_balance()
+    print(f"  最終残高: {final:,}円")
+    print()
+    return final >= 0
 
 
 def show_game_clear(player: Player, day_state):
@@ -393,7 +580,14 @@ def show_game_clear(player: Player, day_state):
     print("       ゲームクリア！")
     print("=" * 50)
     print(f"1ヶ月間を生き延びました！")
-    print(f"最終所持金: {player.money:,}円")
+
+    if player.card_debt > 0:
+        show_card_settlement(player)
+        final = player.get_final_balance()
+        print(f"最終残高: {final:,}円")
+    else:
+        print(f"最終所持金: {player.money:,}円")
+
     print("素晴らしい自炊生活でした！")
 
 
