@@ -263,6 +263,8 @@ def handle_shopping(game: GameManager):
         else:
             print("何も買いませんでした。")
 
+        print("\n帰宅しました。")
+
         # 帰宅後：期限切れ食材がある場合は廃棄オプションを表示
         if game.stock.has_expired_items(current_day, game.get_freshness_extend()):
             print()
@@ -312,6 +314,8 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
             game.stats.record_shopping(total_cost, total_items)
         else:
             print("何も買いませんでした。")
+
+        print("\n帰宅しました。")
 
         # 帰宅後：期限切れ食材がある場合は廃棄オプションを表示
         if game.stock.has_expired_items(current_day, game.get_freshness_extend()):
