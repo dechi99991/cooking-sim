@@ -607,6 +607,42 @@ def show_title():
     input("Enterキーでスタート...")
 
 
+def show_character_select():
+    """キャラクター選択画面
+    Returns: 選択されたCharacter
+    """
+    from game.character import get_all_characters
+
+    characters = get_all_characters()
+
+    print("=" * 50)
+    print("    キャラクター選択")
+    print("=" * 50)
+    print()
+
+    for i, char in enumerate(characters, 1):
+        print(f"  {i}. {char.name}")
+        print(f"     {char.description}")
+        print(f"     初期所持金: {char.initial_money:,}円 / 月給: {char.salary_amount:,}円", end="")
+        if char.has_bonus:
+            print(f" / ボーナス: {char.bonus_amount:,}円")
+        else:
+            print(" / ボーナス: なし")
+        print()
+
+    while True:
+        choice = input("キャラクターを選択 (1-{}): ".format(len(characters))).strip()
+        try:
+            idx = int(choice)
+            if 1 <= idx <= len(characters):
+                selected = characters[idx - 1]
+                print(f"\n{selected.name}を選択しました。\n")
+                return selected
+        except ValueError:
+            pass
+        print("無効な入力です。")
+
+
 def show_game_result(result):
     """ゲーム結果の詳細を表示"""
     print("\n" + "─" * 50)

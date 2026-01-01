@@ -15,7 +15,8 @@ from ui.terminal import (
     show_shopping_menu, show_shop, show_discard_menu,
     show_online_shopping_menu, show_online_shop, show_card_settlement,
     show_game_over, show_game_clear, show_title, select_ingredients,
-    show_game_result, show_provision_stock, select_provision
+    show_game_result, show_provision_stock, select_provision,
+    show_character_select
 )
 from game.provisions import get_provision
 
@@ -497,12 +498,26 @@ def main():
     show_title()
     clear_screen()
 
-    # 初期化
-    player = Player()
+    # キャラクター選択
+    character = show_character_select()
+    clear_screen()
+
+    # 初期化（キャラクター設定を反映）
+    player = Player(
+        money=character.initial_money,
+        energy=character.initial_energy,
+        stamina=character.initial_stamina,
+    )
     stock = create_initial_stock()
-    game = GameManager(player, stock)
+    game = GameManager(
+        player, stock,
+        has_bonus=character.has_bonus,
+        salary_amount=character.salary_amount,
+        bonus_amount=character.bonus_amount,
+    )
 
     # ゲーム開始
+    print(f"【{character.name}】でスタート！")
     print(f"【初期状態】")
     show_status(player, game.day_state)
     show_stock(stock, game.day_state.day, game.get_freshness_extend())

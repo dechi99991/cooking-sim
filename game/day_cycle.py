@@ -124,7 +124,10 @@ class DayState:
 class GameManager:
     """ゲーム全体を管理するクラス"""
 
-    def __init__(self, player: Player, stock: Stock, has_bonus: bool = True):
+    def __init__(self, player: Player, stock: Stock,
+                 has_bonus: bool = True,
+                 salary_amount: int | None = None,
+                 bonus_amount: int | None = None):
         self.player = player
         self.stock = stock
         self.day_state = DayState()
@@ -132,6 +135,9 @@ class GameManager:
         self.relics = RelicInventory()  # レリック所持
         self.provisions = ProvisionStock()  # 食糧ストック
         self.has_bonus = has_bonus  # ボーナスの有無（キャラ設定用）
+        # キャラクター別の給料・ボーナス（Noneならデフォルト値を使用）
+        self._salary_amount = salary_amount if salary_amount is not None else SALARY_AMOUNT
+        self._bonus_amount = bonus_amount if bonus_amount is not None else BONUS_AMOUNT
 
     def get_cooking_energy_cost(self) -> int:
         """レリック効果を反映した調理気力コストを取得"""
@@ -272,17 +278,19 @@ class GameManager:
 
     def pay_salary(self) -> int:
         """給料を支払う。支払った金額を返す"""
-        self.player.money += SALARY_AMOUNT
-        self.stats.record_salary(SALARY_AMOUNT)
-        return SALARY_AMOUNT
+        amount = self._salary_amount
+        self.player.money += amount
+        self.stats.record_salary(amount)
+        return amount
 
     def pay_bonus(self) -> int:
         """ボーナスを支払う。支払った金額を返す"""
         if not self.has_bonus:
             return 0
-        self.player.money += BONUS_AMOUNT
-        self.stats.record_bonus(BONUS_AMOUNT)
-        return BONUS_AMOUNT
+        amount = self._bonus_amount
+        self.player.money += amount
+        self.stats.record_bonus(amount)
+        return amount
 
     def get_game_over_reason(self) -> str | None:
         """ゲームオーバーの理由を取得"""
