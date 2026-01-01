@@ -47,16 +47,20 @@ def eat_provision(game: GameManager) -> bool:
             game.provisions.remove(name, 1)
             game.player.add_fullness(prov.fullness)
             game.day_state.daily_nutrition.add(prov.nutrition)
-            # カフェイン摂取
+            # カフェイン摂取 → 気力回復
             if prov.caffeine > 0:
                 game.add_caffeine(prov.caffeine)
+                energy_boost = prov.caffeine * 2  # カフェイン1につき気力+2
+                game.player.energy = min(game.player.energy + energy_boost, 10)
             print(f"【{name}】を食べました！")
             print(f"  満腹度: +{prov.fullness}")
             n = prov.nutrition
             print(f"  栄養: 活力{n.vitality} 心力{n.mental} 覚醒{n.awakening} 持続{n.sustain} 防衛{n.defense}")
             if prov.caffeine > 0:
-                print(f"  カフェイン: +{prov.caffeine}")
-            print(f"満腹感: {game.player.fullness}")
+                print(f"  ☕ カフェイン: +{prov.caffeine} → 気力+{prov.caffeine * 2}")
+                if game.will_have_insomnia():
+                    print(f"  ⚠ カフェイン過多！今夜は不眠になりそう...")
+            print(f"満腹感: {game.player.fullness}  気力: {game.player.energy}")
             game.stats.record_meal_eaten()
             return True
     return False

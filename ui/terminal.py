@@ -79,7 +79,7 @@ def show_provision_stock(provisions):
         for name, qty in items.items():
             prov = get_provision(name)
             if prov:
-                caffeine_info = f", ☕{prov.caffeine}" if prov.caffeine > 0 else ""
+                caffeine_info = f", ☕気力+{prov.caffeine * 2}" if prov.caffeine > 0 else ""
                 print(f"  {name}: {qty}個 (満腹{prov.fullness}{caffeine_info})")
         print()
     else:
@@ -100,7 +100,7 @@ def select_provision(provisions) -> str | None:
         qty = provisions.get_quantity(name)
         prov = get_provision(name)
         if prov:
-            caffeine_info = f", ☕{prov.caffeine}" if prov.caffeine > 0 else ""
+            caffeine_info = f", ☕{prov.caffeine}→気力+{prov.caffeine * 2}" if prov.caffeine > 0 else ""
             print(f"  {i}. {name} (残り{qty}個, 満腹{prov.fullness}{caffeine_info})")
     print("  0. キャンセル")
 
@@ -503,7 +503,7 @@ def show_online_shop(player, relics, provisions) -> tuple[list[str], list[tuple[
         print("\n[食糧]")
         provision_start = len(all_relics) + 1
         for i, prov in enumerate(all_provisions, provision_start):
-            caffeine_info = f", ☕{prov.caffeine}" if prov.caffeine > 0 else ""
+            caffeine_info = f", ☕気力+{prov.caffeine * 2}" if prov.caffeine > 0 else ""
             print(f"  {i}. {prov.name} ({prov.price:,}円) - 満腹{prov.fullness}{caffeine_info}")
 
         print("\n  0. 購入完了")
