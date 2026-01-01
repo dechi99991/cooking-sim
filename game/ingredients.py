@@ -1,4 +1,5 @@
 """食材データ・ストック管理"""
+import random
 from dataclasses import dataclass
 from .nutrition import Nutrition, create_nutrition
 
@@ -12,6 +13,7 @@ class Ingredient:
     fullness: int  # 満腹度増加値
     freshness_days: int = 7  # 鮮度維持日数（この日数までは劣化なし）
     decay_rate: float = 0.1  # 1日あたりの栄養減衰率
+    category: str = "その他"  # カテゴリ
 
     def __hash__(self):
         return hash(self.name)
@@ -22,48 +24,125 @@ class Ingredient:
         return False
 
 
-# 食材マスターデータ
+# 食材マスターデータ（100種類）
 INGREDIENTS = {
-    '米': Ingredient(
-        name='米',
-        price=200,
-        nutrition=create_nutrition(vitality=2, mental=1, awakening=1, sustain=3, defense=1),
-        fullness=3,
-        freshness_days=14,  # 長期保存可能
-        decay_rate=0.05
-    ),
-    '卵': Ingredient(
-        name='卵',
-        price=100,
-        nutrition=create_nutrition(vitality=3, mental=2, awakening=2, sustain=1, defense=2),
-        fullness=2,
-        freshness_days=5,
-        decay_rate=0.10
-    ),
-    '野菜': Ingredient(
-        name='野菜',
-        price=150,
-        nutrition=create_nutrition(vitality=1, mental=2, awakening=1, sustain=1, defense=3),
-        fullness=1,
-        freshness_days=3,  # 傷みやすい
-        decay_rate=0.15
-    ),
-    '肉': Ingredient(
-        name='肉',
-        price=300,
-        nutrition=create_nutrition(vitality=4, mental=1, awakening=1, sustain=2, defense=2),
-        fullness=3,
-        freshness_days=2,  # 最も傷みやすい
-        decay_rate=0.20
-    ),
-    '納豆': Ingredient(
-        name='納豆',
-        price=80,
-        nutrition=create_nutrition(vitality=2, mental=3, awakening=2, sustain=2, defense=3),
-        fullness=1,
-        freshness_days=7,  # 発酵食品
-        decay_rate=0.10
-    ),
+    # === 穀物・主食 (10種類) ===
+    '米': Ingredient(name='米', price=200, nutrition=create_nutrition(2, 1, 1, 3, 1), fullness=3, freshness_days=14, decay_rate=0.05, category='穀物'),
+    'パン': Ingredient(name='パン', price=150, nutrition=create_nutrition(1, 1, 2, 2, 1), fullness=2, freshness_days=3, decay_rate=0.15, category='穀物'),
+    'うどん': Ingredient(name='うどん', price=100, nutrition=create_nutrition(1, 1, 1, 3, 1), fullness=3, freshness_days=5, decay_rate=0.10, category='穀物'),
+    'そば': Ingredient(name='そば', price=120, nutrition=create_nutrition(2, 1, 1, 2, 2), fullness=3, freshness_days=5, decay_rate=0.10, category='穀物'),
+    'パスタ': Ingredient(name='パスタ', price=180, nutrition=create_nutrition(1, 1, 1, 3, 1), fullness=3, freshness_days=30, decay_rate=0.02, category='穀物'),
+    'ラーメン': Ingredient(name='ラーメン', price=130, nutrition=create_nutrition(1, 2, 2, 2, 1), fullness=3, freshness_days=14, decay_rate=0.05, category='穀物'),
+    'もち': Ingredient(name='もち', price=250, nutrition=create_nutrition(1, 1, 1, 4, 1), fullness=4, freshness_days=10, decay_rate=0.08, category='穀物'),
+    'シリアル': Ingredient(name='シリアル', price=350, nutrition=create_nutrition(2, 2, 3, 2, 2), fullness=2, freshness_days=60, decay_rate=0.01, category='穀物'),
+    'オートミール': Ingredient(name='オートミール', price=300, nutrition=create_nutrition(3, 2, 2, 3, 2), fullness=3, freshness_days=60, decay_rate=0.01, category='穀物'),
+    '食パン': Ingredient(name='食パン', price=120, nutrition=create_nutrition(1, 1, 2, 2, 1), fullness=2, freshness_days=4, decay_rate=0.12, category='穀物'),
+
+    # === 野菜 (20種類) ===
+    'キャベツ': Ingredient(name='キャベツ', price=150, nutrition=create_nutrition(1, 2, 1, 1, 3), fullness=1, freshness_days=7, decay_rate=0.10, category='野菜'),
+    'にんじん': Ingredient(name='にんじん', price=100, nutrition=create_nutrition(1, 1, 1, 1, 4), fullness=1, freshness_days=10, decay_rate=0.08, category='野菜'),
+    'たまねぎ': Ingredient(name='たまねぎ', price=80, nutrition=create_nutrition(1, 1, 1, 2, 2), fullness=1, freshness_days=14, decay_rate=0.05, category='野菜'),
+    'じゃがいも': Ingredient(name='じゃがいも', price=100, nutrition=create_nutrition(1, 1, 1, 3, 1), fullness=2, freshness_days=14, decay_rate=0.05, category='野菜'),
+    'トマト': Ingredient(name='トマト', price=180, nutrition=create_nutrition(1, 2, 2, 1, 3), fullness=1, freshness_days=5, decay_rate=0.12, category='野菜'),
+    'ほうれん草': Ingredient(name='ほうれん草', price=200, nutrition=create_nutrition(2, 2, 1, 1, 4), fullness=1, freshness_days=3, decay_rate=0.15, category='野菜'),
+    'レタス': Ingredient(name='レタス', price=150, nutrition=create_nutrition(1, 1, 1, 1, 3), fullness=1, freshness_days=4, decay_rate=0.15, category='野菜'),
+    'ピーマン': Ingredient(name='ピーマン', price=120, nutrition=create_nutrition(1, 2, 1, 1, 3), fullness=1, freshness_days=7, decay_rate=0.10, category='野菜'),
+    'なす': Ingredient(name='なす', price=130, nutrition=create_nutrition(1, 1, 1, 1, 2), fullness=1, freshness_days=5, decay_rate=0.12, category='野菜'),
+    'きゅうり': Ingredient(name='きゅうり', price=100, nutrition=create_nutrition(1, 1, 1, 1, 2), fullness=1, freshness_days=5, decay_rate=0.12, category='野菜'),
+    'もやし': Ingredient(name='もやし', price=30, nutrition=create_nutrition(1, 1, 1, 1, 1), fullness=1, freshness_days=2, decay_rate=0.20, category='野菜'),
+    'ねぎ': Ingredient(name='ねぎ', price=100, nutrition=create_nutrition(1, 1, 1, 1, 2), fullness=1, freshness_days=7, decay_rate=0.10, category='野菜'),
+    'だいこん': Ingredient(name='だいこん', price=150, nutrition=create_nutrition(1, 1, 1, 2, 2), fullness=2, freshness_days=10, decay_rate=0.08, category='野菜'),
+    'かぼちゃ': Ingredient(name='かぼちゃ', price=200, nutrition=create_nutrition(2, 1, 1, 2, 3), fullness=2, freshness_days=14, decay_rate=0.05, category='野菜'),
+    'ブロッコリー': Ingredient(name='ブロッコリー', price=200, nutrition=create_nutrition(2, 2, 1, 1, 4), fullness=1, freshness_days=5, decay_rate=0.12, category='野菜'),
+    'アスパラガス': Ingredient(name='アスパラガス', price=250, nutrition=create_nutrition(2, 2, 2, 1, 3), fullness=1, freshness_days=4, decay_rate=0.15, category='野菜'),
+    'ごぼう': Ingredient(name='ごぼう', price=150, nutrition=create_nutrition(1, 1, 1, 2, 3), fullness=1, freshness_days=10, decay_rate=0.08, category='野菜'),
+    'れんこん': Ingredient(name='れんこん', price=200, nutrition=create_nutrition(1, 1, 1, 2, 3), fullness=2, freshness_days=7, decay_rate=0.10, category='野菜'),
+    'にら': Ingredient(name='にら', price=100, nutrition=create_nutrition(2, 1, 2, 1, 2), fullness=1, freshness_days=4, decay_rate=0.15, category='野菜'),
+    '白菜': Ingredient(name='白菜', price=180, nutrition=create_nutrition(1, 1, 1, 1, 3), fullness=1, freshness_days=7, decay_rate=0.10, category='野菜'),
+
+    # === 肉類 (15種類) ===
+    '鶏むね肉': Ingredient(name='鶏むね肉', price=250, nutrition=create_nutrition(4, 1, 1, 2, 2), fullness=3, freshness_days=2, decay_rate=0.20, category='肉'),
+    '鶏もも肉': Ingredient(name='鶏もも肉', price=280, nutrition=create_nutrition(4, 2, 1, 2, 2), fullness=3, freshness_days=2, decay_rate=0.20, category='肉'),
+    '豚バラ肉': Ingredient(name='豚バラ肉', price=350, nutrition=create_nutrition(4, 2, 1, 3, 2), fullness=4, freshness_days=2, decay_rate=0.20, category='肉'),
+    '豚ロース': Ingredient(name='豚ロース', price=400, nutrition=create_nutrition(4, 2, 1, 2, 2), fullness=3, freshness_days=2, decay_rate=0.20, category='肉'),
+    '牛切り落とし': Ingredient(name='牛切り落とし', price=500, nutrition=create_nutrition(5, 2, 1, 2, 3), fullness=3, freshness_days=2, decay_rate=0.20, category='肉'),
+    '牛ステーキ': Ingredient(name='牛ステーキ', price=800, nutrition=create_nutrition(5, 3, 2, 3, 3), fullness=4, freshness_days=2, decay_rate=0.20, category='肉'),
+    'ひき肉': Ingredient(name='ひき肉', price=300, nutrition=create_nutrition(4, 1, 1, 2, 2), fullness=3, freshness_days=1, decay_rate=0.25, category='肉'),
+    'ベーコン': Ingredient(name='ベーコン', price=350, nutrition=create_nutrition(3, 2, 2, 2, 2), fullness=2, freshness_days=7, decay_rate=0.10, category='肉'),
+    'ハム': Ingredient(name='ハム', price=300, nutrition=create_nutrition(3, 1, 1, 2, 2), fullness=2, freshness_days=7, decay_rate=0.10, category='肉'),
+    'ソーセージ': Ingredient(name='ソーセージ', price=280, nutrition=create_nutrition(3, 2, 2, 2, 2), fullness=2, freshness_days=7, decay_rate=0.10, category='肉'),
+    '鶏ささみ': Ingredient(name='鶏ささみ', price=230, nutrition=create_nutrition(5, 1, 1, 1, 2), fullness=2, freshness_days=2, decay_rate=0.20, category='肉'),
+    '手羽先': Ingredient(name='手羽先', price=200, nutrition=create_nutrition(3, 2, 1, 2, 2), fullness=2, freshness_days=2, decay_rate=0.20, category='肉'),
+    'レバー': Ingredient(name='レバー', price=180, nutrition=create_nutrition(4, 3, 2, 1, 4), fullness=2, freshness_days=1, decay_rate=0.25, category='肉'),
+    'ラム肉': Ingredient(name='ラム肉', price=600, nutrition=create_nutrition(4, 2, 1, 2, 3), fullness=3, freshness_days=2, decay_rate=0.20, category='肉'),
+    '鶏レバー': Ingredient(name='鶏レバー', price=150, nutrition=create_nutrition(3, 3, 2, 1, 4), fullness=2, freshness_days=1, decay_rate=0.25, category='肉'),
+
+    # === 魚介類 (15種類) ===
+    'サーモン': Ingredient(name='サーモン', price=400, nutrition=create_nutrition(4, 3, 2, 2, 3), fullness=3, freshness_days=2, decay_rate=0.20, category='魚'),
+    'マグロ': Ingredient(name='マグロ', price=500, nutrition=create_nutrition(5, 2, 2, 2, 3), fullness=3, freshness_days=1, decay_rate=0.25, category='魚'),
+    'サバ': Ingredient(name='サバ', price=250, nutrition=create_nutrition(4, 3, 2, 2, 3), fullness=3, freshness_days=2, decay_rate=0.20, category='魚'),
+    'アジ': Ingredient(name='アジ', price=200, nutrition=create_nutrition(3, 2, 2, 2, 3), fullness=2, freshness_days=2, decay_rate=0.20, category='魚'),
+    'イワシ': Ingredient(name='イワシ', price=150, nutrition=create_nutrition(3, 3, 2, 2, 4), fullness=2, freshness_days=1, decay_rate=0.25, category='魚'),
+    'タラ': Ingredient(name='タラ', price=300, nutrition=create_nutrition(4, 2, 1, 2, 2), fullness=2, freshness_days=2, decay_rate=0.20, category='魚'),
+    'エビ': Ingredient(name='エビ', price=450, nutrition=create_nutrition(4, 2, 2, 1, 3), fullness=2, freshness_days=2, decay_rate=0.20, category='魚'),
+    'イカ': Ingredient(name='イカ', price=350, nutrition=create_nutrition(3, 2, 2, 2, 2), fullness=2, freshness_days=2, decay_rate=0.20, category='魚'),
+    'タコ': Ingredient(name='タコ', price=400, nutrition=create_nutrition(3, 2, 2, 2, 2), fullness=2, freshness_days=2, decay_rate=0.20, category='魚'),
+    'ホタテ': Ingredient(name='ホタテ', price=500, nutrition=create_nutrition(4, 2, 2, 1, 3), fullness=2, freshness_days=2, decay_rate=0.20, category='魚'),
+    'アサリ': Ingredient(name='アサリ', price=250, nutrition=create_nutrition(2, 3, 1, 1, 4), fullness=1, freshness_days=2, decay_rate=0.20, category='魚'),
+    'シジミ': Ingredient(name='シジミ', price=200, nutrition=create_nutrition(2, 4, 1, 1, 4), fullness=1, freshness_days=2, decay_rate=0.20, category='魚'),
+    'カキ': Ingredient(name='カキ', price=450, nutrition=create_nutrition(3, 4, 2, 1, 4), fullness=2, freshness_days=2, decay_rate=0.20, category='魚'),
+    'ししゃも': Ingredient(name='ししゃも', price=200, nutrition=create_nutrition(3, 2, 2, 2, 3), fullness=2, freshness_days=3, decay_rate=0.18, category='魚'),
+    'しらす': Ingredient(name='しらす', price=300, nutrition=create_nutrition(3, 2, 2, 1, 4), fullness=1, freshness_days=3, decay_rate=0.18, category='魚'),
+
+    # === 卵・乳製品 (10種類) ===
+    '卵': Ingredient(name='卵', price=100, nutrition=create_nutrition(3, 2, 2, 1, 2), fullness=2, freshness_days=14, decay_rate=0.05, category='卵乳'),
+    '牛乳': Ingredient(name='牛乳', price=180, nutrition=create_nutrition(2, 2, 2, 1, 3), fullness=1, freshness_days=7, decay_rate=0.10, category='卵乳'),
+    'ヨーグルト': Ingredient(name='ヨーグルト', price=150, nutrition=create_nutrition(2, 2, 2, 1, 3), fullness=1, freshness_days=10, decay_rate=0.08, category='卵乳'),
+    'チーズ': Ingredient(name='チーズ', price=300, nutrition=create_nutrition(3, 2, 1, 2, 3), fullness=2, freshness_days=14, decay_rate=0.05, category='卵乳'),
+    'バター': Ingredient(name='バター', price=350, nutrition=create_nutrition(1, 1, 1, 2, 1), fullness=1, freshness_days=30, decay_rate=0.02, category='卵乳'),
+    '生クリーム': Ingredient(name='生クリーム', price=300, nutrition=create_nutrition(1, 1, 1, 2, 1), fullness=1, freshness_days=5, decay_rate=0.12, category='卵乳'),
+    'クリームチーズ': Ingredient(name='クリームチーズ', price=350, nutrition=create_nutrition(2, 1, 1, 2, 2), fullness=2, freshness_days=14, decay_rate=0.05, category='卵乳'),
+    'スライスチーズ': Ingredient(name='スライスチーズ', price=250, nutrition=create_nutrition(2, 2, 1, 2, 2), fullness=1, freshness_days=21, decay_rate=0.03, category='卵乳'),
+    'モッツァレラ': Ingredient(name='モッツァレラ', price=400, nutrition=create_nutrition(3, 2, 1, 2, 2), fullness=2, freshness_days=7, decay_rate=0.10, category='卵乳'),
+    'うずら卵': Ingredient(name='うずら卵', price=150, nutrition=create_nutrition(3, 2, 2, 1, 2), fullness=1, freshness_days=10, decay_rate=0.08, category='卵乳'),
+
+    # === 豆類・大豆製品 (10種類) ===
+    '納豆': Ingredient(name='納豆', price=80, nutrition=create_nutrition(2, 3, 2, 2, 3), fullness=1, freshness_days=7, decay_rate=0.10, category='豆'),
+    '豆腐': Ingredient(name='豆腐', price=100, nutrition=create_nutrition(2, 2, 1, 1, 2), fullness=2, freshness_days=5, decay_rate=0.12, category='豆'),
+    '油揚げ': Ingredient(name='油揚げ', price=80, nutrition=create_nutrition(2, 1, 1, 2, 1), fullness=1, freshness_days=5, decay_rate=0.12, category='豆'),
+    '厚揚げ': Ingredient(name='厚揚げ', price=120, nutrition=create_nutrition(2, 2, 1, 2, 2), fullness=2, freshness_days=4, decay_rate=0.15, category='豆'),
+    '豆乳': Ingredient(name='豆乳', price=180, nutrition=create_nutrition(2, 2, 1, 1, 2), fullness=1, freshness_days=10, decay_rate=0.08, category='豆'),
+    '枝豆': Ingredient(name='枝豆', price=200, nutrition=create_nutrition(3, 2, 2, 2, 2), fullness=1, freshness_days=3, decay_rate=0.18, category='豆'),
+    'ひよこ豆': Ingredient(name='ひよこ豆', price=250, nutrition=create_nutrition(2, 2, 1, 3, 2), fullness=2, freshness_days=30, decay_rate=0.02, category='豆'),
+    '大豆': Ingredient(name='大豆', price=200, nutrition=create_nutrition(3, 2, 1, 3, 2), fullness=2, freshness_days=30, decay_rate=0.02, category='豆'),
+    'がんもどき': Ingredient(name='がんもどき', price=150, nutrition=create_nutrition(2, 2, 1, 2, 2), fullness=2, freshness_days=4, decay_rate=0.15, category='豆'),
+    'おから': Ingredient(name='おから', price=80, nutrition=create_nutrition(2, 1, 1, 2, 2), fullness=2, freshness_days=3, decay_rate=0.18, category='豆'),
+
+    # === きのこ類 (5種類) ===
+    'しいたけ': Ingredient(name='しいたけ', price=150, nutrition=create_nutrition(1, 2, 1, 1, 3), fullness=1, freshness_days=5, decay_rate=0.12, category='きのこ'),
+    'えのき': Ingredient(name='えのき', price=100, nutrition=create_nutrition(1, 1, 1, 1, 2), fullness=1, freshness_days=5, decay_rate=0.12, category='きのこ'),
+    'しめじ': Ingredient(name='しめじ', price=120, nutrition=create_nutrition(1, 2, 1, 1, 2), fullness=1, freshness_days=5, decay_rate=0.12, category='きのこ'),
+    'まいたけ': Ingredient(name='まいたけ', price=180, nutrition=create_nutrition(1, 2, 1, 1, 3), fullness=1, freshness_days=4, decay_rate=0.15, category='きのこ'),
+    'エリンギ': Ingredient(name='エリンギ', price=150, nutrition=create_nutrition(1, 1, 1, 2, 2), fullness=1, freshness_days=7, decay_rate=0.10, category='きのこ'),
+
+    # === 果物 (5種類) ===
+    'りんご': Ingredient(name='りんご', price=150, nutrition=create_nutrition(1, 2, 2, 1, 2), fullness=1, freshness_days=14, decay_rate=0.05, category='果物'),
+    'バナナ': Ingredient(name='バナナ', price=100, nutrition=create_nutrition(2, 2, 3, 2, 1), fullness=2, freshness_days=5, decay_rate=0.12, category='果物'),
+    'みかん': Ingredient(name='みかん', price=120, nutrition=create_nutrition(1, 1, 2, 1, 3), fullness=1, freshness_days=10, decay_rate=0.08, category='果物'),
+    'レモン': Ingredient(name='レモン', price=100, nutrition=create_nutrition(1, 1, 2, 1, 4), fullness=0, freshness_days=14, decay_rate=0.05, category='果物'),
+    'キウイ': Ingredient(name='キウイ', price=150, nutrition=create_nutrition(1, 2, 2, 1, 3), fullness=1, freshness_days=7, decay_rate=0.10, category='果物'),
+
+    # === 調味料・その他 (10種類) ===
+    'にんにく': Ingredient(name='にんにく', price=100, nutrition=create_nutrition(1, 1, 2, 1, 2), fullness=0, freshness_days=21, decay_rate=0.03, category='調味料'),
+    'しょうが': Ingredient(name='しょうが', price=100, nutrition=create_nutrition(1, 1, 2, 1, 2), fullness=0, freshness_days=14, decay_rate=0.05, category='調味料'),
+    'わかめ': Ingredient(name='わかめ', price=150, nutrition=create_nutrition(1, 2, 1, 1, 4), fullness=0, freshness_days=30, decay_rate=0.02, category='調味料'),
+    '昆布': Ingredient(name='昆布', price=200, nutrition=create_nutrition(1, 2, 1, 1, 4), fullness=0, freshness_days=60, decay_rate=0.01, category='調味料'),
+    'かつお節': Ingredient(name='かつお節', price=250, nutrition=create_nutrition(2, 2, 1, 1, 2), fullness=0, freshness_days=60, decay_rate=0.01, category='調味料'),
+    '梅干し': Ingredient(name='梅干し', price=300, nutrition=create_nutrition(1, 1, 2, 1, 3), fullness=0, freshness_days=90, decay_rate=0.01, category='調味料'),
+    'キムチ': Ingredient(name='キムチ', price=250, nutrition=create_nutrition(1, 2, 2, 1, 3), fullness=1, freshness_days=14, decay_rate=0.05, category='調味料'),
+    '漬物': Ingredient(name='漬物', price=200, nutrition=create_nutrition(1, 1, 1, 1, 2), fullness=1, freshness_days=14, decay_rate=0.05, category='調味料'),
+    'こんにゃく': Ingredient(name='こんにゃく', price=80, nutrition=create_nutrition(0, 0, 0, 1, 1), fullness=2, freshness_days=30, decay_rate=0.02, category='調味料'),
+    '春雨': Ingredient(name='春雨', price=150, nutrition=create_nutrition(1, 0, 0, 2, 0), fullness=2, freshness_days=60, decay_rate=0.01, category='調味料'),
 }
 
 
@@ -243,12 +322,49 @@ def get_shop_items() -> list[tuple[str, int]]:
     return [(ing.name, ing.price) for ing in INGREDIENTS.values()]
 
 
+@dataclass
+class ShopItem:
+    """店頭に並ぶ商品"""
+    ingredient: Ingredient
+    price: int  # 実際の販売価格
+    discount_type: str  # "none", "sale", "near_expiry"
+    freshness_days_left: int  # 購入時の残り鮮度日数（near_expiryの場合は少ない）
+
+
+def generate_daily_shop_items(seed: int | None = None) -> list[ShopItem]:
+    """その日の店頭商品を生成（5種類、1つ2割引、1つ半額で期限近い）"""
+    if seed is not None:
+        random.seed(seed)
+
+    all_ingredients = list(INGREDIENTS.values())
+    selected = random.sample(all_ingredients, min(5, len(all_ingredients)))
+
+    shop_items = []
+    discount_idx = random.randint(0, len(selected) - 1)  # 2割引の商品
+    near_expiry_idx = (discount_idx + 1 + random.randint(0, len(selected) - 2)) % len(selected)  # 半額商品
+
+    for i, ing in enumerate(selected):
+        if i == discount_idx:
+            # 2割引
+            price = int(ing.price * 0.8)
+            shop_items.append(ShopItem(ing, price, "sale", ing.freshness_days))
+        elif i == near_expiry_idx:
+            # 半額だが期限近い（残り1日）
+            price = int(ing.price * 0.5)
+            shop_items.append(ShopItem(ing, price, "near_expiry", 1))
+        else:
+            # 通常価格
+            shop_items.append(ShopItem(ing, ing.price, "none", ing.freshness_days))
+
+    return shop_items
+
+
 def create_initial_stock(start_day: int = 1) -> Stock:
     """初期ストックを作成（新社会人スタート用）"""
     stock = Stock()
     # 親が持たせてくれた食材（ゲーム開始日に購入扱い）
     stock.add('米', 3, start_day)
     stock.add('卵', 2, start_day)
-    stock.add('野菜', 1, start_day)
+    stock.add('キャベツ', 1, start_day)
     stock.add('納豆', 2, start_day)
     return stock

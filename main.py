@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, '.')
 
 from game.player import Player
-from game.ingredients import create_initial_stock
+from game.ingredients import create_initial_stock, get_ingredient, generate_daily_shop_items
 from game.cooking import cook, create_cafeteria_dish
 from game.day_cycle import GameManager, GamePhase
 from ui.terminal import (
@@ -241,22 +241,34 @@ def handle_shopping(game: GameManager):
         print(f"スーパーへ向かいます... (気力: {game.player.energy}, 体力: {game.player.stamina})")
         print()
 
-        purchases = show_shop(game.player)
+        # 本日の商品を生成（日付をシードにして毎日異なるラインナップ）
+        shop_items = generate_daily_shop_items(seed=current_day)
+        purchases = show_shop(game.player, shop_items)
 
         if purchases:
             total_cost = 0
             total_items = 0
             print("\n【購入品】")
-            for name, qty in purchases:
-                from game.ingredients import get_ingredient
+            for name, qty, freshness_days_left in purchases:
                 ingredient = get_ingredient(name)
                 if ingredient:
-                    cost = ingredient.price * qty
-                    total_cost += cost
-                    total_items += qty
-                    game.player.consume_money(cost)
-                    game.stock.add(name, qty, current_day)
+                    # 購入時の価格は既に支払い済み（show_shop内で計算）
+                    # ここでは在庫に追加する
+                    # 期限近い商品は「有効購入日」を調整して鮮度を短く
+                    if freshness_days_left < ingredient.freshness_days:
+                        # 残り鮮度日数から逆算した「有効購入日」を設定
+                        effective_day = current_day - (ingredient.freshness_days - freshness_days_left)
+                    else:
+                        effective_day = current_day
+                    game.stock.add(name, qty, effective_day)
                     print(f"  {name} x{qty}")
+                    total_items += qty
+            # 合計金額の計算（shop_itemsから逆引き）
+            shop_item_map = {item.ingredient.name: item for item in shop_items}
+            for name, qty, _ in purchases:
+                if name in shop_item_map:
+                    total_cost += shop_item_map[name].price * qty
+            game.player.consume_money(total_cost)
             print(f"合計: {total_cost}円")
             print(f"残り所持金: {game.player.money:,}円")
             game.stats.record_shopping(total_cost, total_items)
@@ -293,22 +305,32 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
         print(f"スーパーへ向かいます... (気力: {game.player.energy}, 体力: {game.player.stamina})")
         print()
 
-        purchases = show_shop(game.player)
+        # 本日の商品を生成（日付+フェーズでシードを変えて1日2回でも別ラインナップ）
+        phase_offset = 100 if phase == GamePhase.HOLIDAY_SHOPPING_2 else 0
+        shop_items = generate_daily_shop_items(seed=current_day + phase_offset)
+        purchases = show_shop(game.player, shop_items)
 
         if purchases:
             total_cost = 0
             total_items = 0
             print("\n【購入品】")
-            for name, qty in purchases:
-                from game.ingredients import get_ingredient
+            for name, qty, freshness_days_left in purchases:
                 ingredient = get_ingredient(name)
                 if ingredient:
-                    cost = ingredient.price * qty
-                    total_cost += cost
-                    total_items += qty
-                    game.player.consume_money(cost)
-                    game.stock.add(name, qty, current_day)
+                    # 期限近い商品は「有効購入日」を調整して鮮度を短く
+                    if freshness_days_left < ingredient.freshness_days:
+                        effective_day = current_day - (ingredient.freshness_days - freshness_days_left)
+                    else:
+                        effective_day = current_day
+                    game.stock.add(name, qty, effective_day)
                     print(f"  {name} x{qty}")
+                    total_items += qty
+            # 合計金額の計算
+            shop_item_map = {item.ingredient.name: item for item in shop_items}
+            for name, qty, _ in purchases:
+                if name in shop_item_map:
+                    total_cost += shop_item_map[name].price * qty
+            game.player.consume_money(total_cost)
             print(f"合計: {total_cost}円")
             print(f"残り所持金: {game.player.money:,}円")
             game.stats.record_shopping(total_cost, total_items)
