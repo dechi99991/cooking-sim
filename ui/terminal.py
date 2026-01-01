@@ -208,145 +208,207 @@ def show_breakfast_menu(game: GameManager) -> str:
     """朝食メニュー表示"""
     print("朝食の選択:")
     options = []
+    option_map = {}
+    num = 1
 
     if game.can_cook():
-        print("  1. 自炊する")
-        options.append("1")
-    else:
-        print("  1. 自炊する (気力または食材不足)")
+        print(f"  {num}. 自炊する")
+        option_map[str(num)] = "cook"
+        options.append(str(num))
+        num += 1
 
     if game.can_make_bento():
-        print("  2. 自炊して弁当も作る")
-        options.append("2")
-    else:
-        print("  2. 自炊して弁当も作る (気力または食材不足)")
+        print(f"  {num}. 自炊して弁当も作る")
+        option_map[str(num)] = "cook_bento"
+        options.append(str(num))
+        num += 1
 
     if not game.provisions.is_empty():
-        print("  3. 食糧を食べる")
-        options.append("3")
+        print(f"  {num}. 食糧を食べる")
+        option_map[str(num)] = "provision"
+        options.append(str(num))
+        num += 1
+
+    print(f"  {num}. 食べない")
+    option_map[str(num)] = "skip"
+    options.append(str(num))
+
+    choice = get_input("選択: ", options)
+    # 内部コードを返す
+    action = option_map[choice]
+    if action == "cook":
+        return "1"
+    elif action == "cook_bento":
+        return "2"
+    elif action == "provision":
+        return "3"
     else:
-        print("  3. 食糧を食べる (食糧がありません)")
-
-    print("  4. 食べない")
-    options.append("4")
-
-    return get_input("選択: ", options)
+        return "4"
 
 
 def show_lunch_menu(game: GameManager) -> str:
     """昼食メニュー表示（平日）"""
     print("昼食の選択:")
     options = []
+    option_map = {}
+    num = 1
 
     if game.day_state.has_bento:
-        print("  1. 弁当を食べる")
-        options.append("1")
-    else:
-        print("  1. 弁当を食べる (弁当がありません)")
+        print(f"  {num}. 弁当を食べる")
+        option_map[str(num)] = "bento"
+        options.append(str(num))
+        num += 1
 
     if game.can_use_cafeteria():
-        print(f"  2. 社食 ({CAFETERIA_PRICE}円)")
-        options.append("2")
-    else:
-        print(f"  2. 社食 (お金が足りません)")
+        print(f"  {num}. 社食 ({CAFETERIA_PRICE}円)")
+        option_map[str(num)] = "cafeteria"
+        options.append(str(num))
+        num += 1
 
-    # 食糧は持参できる（職場で食べる）
     if not game.provisions.is_empty():
-        print("  3. 食糧を食べる")
-        options.append("3")
+        print(f"  {num}. 食糧を食べる")
+        option_map[str(num)] = "provision"
+        options.append(str(num))
+        num += 1
+
+    print(f"  {num}. 食べない")
+    option_map[str(num)] = "skip"
+    options.append(str(num))
+
+    choice = get_input("選択: ", options)
+    action = option_map[choice]
+    if action == "bento":
+        return "1"
+    elif action == "cafeteria":
+        return "2"
+    elif action == "provision":
+        return "3"
     else:
-        print("  3. 食糧を食べる (食糧がありません)")
-
-    print("  4. 食べない")
-    options.append("4")
-
-    return get_input("選択: ", options)
+        return "4"
 
 
 def show_holiday_breakfast_menu(game: GameManager) -> str:
     """休日朝食メニュー表示（弁当作成なし）"""
     print("朝食の選択:")
     options = []
+    option_map = {}
+    num = 1
 
     if game.can_cook():
-        print("  1. 自炊する")
-        options.append("1")
-    else:
-        print("  1. 自炊する (気力または食材不足)")
+        print(f"  {num}. 自炊する")
+        option_map[str(num)] = "cook"
+        options.append(str(num))
+        num += 1
 
     if not game.provisions.is_empty():
-        print("  2. 食糧を食べる")
-        options.append("2")
+        print(f"  {num}. 食糧を食べる")
+        option_map[str(num)] = "provision"
+        options.append(str(num))
+        num += 1
+
+    print(f"  {num}. 食べない")
+    option_map[str(num)] = "skip"
+    options.append(str(num))
+
+    choice = get_input("選択: ", options)
+    action = option_map[choice]
+    if action == "cook":
+        return "1"
+    elif action == "provision":
+        return "2"
     else:
-        print("  2. 食糧を食べる (食糧がありません)")
-
-    print("  3. 食べない")
-    options.append("3")
-
-    return get_input("選択: ", options)
+        return "3"
 
 
 def show_holiday_lunch_menu(game: GameManager) -> str:
     """休日昼食メニュー表示（自炊可能）"""
     print("昼食の選択:")
     options = []
+    option_map = {}
+    num = 1
 
     if game.can_cook():
-        print("  1. 自炊する")
-        options.append("1")
-    else:
-        print("  1. 自炊する (気力または食材不足)")
+        print(f"  {num}. 自炊する")
+        option_map[str(num)] = "cook"
+        options.append(str(num))
+        num += 1
 
     if not game.provisions.is_empty():
-        print("  2. 食糧を食べる")
-        options.append("2")
+        print(f"  {num}. 食糧を食べる")
+        option_map[str(num)] = "provision"
+        options.append(str(num))
+        num += 1
+
+    print(f"  {num}. 食べない")
+    option_map[str(num)] = "skip"
+    options.append(str(num))
+
+    choice = get_input("選択: ", options)
+    action = option_map[choice]
+    if action == "cook":
+        return "1"
+    elif action == "provision":
+        return "2"
     else:
-        print("  2. 食糧を食べる (食糧がありません)")
-
-    print("  3. 食べない")
-    options.append("3")
-
-    return get_input("選択: ", options)
+        return "3"
 
 
 def show_dinner_menu(game: GameManager) -> str:
     """夕食メニュー表示"""
     print("夕食の選択:")
     options = []
+    option_map = {}
+    num = 1
 
     if game.can_cook():
-        print("  1. 自炊する")
-        options.append("1")
-    else:
-        print("  1. 自炊する (気力または食材不足)")
+        print(f"  {num}. 自炊する")
+        option_map[str(num)] = "cook"
+        options.append(str(num))
+        num += 1
 
     if not game.provisions.is_empty():
-        print("  2. 食糧を食べる")
-        options.append("2")
+        print(f"  {num}. 食糧を食べる")
+        option_map[str(num)] = "provision"
+        options.append(str(num))
+        num += 1
+
+    print(f"  {num}. 食べない")
+    option_map[str(num)] = "skip"
+    options.append(str(num))
+
+    choice = get_input("選択: ", options)
+    action = option_map[choice]
+    if action == "cook":
+        return "1"
+    elif action == "provision":
+        return "2"
     else:
-        print("  2. 食糧を食べる (食糧がありません)")
-
-    print("  3. 食べない")
-    options.append("3")
-
-    return get_input("選択: ", options)
+        return "3"
 
 
 def show_shopping_menu(game: GameManager) -> str:
     """買い出しメニュー表示"""
     print(f"買い出しに行きますか？ (気力-{SHOPPING_ENERGY_COST}, 体力-{SHOPPING_STAMINA_COST})")
     options = []
+    option_map = {}
+    num = 1
 
     if game.can_go_shopping():
-        print("  1. 買い出しに行く")
-        options.append("1")
+        print(f"  {num}. 買い出しに行く")
+        option_map[str(num)] = "shop"
+        options.append(str(num))
+        num += 1
+
+    print(f"  {num}. まっすぐ帰宅")
+    option_map[str(num)] = "skip"
+    options.append(str(num))
+
+    choice = get_input("選択: ", options)
+    action = option_map[choice]
+    if action == "shop":
+        return "1"
     else:
-        print("  1. 買い出しに行く (気力不足)")
-
-    print("  2. まっすぐ帰宅")
-    options.append("2")
-
-    return get_input("選択: ", options)
+        return "2"
 
 
 def show_shop(player: Player) -> list[tuple[str, int]]:
