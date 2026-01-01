@@ -10,6 +10,7 @@ class Provision:
     price: int
     nutrition: Nutrition
     fullness: int
+    caffeine: int = 0  # カフェイン量（0=なし）
 
 
 # 食糧マスターデータ
@@ -43,6 +44,28 @@ PROVISIONS = {
         price=120,
         nutrition=create_nutrition(vitality=1, mental=1, awakening=1, sustain=2, defense=1),
         fullness=4
+    ),
+    # カフェイン飲料
+    '缶コーヒー': Provision(
+        name='缶コーヒー',
+        price=130,
+        nutrition=create_nutrition(vitality=0, mental=1, awakening=2, sustain=0, defense=0),
+        fullness=1,
+        caffeine=1
+    ),
+    'エナジードリンク': Provision(
+        name='エナジードリンク',
+        price=200,
+        nutrition=create_nutrition(vitality=0, mental=2, awakening=3, sustain=0, defense=0),
+        fullness=1,
+        caffeine=2
+    ),
+    'インスタントコーヒー': Provision(
+        name='インスタントコーヒー',
+        price=80,
+        nutrition=create_nutrition(vitality=0, mental=1, awakening=1, sustain=0, defense=0),
+        fullness=0,
+        caffeine=1
     ),
 }
 

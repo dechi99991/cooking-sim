@@ -47,6 +47,9 @@ class GameResult:
     })
     days_with_balanced_nutrition: int = 0  # バランス良い日数
 
+    # === カフェイン・不眠統計 ===
+    total_insomnia_nights: int = 0  # 不眠になった夜の数
+
     # === メタ情報 ===
     seed: int | None = None
     config_name: str = "default"
@@ -72,6 +75,7 @@ class GameResult:
             'total_salary_received': self.total_salary_received,
             'total_bonus_received': self.total_bonus_received,
             'days_with_balanced_nutrition': self.days_with_balanced_nutrition,
+            'total_insomnia_nights': self.total_insomnia_nights,
             'seed': self.seed or '',
             'config_name': self.config_name,
         }
@@ -113,6 +117,9 @@ class GameStats:
         '防衛素': 0,
     })
     days_balanced: int = 0
+
+    # 不眠カウンター
+    insomnia_nights: int = 0
 
     def record_meal_eaten(self):
         """食事を記録"""
@@ -157,6 +164,10 @@ class GameStats:
         """バランスの良い日を記録"""
         self.days_balanced += 1
 
+    def record_insomnia(self):
+        """不眠を記録"""
+        self.insomnia_nights += 1
+
     def to_result(
         self,
         survived_days: int,
@@ -190,6 +201,7 @@ class GameStats:
             total_bonus_received=self.bonus_received,
             nutrition_penalties=self.nutrition_penalties.copy(),
             days_with_balanced_nutrition=self.days_balanced,
+            total_insomnia_nights=self.insomnia_nights,
             seed=seed,
             config_name=config_name,
         )

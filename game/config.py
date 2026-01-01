@@ -46,6 +46,11 @@ class GameConfig:
     sleep_energy_recovery: int = 10   # 気力回復量
     sleep_stamina_recovery: int = 5   # 体力回復量
 
+    # === カフェイン ===
+    caffeine_insomnia_threshold: int = 3  # 不眠になるカフェイン閾値
+    caffeine_energy_penalty: int = 2      # 不眠時の気力回復ペナルティ
+    caffeine_stamina_penalty: int = 1     # 不眠時の体力回復ペナルティ
+
     # === ゲーム期間 ===
     game_start_day: int = 1
     game_start_month: int = 4

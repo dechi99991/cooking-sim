@@ -47,10 +47,15 @@ def eat_provision(game: GameManager) -> bool:
             game.provisions.remove(name, 1)
             game.player.add_fullness(prov.fullness)
             game.day_state.daily_nutrition.add(prov.nutrition)
+            # カフェイン摂取
+            if prov.caffeine > 0:
+                game.add_caffeine(prov.caffeine)
             print(f"【{name}】を食べました！")
             print(f"  満腹度: +{prov.fullness}")
             n = prov.nutrition
             print(f"  栄養: 活力{n.vitality} 心力{n.mental} 覚醒{n.awakening} 持続{n.sustain} 防衛{n.defense}")
+            if prov.caffeine > 0:
+                print(f"  カフェイン: +{prov.caffeine}")
             print(f"満腹感: {game.player.fullness}")
             game.stats.record_meal_eaten()
             return True
@@ -412,6 +417,11 @@ def handle_sleep(game: GameManager):
     print("1日が終わりました。")
     show_nutrition(game.day_state.daily_nutrition)
 
+    # カフェイン摂取量の表示
+    caffeine = game.get_caffeine()
+    if caffeine > 0:
+        print(f"本日のカフェイン摂取量: {caffeine}")
+
     # ペナルティチェック
     energy_p, stamina_p, fullness_p = game.day_state.daily_nutrition.calculate_penalties()
     if energy_p or stamina_p or fullness_p:
@@ -425,7 +435,13 @@ def handle_sleep(game: GameManager):
     else:
         print("バランスの良い食事でした！")
 
-    game.sleep()
+    # 就寝処理（不眠チェック含む）
+    has_insomnia = game.sleep()
+
+    if has_insomnia:
+        print("\n☕ カフェインの摂りすぎで眠れませんでした...")
+        print("  → 明日の気力・体力回復にペナルティ")
+
     print(f"\n就寝... 気力と体力が回復しました。")
     print(f"気力: {game.player.energy}  体力: {game.player.stamina}")
 

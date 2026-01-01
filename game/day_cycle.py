@@ -13,7 +13,8 @@ from .constants import (
     CAFETERIA_PRICE, SLEEP_ENERGY_RECOVERY, SLEEP_STAMINA_RECOVERY,
     GAME_START_MONTH, GAME_START_DAY, GAME_DURATION_DAYS,
     SHOPPING_ENERGY_COST, SHOPPING_STAMINA_COST, SHOPPING_MIN_ENERGY,
-    SALARY_AMOUNT, SALARY_DAY, BONUS_AMOUNT, BONUS_MONTHS
+    SALARY_AMOUNT, SALARY_DAY, BONUS_AMOUNT, BONUS_MONTHS,
+    CAFFEINE_INSOMNIA_THRESHOLD, CAFFEINE_ENERGY_PENALTY, CAFFEINE_STAMINA_PENALTY
 )
 
 
@@ -78,6 +79,7 @@ class DayState:
     daily_nutrition: Nutrition = field(default_factory=Nutrition)
     has_bento: bool = False
     bento: Dish | None = None
+    caffeine: int = 0  # 1日のカフェイン摂取量
 
     def get_weekday(self) -> int:
         """曜日を取得 (0=月, 1=火, ..., 5=土, 6=日)"""
@@ -111,6 +113,11 @@ class DayState:
         self.daily_nutrition.reset()
         self.has_bento = False
         self.bento = None
+        self.caffeine = 0
+
+    def add_caffeine(self, amount: int):
+        """カフェインを摂取"""
+        self.caffeine += amount
 
     def get_date_string(self) -> str:
         """日付文字列を取得"""
@@ -198,6 +205,18 @@ class GameManager:
             return bento
         return None
 
+    def add_caffeine(self, amount: int):
+        """カフェインを摂取"""
+        self.day_state.add_caffeine(amount)
+
+    def get_caffeine(self) -> int:
+        """現在のカフェイン摂取量を取得"""
+        return self.day_state.caffeine
+
+    def will_have_insomnia(self) -> bool:
+        """現在のカフェイン量で不眠になるかどうか"""
+        return self.day_state.caffeine >= CAFFEINE_INSOMNIA_THRESHOLD
+
     def commute(self):
         """出退勤処理"""
         self.player.consume_stamina(COMMUTE_STAMINA_COST)
@@ -211,8 +230,8 @@ class GameManager:
         self.player.consume_energy(SHOPPING_ENERGY_COST)
         self.player.consume_stamina(SHOPPING_STAMINA_COST)
 
-    def sleep(self):
-        """就寝処理"""
+    def sleep(self) -> bool:
+        """就寝処理。不眠が発生したらTrueを返す"""
         # ペナルティ計算
         energy_penalty, stamina_penalty, fullness_penalty = \
             self.day_state.daily_nutrition.calculate_penalties()
@@ -230,9 +249,19 @@ class GameManager:
         if energy_penalty == 0 and stamina_penalty == 0 and fullness_penalty == 0:
             self.stats.record_balanced_day()
 
+        # カフェインによる不眠チェック
+        has_insomnia = self.day_state.caffeine >= CAFFEINE_INSOMNIA_THRESHOLD
+        if has_insomnia:
+            # 不眠ペナルティを追加適用
+            self.player.energy_recovery_penalty += CAFFEINE_ENERGY_PENALTY
+            self.player.stamina_recovery_penalty += CAFFEINE_STAMINA_PENALTY
+            self.stats.record_insomnia()
+
         # 回復
         self.player.recover_energy(SLEEP_ENERGY_RECOVERY)
         self.player.recover_stamina(SLEEP_STAMINA_RECOVERY)
+
+        return has_insomnia
 
     def advance_phase(self):
         """フェーズを進める"""
