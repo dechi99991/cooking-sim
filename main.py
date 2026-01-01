@@ -20,6 +20,20 @@ from ui.terminal import (
 from game.provisions import get_provision
 
 
+def check_and_pay_salary(game: GameManager):
+    """給料日・ボーナスをチェックして支給"""
+    if game.is_payday():
+        salary = game.pay_salary()
+        print(f"💰 給料日です！ {salary:,}円 を受け取りました。")
+
+        if game.is_bonus_day():
+            bonus = game.pay_bonus()
+            print(f"🎉 ボーナス支給！ {bonus:,}円 を受け取りました。")
+
+        print(f"現在の所持金: {game.player.money:,}円")
+        print()
+
+
 def eat_provision(game: GameManager) -> bool:
     """食糧を食べる処理。食べたらTrue"""
     name = select_provision(game.provisions)
@@ -42,6 +56,7 @@ def eat_provision(game: GameManager) -> bool:
 def handle_breakfast(game: GameManager):
     """朝食フェーズの処理（平日）"""
     show_phase_header(GamePhase.BREAKFAST, game.day_state)
+    check_and_pay_salary(game)
     game.reset_fullness_for_meal()
     current_day = game.day_state.day
 
@@ -107,6 +122,7 @@ def handle_breakfast(game: GameManager):
 def handle_holiday_breakfast(game: GameManager):
     """休日朝食フェーズの処理"""
     show_phase_header(GamePhase.BREAKFAST, game.day_state)
+    check_and_pay_salary(game)
     game.reset_fullness_for_meal()
     current_day = game.day_state.day
 

@@ -51,6 +51,13 @@ class GameConfig:
     game_start_month: int = 4
     game_duration_days: int = 30  # 1ヶ月
 
+    # === 給料・ボーナス ===
+    salary_amount: int = 200000       # 月給（20万円）
+    salary_day: int = 25              # 給料日
+    bonus_amount: int = 400000        # ボーナス（40万円）
+    bonus_months: tuple[int, ...] = (6, 12)  # ボーナス月
+    has_bonus: bool = True            # ボーナスの有無（キャラ設定用）
+
     # === 乱数シード（シミュレーション用） ===
     seed: int | None = None
 

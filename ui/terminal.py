@@ -632,6 +632,13 @@ def show_game_result(result):
     print(f"  購入アイテム数: {result.total_items_bought}")
     print(f"  買い出し総額: {result.total_money_spent_shopping:,}円")
 
+    if result.total_salary_received > 0 or result.total_bonus_received > 0:
+        print(f"\n【収入】")
+        if result.total_salary_received > 0:
+            print(f"  給料: {result.total_salary_received:,}円")
+        if result.total_bonus_received > 0:
+            print(f"  ボーナス: {result.total_bonus_received:,}円")
+
     print(f"\n【栄養バランス】")
     print(f"  バランス良い日: {result.days_with_balanced_nutrition}日")
     penalty_count = sum(result.nutrition_penalties.values())

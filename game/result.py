@@ -33,6 +33,10 @@ class GameResult:
     total_money_spent_shopping: int = 0
     total_items_bought: int = 0
 
+    # === 収入統計 ===
+    total_salary_received: int = 0
+    total_bonus_received: int = 0
+
     # === 栄養統計 ===
     nutrition_penalties: dict = field(default_factory=lambda: {
         '活力素': 0,
@@ -65,6 +69,8 @@ class GameResult:
             'total_shopping_trips': self.total_shopping_trips,
             'total_money_spent_shopping': self.total_money_spent_shopping,
             'total_items_bought': self.total_items_bought,
+            'total_salary_received': self.total_salary_received,
+            'total_bonus_received': self.total_bonus_received,
             'days_with_balanced_nutrition': self.days_with_balanced_nutrition,
             'seed': self.seed or '',
             'config_name': self.config_name,
@@ -93,6 +99,10 @@ class GameStats:
     shopping_trips: int = 0
     money_spent_shopping: int = 0
     items_bought: int = 0
+
+    # 収入カウンター
+    salary_received: int = 0
+    bonus_received: int = 0
 
     # 栄養ペナルティカウンター
     nutrition_penalties: dict = field(default_factory=lambda: {
@@ -129,6 +139,14 @@ class GameStats:
         self.shopping_trips += 1
         self.money_spent_shopping += money_spent
         self.items_bought += items_count
+
+    def record_salary(self, amount: int):
+        """給料を記録"""
+        self.salary_received += amount
+
+    def record_bonus(self, amount: int):
+        """ボーナスを記録"""
+        self.bonus_received += amount
 
     def record_nutrition_penalty(self, nutrient: str):
         """栄養ペナルティを記録"""
@@ -168,6 +186,8 @@ class GameStats:
             total_shopping_trips=self.shopping_trips,
             total_money_spent_shopping=self.money_spent_shopping,
             total_items_bought=self.items_bought,
+            total_salary_received=self.salary_received,
+            total_bonus_received=self.bonus_received,
             nutrition_penalties=self.nutrition_penalties.copy(),
             days_with_balanced_nutrition=self.days_balanced,
             seed=seed,

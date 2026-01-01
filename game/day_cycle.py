@@ -12,7 +12,8 @@ from .constants import (
     COOKING_ENERGY_COST, BENTO_ENERGY_COST, COMMUTE_STAMINA_COST,
     CAFETERIA_PRICE, SLEEP_ENERGY_RECOVERY, SLEEP_STAMINA_RECOVERY,
     GAME_START_MONTH, GAME_START_DAY, GAME_DURATION_DAYS,
-    SHOPPING_ENERGY_COST, SHOPPING_STAMINA_COST, SHOPPING_MIN_ENERGY
+    SHOPPING_ENERGY_COST, SHOPPING_STAMINA_COST, SHOPPING_MIN_ENERGY,
+    SALARY_AMOUNT, SALARY_DAY, BONUS_AMOUNT, BONUS_MONTHS
 )
 
 
@@ -123,13 +124,14 @@ class DayState:
 class GameManager:
     """ゲーム全体を管理するクラス"""
 
-    def __init__(self, player: Player, stock: Stock):
+    def __init__(self, player: Player, stock: Stock, has_bonus: bool = True):
         self.player = player
         self.stock = stock
         self.day_state = DayState()
         self.stats = GameStats()  # 統計収集用
         self.relics = RelicInventory()  # レリック所持
         self.provisions = ProvisionStock()  # 食糧ストック
+        self.has_bonus = has_bonus  # ボーナスの有無（キャラ設定用）
 
     def get_cooking_energy_cost(self) -> int:
         """レリック効果を反映した調理気力コストを取得"""
@@ -257,6 +259,30 @@ class GameManager:
     def get_freshness_extend(self) -> int:
         """レリック効果による鮮度延長日数を取得"""
         return self.relics.get_freshness_extend()
+
+    def is_payday(self) -> bool:
+        """今日が給料日かどうか"""
+        return self.day_state.day == SALARY_DAY
+
+    def is_bonus_day(self) -> bool:
+        """今日がボーナス支給日かどうか"""
+        if not self.has_bonus:
+            return False
+        return self.day_state.month in BONUS_MONTHS and self.day_state.day == SALARY_DAY
+
+    def pay_salary(self) -> int:
+        """給料を支払う。支払った金額を返す"""
+        self.player.money += SALARY_AMOUNT
+        self.stats.record_salary(SALARY_AMOUNT)
+        return SALARY_AMOUNT
+
+    def pay_bonus(self) -> int:
+        """ボーナスを支払う。支払った金額を返す"""
+        if not self.has_bonus:
+            return 0
+        self.player.money += BONUS_AMOUNT
+        self.stats.record_bonus(BONUS_AMOUNT)
+        return BONUS_AMOUNT
 
     def get_game_over_reason(self) -> str | None:
         """ゲームオーバーの理由を取得"""
