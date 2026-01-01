@@ -352,3 +352,40 @@ def show_title():
     print("・栄養バランスが偏ると翌日ペナルティ")
     print()
     input("Enterキーでスタート...")
+
+
+def show_game_result(result):
+    """ゲーム結果の詳細を表示"""
+    print("\n" + "─" * 50)
+    print("         プレイ統計")
+    print("─" * 50)
+
+    print(f"\n【生存日数】 {result.survived_days}日")
+
+    print(f"\n【最終ステータス】")
+    print(f"  所持金: {result.final_money:,}円")
+    print(f"  気力: {result.final_energy}")
+    print(f"  体力: {result.final_stamina}")
+
+    print(f"\n【食事】")
+    print(f"  食べた回数: {result.total_meals_eaten}")
+    print(f"  抜いた回数: {result.total_meals_skipped}")
+    print(f"  自炊回数: {result.total_meals_cooked}")
+    print(f"  社食利用: {result.total_cafeteria_used}")
+    print(f"  弁当作成: {result.total_bento_made}")
+
+    print(f"\n【買い出し】")
+    print(f"  買い出し回数: {result.total_shopping_trips}")
+    print(f"  購入アイテム数: {result.total_items_bought}")
+    print(f"  買い出し総額: {result.total_money_spent_shopping:,}円")
+
+    print(f"\n【栄養バランス】")
+    print(f"  バランス良い日: {result.days_with_balanced_nutrition}日")
+    penalty_count = sum(result.nutrition_penalties.values())
+    if penalty_count > 0:
+        print(f"  ペナルティ発生:")
+        for nutrient, count in result.nutrition_penalties.items():
+            if count > 0:
+                print(f"    {nutrient}: {count}回")
+
+    print("─" * 50)

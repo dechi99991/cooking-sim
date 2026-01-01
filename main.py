@@ -13,7 +13,8 @@ from ui.terminal import (
     show_breakfast_menu, show_lunch_menu, show_dinner_menu,
     show_holiday_breakfast_menu, show_holiday_lunch_menu,
     show_shopping_menu, show_shop,
-    show_game_over, show_game_clear, show_title, select_ingredients
+    show_game_over, show_game_clear, show_title, select_ingredients,
+    show_game_result
 )
 
 
@@ -37,7 +38,13 @@ def handle_breakfast(game: GameManager):
                 game.consume_cooking_energy()
                 show_dish(dish)
                 game.eat_dish(dish)
+                game.stats.record_meal_eaten()
+                game.stats.record_cooking()
                 print(f"満腹感: {game.player.fullness}")
+            else:
+                game.stats.record_meal_skipped()
+        else:
+            game.stats.record_meal_skipped()
 
     elif choice == "2":
         # 自炊 + 弁当作成
@@ -49,6 +56,8 @@ def handle_breakfast(game: GameManager):
                 game.consume_cooking_energy()
                 show_dish(dish)
                 game.eat_dish(dish)
+                game.stats.record_meal_eaten()
+                game.stats.record_cooking()
                 print(f"満腹感: {game.player.fullness}")
 
         print("\n【弁当用】")
@@ -60,9 +69,11 @@ def handle_breakfast(game: GameManager):
                     game.consume_bento_energy()
                     print(f"弁当【{bento.name}】を作りました！")
                     game.set_bento(bento)
+                    game.stats.record_bento()
 
     elif choice == "3":
         print("朝食を抜きました。")
+        game.stats.record_meal_skipped()
 
 
 def handle_holiday_breakfast(game: GameManager):
@@ -84,10 +95,17 @@ def handle_holiday_breakfast(game: GameManager):
                 game.consume_cooking_energy()
                 show_dish(dish)
                 game.eat_dish(dish)
+                game.stats.record_meal_eaten()
+                game.stats.record_cooking()
                 print(f"満腹感: {game.player.fullness}")
+            else:
+                game.stats.record_meal_skipped()
+        else:
+            game.stats.record_meal_skipped()
 
     elif choice == "2":
         print("朝食を抜きました。")
+        game.stats.record_meal_skipped()
 
 
 def handle_go_to_work(game: GameManager):
@@ -113,6 +131,7 @@ def handle_lunch(game: GameManager):
         if bento:
             print(f"弁当【{bento.name}】を食べました！")
             print(f"満腹感: {game.player.fullness}")
+            game.stats.record_meal_eaten()
 
     elif choice == "2":
         # 社食
@@ -121,9 +140,12 @@ def handle_lunch(game: GameManager):
         game.eat_dish(dish)
         print("社食定食を食べました！")
         print(f"満腹感: {game.player.fullness}")
+        game.stats.record_meal_eaten()
+        game.stats.record_cafeteria()
 
     elif choice == "3":
         print("昼食を抜きました。")
+        game.stats.record_meal_skipped()
 
 
 def handle_leave_work(game: GameManager):
@@ -152,6 +174,7 @@ def handle_shopping(game: GameManager):
 
         if purchases:
             total_cost = 0
+            total_items = 0
             print("\n【購入品】")
             for name, qty in purchases:
                 from game.ingredients import get_ingredient
@@ -159,11 +182,13 @@ def handle_shopping(game: GameManager):
                 if ingredient:
                     cost = ingredient.price * qty
                     total_cost += cost
+                    total_items += qty
                     game.player.consume_money(cost)
                     game.stock.add(name, qty)
                     print(f"  {name} x{qty}")
             print(f"合計: {total_cost}円")
             print(f"残り所持金: {game.player.money:,}円")
+            game.stats.record_shopping(total_cost, total_items)
         else:
             print("何も買いませんでした。")
 
@@ -188,6 +213,7 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
 
         if purchases:
             total_cost = 0
+            total_items = 0
             print("\n【購入品】")
             for name, qty in purchases:
                 from game.ingredients import get_ingredient
@@ -195,11 +221,13 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
                 if ingredient:
                     cost = ingredient.price * qty
                     total_cost += cost
+                    total_items += qty
                     game.player.consume_money(cost)
                     game.stock.add(name, qty)
                     print(f"  {name} x{qty}")
             print(f"合計: {total_cost}円")
             print(f"残り所持金: {game.player.money:,}円")
+            game.stats.record_shopping(total_cost, total_items)
         else:
             print("何も買いませんでした。")
 
@@ -226,10 +254,17 @@ def handle_holiday_lunch(game: GameManager):
                 game.consume_cooking_energy()
                 show_dish(dish)
                 game.eat_dish(dish)
+                game.stats.record_meal_eaten()
+                game.stats.record_cooking()
                 print(f"満腹感: {game.player.fullness}")
+            else:
+                game.stats.record_meal_skipped()
+        else:
+            game.stats.record_meal_skipped()
 
     elif choice == "2":
         print("昼食を抜きました。")
+        game.stats.record_meal_skipped()
 
 
 def handle_dinner(game: GameManager):
@@ -252,10 +287,17 @@ def handle_dinner(game: GameManager):
                 game.consume_cooking_energy()
                 show_dish(dish)
                 game.eat_dish(dish)
+                game.stats.record_meal_eaten()
+                game.stats.record_cooking()
                 print(f"満腹感: {game.player.fullness}")
+            else:
+                game.stats.record_meal_skipped()
+        else:
+            game.stats.record_meal_skipped()
 
     elif choice == "2":
         print("夕食を抜きました。")
+        game.stats.record_meal_skipped()
 
 
 def handle_sleep(game: GameManager):
@@ -327,6 +369,7 @@ def game_loop(game: GameManager):
             if game.is_game_complete():
                 clear_screen()
                 show_game_clear(game.player, game.day_state)
+                show_game_result(game.get_result())
                 break
             continue
 
@@ -334,6 +377,7 @@ def game_loop(game: GameManager):
         if game.is_game_over():
             clear_screen()
             show_game_over()
+            show_game_result(game.get_result())
             break
 
         game.advance_phase()

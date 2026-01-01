@@ -5,6 +5,7 @@ from .player import Player
 from .nutrition import Nutrition
 from .ingredients import Stock
 from .cooking import Dish
+from .result import GameStats, GameResult
 from .constants import (
     COOKING_ENERGY_COST, BENTO_ENERGY_COST, COMMUTE_STAMINA_COST,
     CAFETERIA_PRICE, SLEEP_ENERGY_RECOVERY, SLEEP_STAMINA_RECOVERY,
@@ -121,6 +122,7 @@ class GameManager:
         self.player = player
         self.stock = stock
         self.day_state = DayState()
+        self.stats = GameStats()  # 統計収集用
 
     def can_cook(self) -> bool:
         """調理可能か"""
@@ -187,6 +189,18 @@ class GameManager:
             self.day_state.daily_nutrition.calculate_penalties()
         self.player.apply_penalties(energy_penalty, stamina_penalty, fullness_penalty)
 
+        # 統計記録: 栄養ペナルティ
+        if energy_penalty > 0:
+            self.stats.record_nutrition_penalty('心力素')
+        if stamina_penalty > 0:
+            self.stats.record_nutrition_penalty('活力素')
+        if fullness_penalty > 0:
+            self.stats.record_nutrition_penalty('持続素')
+
+        # バランス良い日かどうか
+        if energy_penalty == 0 and stamina_penalty == 0 and fullness_penalty == 0:
+            self.stats.record_balanced_day()
+
         # 回復
         self.player.recover_energy(SLEEP_ENERGY_RECOVERY)
         self.player.recover_stamina(SLEEP_STAMINA_RECOVERY)
@@ -220,3 +234,23 @@ class GameManager:
     def is_holiday(self) -> bool:
         """休日かどうか"""
         return self.day_state.is_holiday()
+
+    def get_game_over_reason(self) -> str | None:
+        """ゲームオーバーの理由を取得"""
+        if self.player.money <= 0:
+            return "money"
+        if self.player.stamina <= 0:
+            return "stamina"
+        return None
+
+    def get_result(self) -> GameResult:
+        """ゲーム結果を取得"""
+        return self.stats.to_result(
+            survived_days=self.day_state.day,
+            is_game_over=self.is_game_over(),
+            is_game_clear=self.is_game_complete(),
+            game_over_reason=self.get_game_over_reason(),
+            final_money=self.player.money,
+            final_stamina=self.player.stamina,
+            final_energy=self.player.energy,
+        )
