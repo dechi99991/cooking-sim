@@ -233,6 +233,16 @@ def handle_shopping(game: GameManager):
     show_status(game.player, game.day_state)
     show_stock(game.stock, current_day, game.get_freshness_extend())
 
+    # 期限切れ食材がある場合は廃棄オプションを表示
+    if game.stock.has_expired_items(current_day, game.get_freshness_extend()):
+        print("⚠ 期限切れの食材があります")
+        discard_choice = input("廃棄しますか？ (1. する  2. しない): ").strip()
+        if discard_choice == "1":
+            discards = show_discard_menu(game.stock, current_day, game.get_freshness_extend())
+            for name, qty in discards:
+                game.stock.discard(name, qty)
+        print()
+
     choice = show_shopping_menu(game)
 
     if choice == "1":
@@ -240,14 +250,6 @@ def handle_shopping(game: GameManager):
         game.go_shopping()
         print(f"スーパーへ向かいます... (気力: {game.player.energy}, 体力: {game.player.stamina})")
         print()
-
-        # 廃棄オプション
-        print("古い食材を廃棄しますか？")
-        discard_choice = input("1. 廃棄する  2. しない: ").strip()
-        if discard_choice == "1":
-            discards = show_discard_menu(game.stock, current_day, game.get_freshness_extend())
-            for name, qty in discards:
-                game.stock.discard(name, qty)
 
         purchases = show_shop(game.player)
 
@@ -282,20 +284,22 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
     show_status(game.player, game.day_state)
     show_stock(game.stock, current_day, game.get_freshness_extend())
 
+    # 期限切れ食材がある場合は廃棄オプションを表示
+    if game.stock.has_expired_items(current_day, game.get_freshness_extend()):
+        print("⚠ 期限切れの食材があります")
+        discard_choice = input("廃棄しますか？ (1. する  2. しない): ").strip()
+        if discard_choice == "1":
+            discards = show_discard_menu(game.stock, current_day, game.get_freshness_extend())
+            for name, qty in discards:
+                game.stock.discard(name, qty)
+        print()
+
     choice = show_shopping_menu(game)
 
     if choice == "1":
         game.go_shopping()
         print(f"スーパーへ向かいます... (気力: {game.player.energy}, 体力: {game.player.stamina})")
         print()
-
-        # 廃棄オプション
-        print("古い食材を廃棄しますか？")
-        discard_choice = input("1. 廃棄する  2. しない: ").strip()
-        if discard_choice == "1":
-            discards = show_discard_menu(game.stock, current_day, game.get_freshness_extend())
-            for name, qty in discards:
-                game.stock.discard(name, qty)
 
         purchases = show_shop(game.player)
 

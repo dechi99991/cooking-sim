@@ -199,7 +199,7 @@ class Stock:
 
     def get_items_for_discard(self, current_day: int,
                                freshness_extend: int = 0) -> list[tuple[str, int, int, float]]:
-        """廃棄候補の食材リストを取得
+        """廃棄候補の食材リストを取得（期限切れのみ）
         Args:
             current_day: 現在のゲーム日
             freshness_extend: 鮮度延長日数（レリック効果）
@@ -212,10 +212,20 @@ class Stock:
             oldest_day = days[0]
             elapsed = current_day - oldest_day
             modifier = self.calculate_freshness_modifier(name, current_day, freshness_extend)
-            result.append((name, len(days), elapsed, modifier))
+            # 期限切れ（鮮度が落ちた）もののみ対象
+            if modifier < 1.0:
+                result.append((name, len(days), elapsed, modifier))
         # 鮮度が低い順（modifier が小さい順）にソート
         result.sort(key=lambda x: x[3])
         return result
+
+    def has_expired_items(self, current_day: int, freshness_extend: int = 0) -> bool:
+        """期限切れ食材があるかチェック"""
+        for name in self._items:
+            modifier = self.calculate_freshness_modifier(name, current_day, freshness_extend)
+            if modifier < 1.0:
+                return True
+        return False
 
 
 def get_ingredient(name: str) -> Ingredient | None:
