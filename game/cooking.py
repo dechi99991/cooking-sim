@@ -29,12 +29,13 @@ RECIPES = {
 }
 
 
-def cook(ingredient_names: list[str], stock: Stock) -> Dish | None:
+def cook(ingredient_names: list[str], stock: Stock, current_day: int = 1) -> Dish | None:
     """
-    食材から料理を作成する
+    食材から料理を作成する（鮮度補正適用）
     Args:
         ingredient_names: 使用する食材名のリスト
         stock: 食材ストック
+        current_day: 現在のゲーム日（鮮度計算用）
     Returns:
         作成された料理、または失敗時はNone
     """
@@ -50,14 +51,23 @@ def cook(ingredient_names: list[str], stock: Stock) -> Dish | None:
     ingredient_set = frozenset(ingredient_names)
     dish_name = RECIPES.get(ingredient_set, 'ミックス料理')
 
-    # 栄養値と満腹度を計算（食材の合算）
+    # 各食材の鮮度補正値を先に計算（消費前に）
+    freshness_modifiers = {}
+    for name in ingredient_names:
+        freshness_modifiers[name] = stock.calculate_freshness_modifier(name, current_day)
+
+    # 栄養値と満腹度を計算（食材の合算、鮮度補正適用）
     total_nutrition = Nutrition()
     total_fullness = 0
 
     for name in ingredient_names:
         ingredient = get_ingredient(name)
         if ingredient:
-            total_nutrition.add(ingredient.nutrition)
+            modifier = freshness_modifiers[name]
+            # 栄養値に鮮度補正を適用
+            modified_nutrition = ingredient.nutrition.apply_modifier(modifier)
+            total_nutrition.add(modified_nutrition)
+            # 満腹度は補正しない（量は変わらない）
             total_fullness += ingredient.fullness
 
     # ストックから消費

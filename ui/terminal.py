@@ -44,15 +44,16 @@ def show_nutrition(nutrition: Nutrition):
     print()
 
 
-def show_stock(stock: Stock):
-    """ストック表示"""
+def show_stock(stock: Stock, current_day: int = 1):
+    """ストック表示（鮮度情報付き）"""
     items = stock.get_all()
     if items:
         print("【食材ストック】")
         for name, qty in items.items():
             ingredient = get_ingredient(name)
             if ingredient:
-                print(f"  {name}: {qty}個")
+                freshness = stock.get_freshness_status(name, current_day)
+                print(f"  {name}: {qty}個 ({freshness})")
         print()
     else:
         print("【食材ストック】空\n")
@@ -90,8 +91,8 @@ def get_number_input(prompt: str, min_val: int, max_val: int) -> int:
             print("数値を入力してください。")
 
 
-def select_ingredients(stock: Stock) -> list[str]:
-    """食材選択UI"""
+def select_ingredients(stock: Stock, current_day: int = 1) -> list[str]:
+    """食材選択UI（鮮度情報付き）"""
     available = stock.get_available_ingredients()
     if not available:
         print("食材がありません。")
@@ -100,7 +101,8 @@ def select_ingredients(stock: Stock) -> list[str]:
     print("使う食材を選んでください（複数選択可、カンマ区切り）:")
     for i, name in enumerate(available, 1):
         qty = stock.get_quantity(name)
-        print(f"  {i}. {name} (残り{qty}個)")
+        freshness = stock.get_freshness_status(name, current_day)
+        print(f"  {i}. {name} (残り{qty}個, {freshness})")
     print("  0. キャンセル")
 
     while True:
@@ -317,6 +319,63 @@ def show_shop(player: Player) -> list[tuple[str, int]]:
             print("数値を入力してください。")
 
     return purchases
+
+
+def show_discard_menu(stock: Stock, current_day: int) -> list[tuple[str, int]]:
+    """食材廃棄メニュー
+    Returns: [(食材名, 廃棄数), ...]
+    """
+    items = stock.get_items_for_discard(current_day)
+    if not items:
+        print("廃棄できる食材がありません。")
+        return []
+
+    discards = []
+    print("【食材の廃棄】")
+    print("廃棄する食材を選んでください:")
+    for i, (name, qty, elapsed, modifier) in enumerate(items, 1):
+        if modifier < 1.0:
+            penalty = int((1.0 - modifier) * 100)
+            print(f"  {i}. {name} x{qty} ({elapsed}日経過, 栄養-{penalty}%)")
+        else:
+            print(f"  {i}. {name} x{qty} ({elapsed}日経過, 新鮮)")
+    print("  0. 廃棄しない")
+
+    while True:
+        choice = input("番号を入力 (0で終了): ").strip()
+        if choice == "0":
+            break
+
+        try:
+            idx = int(choice)
+            if 1 <= idx <= len(items):
+                name, qty, _, _ = items[idx - 1]
+                if qty == 1:
+                    discards.append((name, 1))
+                    print(f"{name}を1個廃棄しました。")
+                    # リストを更新
+                    items = [(n, q - 1 if n == name else q, e, m)
+                             for n, q, e, m in items if q > 1 or n != name]
+                else:
+                    qty_input = input(f"{name}を何個廃棄しますか？ (1-{qty}): ").strip()
+                    try:
+                        discard_qty = int(qty_input)
+                        if 1 <= discard_qty <= qty:
+                            discards.append((name, discard_qty))
+                            print(f"{name}を{discard_qty}個廃棄しました。")
+                            # リストを更新
+                            items = [(n, q - discard_qty if n == name else q, e, m)
+                                     for n, q, e, m in items if (q - discard_qty if n == name else q) > 0]
+                        else:
+                            print(f"1から{qty}の間で入力してください。")
+                    except ValueError:
+                        print("数値を入力してください。")
+            else:
+                print("無効な番号です。")
+        except ValueError:
+            print("数値を入力してください。")
+
+    return discards
 
 
 def show_game_over():

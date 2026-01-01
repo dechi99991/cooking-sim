@@ -12,7 +12,7 @@ from ui.terminal import (
     show_recipe_suggestions, show_phase_header, show_dish,
     show_breakfast_menu, show_lunch_menu, show_dinner_menu,
     show_holiday_breakfast_menu, show_holiday_lunch_menu,
-    show_shopping_menu, show_shop,
+    show_shopping_menu, show_shop, show_discard_menu,
     show_game_over, show_game_clear, show_title, select_ingredients,
     show_game_result
 )
@@ -22,18 +22,19 @@ def handle_breakfast(game: GameManager):
     """朝食フェーズの処理（平日）"""
     show_phase_header(GamePhase.BREAKFAST, game.day_state)
     game.reset_fullness_for_meal()
+    current_day = game.day_state.day
 
     show_status(game.player, game.day_state)
-    show_stock(game.stock)
+    show_stock(game.stock, current_day)
     show_recipe_suggestions(game.stock)
 
     choice = show_breakfast_menu(game)
 
     if choice == "1":
         # 自炊のみ
-        ingredients = select_ingredients(game.stock)
+        ingredients = select_ingredients(game.stock, current_day)
         if ingredients:
-            dish = cook(ingredients, game.stock)
+            dish = cook(ingredients, game.stock, current_day)
             if dish:
                 game.consume_cooking_energy()
                 show_dish(dish)
@@ -49,9 +50,9 @@ def handle_breakfast(game: GameManager):
     elif choice == "2":
         # 自炊 + 弁当作成
         print("\n【朝食用】")
-        ingredients = select_ingredients(game.stock)
+        ingredients = select_ingredients(game.stock, current_day)
         if ingredients:
-            dish = cook(ingredients, game.stock)
+            dish = cook(ingredients, game.stock, current_day)
             if dish:
                 game.consume_cooking_energy()
                 show_dish(dish)
@@ -62,9 +63,9 @@ def handle_breakfast(game: GameManager):
 
         print("\n【弁当用】")
         if game.can_make_bento():
-            bento_ingredients = select_ingredients(game.stock)
+            bento_ingredients = select_ingredients(game.stock, current_day)
             if bento_ingredients:
-                bento = cook(bento_ingredients, game.stock)
+                bento = cook(bento_ingredients, game.stock, current_day)
                 if bento:
                     game.consume_bento_energy()
                     print(f"弁当【{bento.name}】を作りました！")
@@ -80,17 +81,18 @@ def handle_holiday_breakfast(game: GameManager):
     """休日朝食フェーズの処理"""
     show_phase_header(GamePhase.BREAKFAST, game.day_state)
     game.reset_fullness_for_meal()
+    current_day = game.day_state.day
 
     show_status(game.player, game.day_state)
-    show_stock(game.stock)
+    show_stock(game.stock, current_day)
     show_recipe_suggestions(game.stock)
 
     choice = show_holiday_breakfast_menu(game)
 
     if choice == "1":
-        ingredients = select_ingredients(game.stock)
+        ingredients = select_ingredients(game.stock, current_day)
         if ingredients:
-            dish = cook(ingredients, game.stock)
+            dish = cook(ingredients, game.stock, current_day)
             if dish:
                 game.consume_cooking_energy()
                 show_dish(dish)
@@ -159,8 +161,9 @@ def handle_leave_work(game: GameManager):
 def handle_shopping(game: GameManager):
     """買い出しフェーズの処理"""
     show_phase_header(GamePhase.SHOPPING, game.day_state)
+    current_day = game.day_state.day
     show_status(game.player, game.day_state)
-    show_stock(game.stock)
+    show_stock(game.stock, current_day)
 
     choice = show_shopping_menu(game)
 
@@ -169,6 +172,14 @@ def handle_shopping(game: GameManager):
         game.go_shopping()
         print(f"スーパーへ向かいます... (気力: {game.player.energy}, 体力: {game.player.stamina})")
         print()
+
+        # 廃棄オプション
+        print("古い食材を廃棄しますか？")
+        discard_choice = input("1. 廃棄する  2. しない: ").strip()
+        if discard_choice == "1":
+            discards = show_discard_menu(game.stock, current_day)
+            for name, qty in discards:
+                game.stock.discard(name, qty)
 
         purchases = show_shop(game.player)
 
@@ -184,7 +195,7 @@ def handle_shopping(game: GameManager):
                     total_cost += cost
                     total_items += qty
                     game.player.consume_money(cost)
-                    game.stock.add(name, qty)
+                    game.stock.add(name, qty, current_day)
                     print(f"  {name} x{qty}")
             print(f"合計: {total_cost}円")
             print(f"残り所持金: {game.player.money:,}円")
@@ -199,8 +210,9 @@ def handle_shopping(game: GameManager):
 def handle_holiday_shopping(game: GameManager, phase: GamePhase):
     """休日の買い出しフェーズの処理"""
     show_phase_header(phase, game.day_state)
+    current_day = game.day_state.day
     show_status(game.player, game.day_state)
-    show_stock(game.stock)
+    show_stock(game.stock, current_day)
 
     choice = show_shopping_menu(game)
 
@@ -208,6 +220,14 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
         game.go_shopping()
         print(f"スーパーへ向かいます... (気力: {game.player.energy}, 体力: {game.player.stamina})")
         print()
+
+        # 廃棄オプション
+        print("古い食材を廃棄しますか？")
+        discard_choice = input("1. 廃棄する  2. しない: ").strip()
+        if discard_choice == "1":
+            discards = show_discard_menu(game.stock, current_day)
+            for name, qty in discards:
+                game.stock.discard(name, qty)
 
         purchases = show_shop(game.player)
 
@@ -223,7 +243,7 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
                     total_cost += cost
                     total_items += qty
                     game.player.consume_money(cost)
-                    game.stock.add(name, qty)
+                    game.stock.add(name, qty, current_day)
                     print(f"  {name} x{qty}")
             print(f"合計: {total_cost}円")
             print(f"残り所持金: {game.player.money:,}円")
@@ -239,17 +259,18 @@ def handle_holiday_lunch(game: GameManager):
     """休日昼食フェーズの処理"""
     show_phase_header(GamePhase.HOLIDAY_LUNCH, game.day_state)
     game.reset_fullness_for_meal()
+    current_day = game.day_state.day
 
     show_status(game.player, game.day_state)
-    show_stock(game.stock)
+    show_stock(game.stock, current_day)
     show_recipe_suggestions(game.stock)
 
     choice = show_holiday_lunch_menu(game)
 
     if choice == "1":
-        ingredients = select_ingredients(game.stock)
+        ingredients = select_ingredients(game.stock, current_day)
         if ingredients:
-            dish = cook(ingredients, game.stock)
+            dish = cook(ingredients, game.stock, current_day)
             if dish:
                 game.consume_cooking_energy()
                 show_dish(dish)
@@ -271,18 +292,19 @@ def handle_dinner(game: GameManager):
     """夕食フェーズの処理"""
     show_phase_header(GamePhase.DINNER, game.day_state)
     game.reset_fullness_for_meal()
+    current_day = game.day_state.day
 
     show_status(game.player, game.day_state)
-    show_stock(game.stock)
+    show_stock(game.stock, current_day)
     show_recipe_suggestions(game.stock)
 
     choice = show_dinner_menu(game)
 
     if choice == "1":
         # 自炊
-        ingredients = select_ingredients(game.stock)
+        ingredients = select_ingredients(game.stock, current_day)
         if ingredients:
-            dish = cook(ingredients, game.stock)
+            dish = cook(ingredients, game.stock, current_day)
             if dish:
                 game.consume_cooking_energy()
                 show_dish(dish)
@@ -397,7 +419,7 @@ def main():
     # ゲーム開始
     print(f"【初期状態】")
     show_status(player, game.day_state)
-    show_stock(stock)
+    show_stock(stock, game.day_state.day)
 
     # ゲームループ
     game_loop(game)

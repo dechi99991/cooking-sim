@@ -20,6 +20,16 @@ class Nutrition:
         self.sustain += other.sustain
         self.defense += other.defense
 
+    def apply_modifier(self, modifier: float) -> 'Nutrition':
+        """補正値を適用した新しいNutritionを返す"""
+        return Nutrition(
+            vitality=int(self.vitality * modifier),
+            mental=int(self.mental * modifier),
+            awakening=int(self.awakening * modifier),
+            sustain=int(self.sustain * modifier),
+            defense=int(self.defense * modifier)
+        )
+
     def reset(self):
         """1日の栄養をリセットする"""
         self.vitality = 0
