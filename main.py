@@ -233,16 +233,6 @@ def handle_shopping(game: GameManager):
     show_status(game.player, game.day_state)
     show_stock(game.stock, current_day, game.get_freshness_extend())
 
-    # 期限切れ食材がある場合は廃棄オプションを表示
-    if game.stock.has_expired_items(current_day, game.get_freshness_extend()):
-        print("⚠ 期限切れの食材があります")
-        discard_choice = input("廃棄しますか？ (1. する  2. しない): ").strip()
-        if discard_choice == "1":
-            discards = show_discard_menu(game.stock, current_day, game.get_freshness_extend())
-            for name, qty in discards:
-                game.stock.discard(name, qty)
-        print()
-
     choice = show_shopping_menu(game)
 
     if choice == "1":
@@ -273,6 +263,16 @@ def handle_shopping(game: GameManager):
         else:
             print("何も買いませんでした。")
 
+        # 帰宅後：期限切れ食材がある場合は廃棄オプションを表示
+        if game.stock.has_expired_items(current_day, game.get_freshness_extend()):
+            print()
+            print("⚠ 期限切れの食材があります")
+            discard_choice = input("廃棄しますか？ (1. する  2. しない): ").strip()
+            if discard_choice == "1":
+                discards = show_discard_menu(game.stock, current_day, game.get_freshness_extend())
+                for name, qty in discards:
+                    game.stock.discard(name, qty)
+
     elif choice == "2":
         print("まっすぐ帰宅します。")
 
@@ -283,16 +283,6 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
     current_day = game.day_state.day
     show_status(game.player, game.day_state)
     show_stock(game.stock, current_day, game.get_freshness_extend())
-
-    # 期限切れ食材がある場合は廃棄オプションを表示
-    if game.stock.has_expired_items(current_day, game.get_freshness_extend()):
-        print("⚠ 期限切れの食材があります")
-        discard_choice = input("廃棄しますか？ (1. する  2. しない): ").strip()
-        if discard_choice == "1":
-            discards = show_discard_menu(game.stock, current_day, game.get_freshness_extend())
-            for name, qty in discards:
-                game.stock.discard(name, qty)
-        print()
 
     choice = show_shopping_menu(game)
 
@@ -322,6 +312,16 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
             game.stats.record_shopping(total_cost, total_items)
         else:
             print("何も買いませんでした。")
+
+        # 帰宅後：期限切れ食材がある場合は廃棄オプションを表示
+        if game.stock.has_expired_items(current_day, game.get_freshness_extend()):
+            print()
+            print("⚠ 期限切れの食材があります")
+            discard_choice = input("廃棄しますか？ (1. する  2. しない): ").strip()
+            if discard_choice == "1":
+                discards = show_discard_menu(game.stock, current_day, game.get_freshness_extend())
+                for name, qty in discards:
+                    game.stock.discard(name, qty)
 
     elif choice == "2":
         print("買い出しに行きませんでした。")
