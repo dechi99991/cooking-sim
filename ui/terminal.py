@@ -569,19 +569,21 @@ def show_online_shopping_menu() -> str:
     return get_input("選択: ", ["1", "2"])
 
 
-def show_online_shop(player, relics, provisions) -> tuple[list[str], list[tuple[str, int]]]:
+def show_online_shop(player, relics, provisions, current_day: int = 1) -> tuple[list[str], list[tuple[str, int]]]:
     """通販画面
     Args:
         player: プレイヤー
         relics: RelicInventory
         provisions: ProvisionStock
+        current_day: 現在の日（レリックのラインナップ決定用）
     Returns:
         (購入したレリック名リスト, [(食糧名, 数量), ...])
     """
-    from game.relic import get_all_relics
+    from game.relic import generate_daily_relic_items
     from game.provisions import get_all_provisions
 
-    all_relics = get_all_relics()
+    # 本日のレリックラインナップを生成
+    daily_relics = generate_daily_relic_items(seed=current_day)
     all_provisions = get_all_provisions()
 
     purchased_relics = []
@@ -590,21 +592,24 @@ def show_online_shop(player, relics, provisions) -> tuple[list[str], list[tuple[
     while True:
         print("\n【オンラインショップ】")
         print(f"カード未払い残高: {player.card_debt:,}円")
+        print(f"所持レリック: {relics.count()}個")
         print()
 
-        # レリック表示
-        print("[レリック]")
-        relic_options = []
-        for i, relic in enumerate(all_relics, 1):
-            owned = relics.has(relic.name)
-            status = " [購入済]" if owned else ""
-            print(f"  {i}. {relic.name} ({relic.price:,}円) - {relic.description}{status}")
-            if not owned:
-                relic_options.append((str(i), relic))
+        # 本日のレリック表示
+        print("[本日のレリック] ※毎日ラインナップが変わります")
+        for i, item in enumerate(daily_relics, 1):
+            owned = relics.has(item.relic.name)
+            if owned:
+                status = " [購入済]"
+            elif item.is_sale:
+                status = f" [セール! 元{item.relic.price:,}円]"
+            else:
+                status = ""
+            print(f"  {i}. {item.relic.name} ({item.price:,}円) - {item.relic.description}{status}")
 
         # 食糧表示
         print("\n[食糧]")
-        provision_start = len(all_relics) + 1
+        provision_start = len(daily_relics) + 1
         for i, prov in enumerate(all_provisions, provision_start):
             caffeine_info = f", ☕気力+{prov.caffeine * 2}" if prov.caffeine > 0 else ""
             print(f"  {i}. {prov.name} ({prov.price:,}円) - 満腹{prov.fullness}{caffeine_info}")
@@ -618,15 +623,18 @@ def show_online_shop(player, relics, provisions) -> tuple[list[str], list[tuple[
         try:
             idx = int(choice)
             # レリック購入
-            if 1 <= idx <= len(all_relics):
-                relic = all_relics[idx - 1]
-                if relics.has(relic.name):
+            if 1 <= idx <= len(daily_relics):
+                item = daily_relics[idx - 1]
+                if relics.has(item.relic.name):
                     print("すでに購入済みです。")
                 else:
-                    player.add_card_debt(relic.price)
-                    relics.add(relic.name)
-                    purchased_relics.append(relic.name)
-                    print(f"{relic.name}を購入しました！ (カード: +{relic.price:,}円)")
+                    player.add_card_debt(item.price)
+                    relics.add(item.relic.name)
+                    purchased_relics.append(item.relic.name)
+                    if item.is_sale:
+                        print(f"{item.relic.name}をセール価格で購入！ (カード: +{item.price:,}円)")
+                    else:
+                        print(f"{item.relic.name}を購入しました！ (カード: +{item.price:,}円)")
 
             # 食糧購入
             elif provision_start <= idx < provision_start + len(all_provisions):

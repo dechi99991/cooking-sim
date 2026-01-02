@@ -456,7 +456,7 @@ def handle_online_shopping(game: GameManager):
     choice = show_online_shopping_menu()
 
     if choice == "1":
-        show_online_shop(game.player, game.relics, game.provisions)
+        show_online_shop(game.player, game.relics, game.provisions, game.day_state.day)
     else:
         print("通販をスキップしました。")
 
