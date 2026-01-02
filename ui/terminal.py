@@ -252,6 +252,25 @@ def show_events(events: list):
         show_event(result.event.name, result.message)
 
 
+def show_deliveries(deliveries: list):
+    """配送到着の表示
+    Args:
+        deliveries: PendingDeliveryのリスト
+    """
+    if not deliveries:
+        return
+
+    print("\n📦 通販の荷物が届きました！")
+    print("─" * 30)
+    for item in deliveries:
+        if item.quantity > 1:
+            print(f"  ・{item.name} x{item.quantity}")
+        else:
+            print(f"  ・{item.name}")
+    print("─" * 30)
+    print()
+
+
 def show_breakfast_menu(game: GameManager) -> str:
     """朝食メニュー表示"""
     print("朝食の選択:")
@@ -595,38 +614,48 @@ def show_online_shopping_menu() -> str:
     return get_input("選択: ", ["1", "2"])
 
 
-def show_online_shop(player, relics, provisions, current_day: int = 1) -> tuple[list[str], list[tuple[str, int]]]:
-    """通販画面
+def show_online_shop(game_manager, current_day: int = 1):
+    """通販画面（翌日配送）
     Args:
-        player: プレイヤー
-        relics: RelicInventory
-        provisions: ProvisionStock
-        current_day: 現在の日（レリックのラインナップ決定用）
-    Returns:
-        (購入したレリック名リスト, [(食糧名, 数量), ...])
+        game_manager: GameManager
+        current_day: 現在の日（ラインナップ決定用）
     """
+    import random
     from game.relic import generate_daily_relic_items
     from game.provisions import get_all_provisions
+
+    player = game_manager.player
+    relics = game_manager.relics
+    provisions = game_manager.provisions
 
     # 本日のレリックラインナップを生成
     daily_relics = generate_daily_relic_items(seed=current_day)
     all_provisions = get_all_provisions()
 
-    purchased_relics = []
-    purchased_provisions = []
+    # 食糧のセール品を決定（1つ20%オフ）
+    random.seed(current_day + 500)  # レリックと異なるシード
+    sale_provision_idx = random.randint(0, len(all_provisions) - 1)
 
     while True:
-        print("\n【オンラインショップ】")
+        print("\n【オンラインショップ】 ※注文品は翌日届きます")
         print(f"カード未払い残高: {player.card_debt:,}円")
         print(f"所持レリック: {relics.count()}個")
+        pending_count = provisions.count_pending()
+        if pending_count > 0:
+            print(f"配送待ち: {pending_count}件")
         print()
 
         # 本日のレリック表示
         print("[本日のレリック] ※毎日ラインナップが変わります")
         for i, item in enumerate(daily_relics, 1):
             owned = relics.has(item.relic.name)
+            # 配送待ちかどうかもチェック
+            pending = any(p.item_type == "relic" and p.name == item.relic.name
+                         for p in provisions.get_pending())
             if owned:
                 status = " [購入済]"
+            elif pending:
+                status = " [配送待ち]"
             elif item.is_sale:
                 status = f" [セール! 元{item.relic.price:,}円]"
             else:
@@ -636,9 +665,18 @@ def show_online_shop(player, relics, provisions, current_day: int = 1) -> tuple[
         # 食糧表示
         print("\n[食糧]")
         provision_start = len(daily_relics) + 1
-        for i, prov in enumerate(all_provisions, provision_start):
+        for i, prov in enumerate(all_provisions):
+            prov_idx = i
+            display_idx = provision_start + i
+            is_sale = (prov_idx == sale_provision_idx)
+            if is_sale:
+                price = int(prov.price * 0.8)
+                sale_mark = f" [セール! 元{prov.price}円]"
+            else:
+                price = prov.price
+                sale_mark = ""
             caffeine_info = f", ☕気力+{prov.caffeine * 2}" if prov.caffeine > 0 else ""
-            print(f"  {i}. {prov.name} ({prov.price:,}円) - 満腹{prov.fullness}{caffeine_info}")
+            print(f"  {display_idx}. {prov.name} ({price:,}円) - 満腹{prov.fullness}{caffeine_info}{sale_mark}")
 
         print("\n  0. 購入完了")
 
@@ -653,27 +691,35 @@ def show_online_shop(player, relics, provisions, current_day: int = 1) -> tuple[
                 item = daily_relics[idx - 1]
                 if relics.has(item.relic.name):
                     print("すでに購入済みです。")
+                elif any(p.item_type == "relic" and p.name == item.relic.name
+                        for p in provisions.get_pending()):
+                    print("すでに注文済みです（配送待ち）。")
                 else:
                     player.add_card_debt(item.price)
-                    relics.add(item.relic.name)
-                    purchased_relics.append(item.relic.name)
+                    game_manager.add_pending_delivery("relic", item.relic.name, 1)
                     if item.is_sale:
-                        print(f"{item.relic.name}をセール価格で購入！ (カード: +{item.price:,}円)")
+                        print(f"{item.relic.name}をセール価格で注文！ 明日届きます (カード: +{item.price:,}円)")
                     else:
-                        print(f"{item.relic.name}を購入しました！ (カード: +{item.price:,}円)")
+                        print(f"{item.relic.name}を注文しました！ 明日届きます (カード: +{item.price:,}円)")
 
             # 食糧購入
             elif provision_start <= idx < provision_start + len(all_provisions):
-                prov = all_provisions[idx - provision_start]
+                prov_idx = idx - provision_start
+                prov = all_provisions[prov_idx]
+                is_sale = (prov_idx == sale_provision_idx)
+                unit_price = int(prov.price * 0.8) if is_sale else prov.price
+
                 qty_input = input(f"{prov.name}を何個買いますか？ (1-10): ").strip()
                 try:
                     qty = int(qty_input)
                     if 1 <= qty <= 10:
-                        total = prov.price * qty
+                        total = unit_price * qty
                         player.add_card_debt(total)
-                        provisions.add(prov.name, qty)
-                        purchased_provisions.append((prov.name, qty))
-                        print(f"{prov.name}を{qty}個購入しました！ (カード: +{total:,}円)")
+                        game_manager.add_pending_delivery("provision", prov.name, qty)
+                        if is_sale:
+                            print(f"{prov.name}を{qty}個セール価格で注文！ 明日届きます (カード: +{total:,}円)")
+                        else:
+                            print(f"{prov.name}を{qty}個注文しました！ 明日届きます (カード: +{total:,}円)")
                     else:
                         print("1から10の間で入力してください。")
                 except ValueError:
@@ -682,8 +728,6 @@ def show_online_shop(player, relics, provisions, current_day: int = 1) -> tuple[
                 print("無効な番号です。")
         except ValueError:
             print("数値を入力してください。")
-
-    return purchased_relics, purchased_provisions
 
 
 def show_game_over(reason: str = "stamina"):

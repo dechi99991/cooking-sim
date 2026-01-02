@@ -16,7 +16,7 @@ from ui.terminal import (
     show_online_shopping_menu, show_online_shop, show_card_settlement,
     show_game_over, show_game_clear, show_title, select_ingredients,
     show_game_result, show_provision_stock, select_provision,
-    show_character_select, show_day_start, show_events
+    show_character_select, show_day_start, show_events, show_deliveries
 )
 from game.events import EventTiming
 from game.provisions import get_provision
@@ -48,8 +48,8 @@ def check_and_pay_salary(game: GameManager):
         print()
 
 
-def eat_provision(game: GameManager) -> bool:
-    """食糧を食べる処理（通販食品 + 弁当など）。食べたらTrue"""
+def eat_provision_once(game: GameManager) -> bool:
+    """食糧を1つ食べる処理。食べたらTrue"""
     current_day = game.day_state.day
     result = select_provision(game.provisions, current_day)
 
@@ -98,6 +98,40 @@ def eat_provision(game: GameManager) -> bool:
             return True
 
     return False
+
+
+def eat_provision(game: GameManager) -> bool:
+    """食糧を食べる処理（複数選択可能）。1つ以上食べたらTrue"""
+    current_day = game.day_state.day
+    ate_something = False
+
+    while True:
+        # まだ食糧があるか確認
+        if game.provisions.is_empty(current_day):
+            if not ate_something:
+                print("食糧がありません。")
+            break
+
+        # 満腹チェック
+        if game.player.fullness >= 10:
+            print("満腹です！")
+            break
+
+        # 1つ食べる
+        if eat_provision_once(game):
+            ate_something = True
+            # もっと食べるか確認
+            print("\n続けて食べますか？")
+            print("  1. もっと食べる")
+            print("  2. 終わり")
+            choice = input("選択: ").strip()
+            if choice != "1":
+                break
+        else:
+            # キャンセルされた
+            break
+
+    return ate_something
 
 
 def handle_wake_up(game: GameManager):
@@ -456,6 +490,10 @@ def handle_dinner(game: GameManager):
     """夕食フェーズの処理"""
     show_phase_header(GamePhase.DINNER, game.day_state)
 
+    # 配送処理（通販で注文した商品が届く）
+    deliveries = game.process_deliveries()
+    show_deliveries(deliveries)
+
     # 帰宅後イベント
     trigger_events(game, EventTiming.AFTER_WORK)
 
@@ -503,7 +541,7 @@ def handle_online_shopping(game: GameManager):
     choice = show_online_shopping_menu()
 
     if choice == "1":
-        show_online_shop(game.player, game.relics, game.provisions, game.day_state.day)
+        show_online_shop(game, game.day_state.day)
     else:
         print("通販をスキップしました。")
 

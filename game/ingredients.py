@@ -332,13 +332,61 @@ class ShopItem:
 
 
 def generate_daily_shop_items(seed: int | None = None) -> list[ShopItem]:
-    """その日の店頭商品を生成（5種類、1つ2割引、1つ半額で期限近い）"""
+    """その日の店頭商品を生成（5種類、カテゴリ固定、1つ2割引、1つ半額で期限近い）
+
+    カテゴリ構成:
+    - 穀物: 1（米など主食を確保）
+    - 野菜: 1
+    - 肉または魚: 1
+    - 卵乳または豆: 1
+    - その他（きのこ、果物、調味料）: 1
+    """
     if seed is not None:
         random.seed(seed)
 
-    all_ingredients = list(INGREDIENTS.values())
-    selected = random.sample(all_ingredients, min(5, len(all_ingredients)))
+    # カテゴリ別に食材を分類
+    by_category: dict[str, list[Ingredient]] = {}
+    for ing in INGREDIENTS.values():
+        if ing.category not in by_category:
+            by_category[ing.category] = []
+        by_category[ing.category].append(ing)
 
+    selected = []
+
+    # 1. 穀物から1つ（米など主食）
+    if '穀物' in by_category:
+        selected.append(random.choice(by_category['穀物']))
+
+    # 2. 野菜から1つ
+    if '野菜' in by_category:
+        selected.append(random.choice(by_category['野菜']))
+
+    # 3. 肉か魚から1つ
+    meat_fish = by_category.get('肉', []) + by_category.get('魚', [])
+    if meat_fish:
+        selected.append(random.choice(meat_fish))
+
+    # 4. 卵乳か豆から1つ
+    egg_bean = by_category.get('卵乳', []) + by_category.get('豆', [])
+    if egg_bean:
+        selected.append(random.choice(egg_bean))
+
+    # 5. その他から1つ（きのこ、果物、調味料）
+    others = by_category.get('きのこ', []) + by_category.get('果物', []) + by_category.get('調味料', [])
+    if others:
+        selected.append(random.choice(others))
+
+    # 足りない場合はランダムに追加
+    all_ingredients = list(INGREDIENTS.values())
+    while len(selected) < 5:
+        ing = random.choice(all_ingredients)
+        if ing not in selected:
+            selected.append(ing)
+
+    # シャッフル
+    random.shuffle(selected)
+
+    # 価格設定
     shop_items = []
     discount_idx = random.randint(0, len(selected) - 1)  # 2割引の商品
     near_expiry_idx = (discount_idx + 1 + random.randint(0, len(selected) - 2)) % len(selected)  # 半額商品

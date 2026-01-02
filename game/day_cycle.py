@@ -282,6 +282,24 @@ class GameManager:
         # イベントの日次リセット
         self.events.new_day()
 
+    def process_deliveries(self) -> list:
+        """配送処理。届いた商品リストを返す"""
+        from .provisions import PendingDelivery
+        current_day = self.day_state.day
+        delivered = self.provisions.process_deliveries(current_day)
+
+        # レリックの配送処理
+        for item in delivered:
+            if item.item_type == "relic":
+                self.relics.add(item.name)
+
+        return delivered
+
+    def add_pending_delivery(self, item_type: str, name: str, quantity: int = 1):
+        """翌日配送の商品を追加"""
+        delivery_day = self.day_state.day + 1
+        self.provisions.add_pending(item_type, name, quantity, delivery_day)
+
     def is_game_over(self) -> bool:
         """ゲームオーバー判定"""
         return self.player.is_game_over()

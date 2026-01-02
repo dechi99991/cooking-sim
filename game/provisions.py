@@ -23,6 +23,15 @@ class PreparedDish:
     dish_type: str = "弁当"  # "弁当", "作り置き" など
 
 
+@dataclass
+class PendingDelivery:
+    """配送待ちの商品"""
+    item_type: str  # "provision" or "relic"
+    name: str
+    quantity: int
+    delivery_day: int  # 届く日
+
+
 # 食糧マスターデータ
 PROVISIONS = {
     'カップ麺': Provision(
@@ -86,6 +95,7 @@ class ProvisionStock:
     def __init__(self):
         self._items: dict[str, int] = {}  # 通販食品
         self._prepared: list[PreparedDish] = []  # 弁当など調理済み
+        self._pending: list[PendingDelivery] = []  # 配送待ち
 
     # === 通販食品の管理 ===
 
@@ -168,6 +178,48 @@ class ProvisionStock:
         has_items = len(self._items) > 0
         has_prepared = self.has_prepared(current_day) if current_day > 0 else len(self._prepared) > 0
         return not has_items and not has_prepared
+
+    # === 配送待ち管理 ===
+
+    def add_pending(self, item_type: str, name: str, quantity: int, delivery_day: int):
+        """配送待ちを追加"""
+        self._pending.append(PendingDelivery(
+            item_type=item_type,
+            name=name,
+            quantity=quantity,
+            delivery_day=delivery_day
+        ))
+
+    def get_pending(self) -> list[PendingDelivery]:
+        """配送待ちリストを取得"""
+        return self._pending.copy()
+
+    def process_deliveries(self, current_day: int) -> list[PendingDelivery]:
+        """配送処理。届いた商品をストックに追加し、届いた商品リストを返す
+
+        Note: レリックの配送はGameManager側で処理する必要がある
+        """
+        delivered = []
+        remaining = []
+
+        for item in self._pending:
+            if item.delivery_day <= current_day:
+                if item.item_type == "provision":
+                    self.add(item.name, item.quantity)
+                delivered.append(item)
+            else:
+                remaining.append(item)
+
+        self._pending = remaining
+        return delivered
+
+    def has_pending(self) -> bool:
+        """配送待ちがあるか"""
+        return len(self._pending) > 0
+
+    def count_pending(self) -> int:
+        """配送待ちの数"""
+        return len(self._pending)
 
 
 def get_provision(name: str) -> Provision | None:
