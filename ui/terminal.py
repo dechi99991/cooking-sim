@@ -226,6 +226,32 @@ def show_phase_header(phase: GamePhase, day_state):
     print(f"\n{'─' * 20} {holiday_mark}{name} {'─' * 20}\n")
 
 
+def show_day_start(day_state, weather_display: str):
+    """1日の開始表示（起床時）"""
+    print(f"\n{'=' * 50}")
+    print(f"    {day_state.get_date_string()}  {weather_display}")
+    print(f"{'=' * 50}\n")
+
+
+def show_event(event_name: str, message: str):
+    """イベント発生表示"""
+    print(f"\n┌{'─' * 40}┐")
+    print(f"│ 📢 {event_name}")
+    print(f"├{'─' * 40}┤")
+    for line in message.split('\n'):
+        print(f"│ {line}")
+    print(f"└{'─' * 40}┘\n")
+
+
+def show_events(events: list):
+    """複数イベント表示
+    Args:
+        events: EventResultのリスト
+    """
+    for result in events:
+        show_event(result.event.name, result.message)
+
+
 def show_breakfast_menu(game: GameManager) -> str:
     """朝食メニュー表示"""
     print("朝食の選択:")

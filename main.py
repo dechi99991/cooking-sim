@@ -16,9 +16,19 @@ from ui.terminal import (
     show_online_shopping_menu, show_online_shop, show_card_settlement,
     show_game_over, show_game_clear, show_title, select_ingredients,
     show_game_result, show_provision_stock, select_provision,
-    show_character_select
+    show_character_select, show_day_start, show_events
 )
+from game.events import EventTiming
 from game.provisions import get_provision
+
+
+def trigger_events(game: GameManager, timing: EventTiming):
+    """指定タイミングのイベントをチェックして発生させる"""
+    context = game.get_event_context()
+    results = game.events.check_and_trigger_events(timing, context, game)
+    if results:
+        show_events(results)
+    return results
 
 
 def check_and_pay_salary(game: GameManager):
@@ -90,8 +100,21 @@ def eat_provision(game: GameManager) -> bool:
     return False
 
 
+def handle_wake_up(game: GameManager):
+    """起床処理（天気決定とイベント）"""
+    # 天気を決定
+    weather = game.determine_weather()
+    show_day_start(game.day_state, weather)
+
+    # 起床時イベント
+    trigger_events(game, EventTiming.WAKE_UP)
+
+
 def handle_breakfast(game: GameManager):
     """朝食フェーズの処理（平日）"""
+    # 起床処理（1日の開始）
+    handle_wake_up(game)
+
     show_phase_header(GamePhase.BREAKFAST, game.day_state)
     check_and_pay_salary(game)
     game.reset_fullness_for_meal()
@@ -158,6 +181,9 @@ def handle_breakfast(game: GameManager):
 
 def handle_holiday_breakfast(game: GameManager):
     """休日朝食フェーズの処理"""
+    # 起床処理（1日の開始）
+    handle_wake_up(game)
+
     show_phase_header(GamePhase.BREAKFAST, game.day_state)
     check_and_pay_salary(game)
     game.reset_fullness_for_meal()
@@ -199,6 +225,10 @@ def handle_holiday_breakfast(game: GameManager):
 def handle_go_to_work(game: GameManager):
     """出勤フェーズの処理"""
     show_phase_header(GamePhase.GO_TO_WORK, game.day_state)
+
+    # 出社時イベント
+    trigger_events(game, EventTiming.GO_TO_WORK)
+
     print("出勤します...")
     game.commute()
     print(f"体力: {game.player.stamina}")
@@ -234,10 +264,17 @@ def handle_lunch(game: GameManager):
         print("昼食を抜きました。")
         game.stats.record_meal_skipped()
 
+    # 昼食後イベント
+    trigger_events(game, EventTiming.AFTER_LUNCH)
+
 
 def handle_leave_work(game: GameManager):
     """退勤フェーズの処理"""
     show_phase_header(GamePhase.LEAVE_WORK, game.day_state)
+
+    # 退勤時イベント
+    trigger_events(game, EventTiming.LEAVE_WORK)
+
     print("退勤します...")
     game.commute()
     print(f"体力: {game.player.stamina}")
@@ -257,6 +294,9 @@ def handle_shopping(game: GameManager):
         game.go_shopping()
         print(f"スーパーへ向かいます... (気力: {game.player.energy}, 体力: {game.player.stamina})")
         print()
+
+        # 買い物中イベント
+        trigger_events(game, EventTiming.AT_SHOP)
 
         # 本日の商品を生成（日付をシードにして毎日異なるラインナップ）
         shop_items = generate_daily_shop_items(seed=current_day)
@@ -321,6 +361,9 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
         game.go_shopping()
         print(f"スーパーへ向かいます... (気力: {game.player.energy}, 体力: {game.player.stamina})")
         print()
+
+        # 買い物中イベント
+        trigger_events(game, EventTiming.AT_SHOP)
 
         # 本日の商品を生成（日付+フェーズでシードを変えて1日2回でも別ラインナップ）
         phase_offset = 100 if phase == GamePhase.HOLIDAY_SHOPPING_2 else 0
@@ -412,6 +455,10 @@ def handle_holiday_lunch(game: GameManager):
 def handle_dinner(game: GameManager):
     """夕食フェーズの処理"""
     show_phase_header(GamePhase.DINNER, game.day_state)
+
+    # 帰宅後イベント
+    trigger_events(game, EventTiming.AFTER_WORK)
+
     game.reset_fullness_for_meal()
     current_day = game.day_state.day
 
@@ -464,6 +511,9 @@ def handle_online_shopping(game: GameManager):
 def handle_sleep(game: GameManager):
     """就寝フェーズの処理"""
     show_phase_header(GamePhase.SLEEP, game.day_state)
+
+    # 夜中イベント
+    trigger_events(game, EventTiming.NIGHT)
 
     print("1日が終わりました。")
     show_nutrition(game.day_state.daily_nutrition)

@@ -8,6 +8,7 @@ from .cooking import Dish
 from .result import GameStats, GameResult
 from .relic import RelicInventory
 from .provisions import ProvisionStock
+from .events import EventManager
 from .constants import (
     COOKING_ENERGY_COST, BENTO_ENERGY_COST, COMMUTE_STAMINA_COST,
     CAFETERIA_PRICE, SLEEP_ENERGY_RECOVERY, SLEEP_STAMINA_RECOVERY,
@@ -138,6 +139,7 @@ class GameManager:
         self.stats = GameStats()  # 統計収集用
         self.relics = RelicInventory()  # レリック所持
         self.provisions = ProvisionStock()  # 食糧ストック
+        self.events = EventManager()  # イベント管理
         self.has_bonus = has_bonus  # ボーナスの有無（キャラ設定用）
         # キャラクター別の給料・ボーナス・家賃
         self._salary_amount = salary_amount if salary_amount is not None else SALARY_AMOUNT
@@ -275,6 +277,8 @@ class GameManager:
         self.day_state.start_new_day()
         # 期限切れの弁当などを削除
         self.provisions.remove_expired_prepared(self.day_state.day)
+        # イベントの日次リセット
+        self.events.new_day()
 
     def is_game_over(self) -> bool:
         """ゲームオーバー判定"""
@@ -347,3 +351,30 @@ class GameManager:
             final_stamina=self.player.stamina,
             final_energy=self.player.energy,
         )
+
+    # === イベント関連 ===
+
+    def determine_weather(self) -> str:
+        """今日の天気を決定し、表示文字列を返す"""
+        # 日付をシードにして天気を決定（同じ日は同じ天気）
+        seed = self.day_state.day + self.day_state.month * 100
+        self.events.determine_weather(seed)
+        return self.events.get_weather_display()
+
+    def get_weather_display(self) -> str:
+        """天気の表示文字列を取得"""
+        return self.events.get_weather_display()
+
+    def get_event_context(self) -> dict:
+        """イベント判定用のコンテキストを取得"""
+        return {
+            'day': self.day_state.day,
+            'month': self.day_state.month,
+            'weekday': self.day_state.get_weekday(),
+            'is_holiday': self.is_holiday(),
+            'weather': self.events.weather,
+            'money': self.player.money,
+            'energy': self.player.energy,
+            'stamina': self.player.stamina,
+            'fullness': self.player.fullness,
+        }
