@@ -71,11 +71,18 @@ def show_recipe_suggestions(stock: Stock):
         print()
 
 
-def show_provision_stock(provisions):
-    """食糧ストック表示"""
+def show_provision_stock(provisions, current_day: int = 0):
+    """食糧ストック表示（通販食品 + 弁当など）"""
     items = provisions.get_all()
-    if items:
+    prepared = provisions.get_prepared(current_day) if current_day > 0 else []
+
+    if items or prepared:
         print("【食糧ストック】")
+        # 弁当など調理済み
+        for dish in prepared:
+            expiry_info = "今日まで" if dish.expiry_day == current_day else f"{dish.expiry_day}日まで"
+            print(f"  {dish.dish_type}: {dish.name} (満腹{dish.fullness}, {expiry_info})")
+        # 通販食品
         for name, qty in items.items():
             prov = get_provision(name)
             if prov:
@@ -86,22 +93,37 @@ def show_provision_stock(provisions):
         print("【食糧ストック】空\n")
 
 
-def select_provision(provisions) -> str | None:
-    """食糧選択UI
-    Returns: 選択した食糧名、キャンセルならNone
+def select_provision(provisions, current_day: int = 0) -> tuple[str, str | int] | None:
+    """食糧選択UI（通販食品 + 弁当など）
+    Returns: ("provision", 食糧名) or ("prepared", インデックス) or None
     """
     available = provisions.get_available()
-    if not available:
+    prepared = provisions.get_prepared(current_day) if current_day > 0 else []
+
+    if not available and not prepared:
         print("食糧がありません。")
         return None
 
     print("食べる食糧を選んでください:")
-    for i, name in enumerate(available, 1):
+    option_map = {}  # 番号 -> ("provision", name) or ("prepared", index)
+    num = 1
+
+    # 弁当など調理済み
+    for i, dish in enumerate(prepared):
+        expiry_info = "今日まで" if dish.expiry_day == current_day else f"{dish.expiry_day}日まで"
+        print(f"  {num}. {dish.dish_type}: {dish.name} (満腹{dish.fullness}, {expiry_info})")
+        option_map[num] = ("prepared", i)
+        num += 1
+
+    # 通販食品
+    for name in available:
         qty = provisions.get_quantity(name)
         prov = get_provision(name)
         if prov:
             caffeine_info = f", ☕{prov.caffeine}→気力+{prov.caffeine * 2}" if prov.caffeine > 0 else ""
-            print(f"  {i}. {name} (残り{qty}個, 満腹{prov.fullness}{caffeine_info})")
+            print(f"  {num}. {name} (残り{qty}個, 満腹{prov.fullness}{caffeine_info})")
+            option_map[num] = ("provision", name)
+            num += 1
     print("  0. キャンセル")
 
     while True:
@@ -111,8 +133,8 @@ def select_provision(provisions) -> str | None:
 
         try:
             idx = int(choice)
-            if 1 <= idx <= len(available):
-                return available[idx - 1]
+            if idx in option_map:
+                return option_map[idx]
             print("無効な番号です。")
         except ValueError:
             print("数値を入力してください。")
@@ -210,6 +232,7 @@ def show_breakfast_menu(game: GameManager) -> str:
     options = []
     option_map = {}
     num = 1
+    current_day = game.day_state.day
 
     if game.can_cook():
         print(f"  {num}. 自炊する")
@@ -223,7 +246,7 @@ def show_breakfast_menu(game: GameManager) -> str:
         options.append(str(num))
         num += 1
 
-    if not game.provisions.is_empty():
+    if not game.provisions.is_empty(current_day):
         print(f"  {num}. 食糧を食べる")
         option_map[str(num)] = "provision"
         options.append(str(num))
@@ -252,12 +275,7 @@ def show_lunch_menu(game: GameManager) -> str:
     options = []
     option_map = {}
     num = 1
-
-    if game.day_state.has_bento:
-        print(f"  {num}. 弁当を食べる")
-        option_map[str(num)] = "bento"
-        options.append(str(num))
-        num += 1
+    current_day = game.day_state.day
 
     if game.can_use_cafeteria():
         print(f"  {num}. 社食 ({CAFETERIA_PRICE}円)")
@@ -265,7 +283,8 @@ def show_lunch_menu(game: GameManager) -> str:
         options.append(str(num))
         num += 1
 
-    if not game.provisions.is_empty():
+    # 食糧（弁当含む）がある場合
+    if not game.provisions.is_empty(current_day):
         print(f"  {num}. 食糧を食べる")
         option_map[str(num)] = "provision"
         options.append(str(num))
@@ -277,9 +296,7 @@ def show_lunch_menu(game: GameManager) -> str:
 
     choice = get_input("選択: ", options)
     action = option_map[choice]
-    if action == "bento":
-        return "1"
-    elif action == "cafeteria":
+    if action == "cafeteria":
         return "2"
     elif action == "provision":
         return "3"
@@ -293,6 +310,7 @@ def show_holiday_breakfast_menu(game: GameManager) -> str:
     options = []
     option_map = {}
     num = 1
+    current_day = game.day_state.day
 
     if game.can_cook():
         print(f"  {num}. 自炊する")
@@ -300,7 +318,7 @@ def show_holiday_breakfast_menu(game: GameManager) -> str:
         options.append(str(num))
         num += 1
 
-    if not game.provisions.is_empty():
+    if not game.provisions.is_empty(current_day):
         print(f"  {num}. 食糧を食べる")
         option_map[str(num)] = "provision"
         options.append(str(num))
@@ -326,6 +344,7 @@ def show_holiday_lunch_menu(game: GameManager) -> str:
     options = []
     option_map = {}
     num = 1
+    current_day = game.day_state.day
 
     if game.can_cook():
         print(f"  {num}. 自炊する")
@@ -333,7 +352,7 @@ def show_holiday_lunch_menu(game: GameManager) -> str:
         options.append(str(num))
         num += 1
 
-    if not game.provisions.is_empty():
+    if not game.provisions.is_empty(current_day):
         print(f"  {num}. 食糧を食べる")
         option_map[str(num)] = "provision"
         options.append(str(num))
@@ -359,6 +378,7 @@ def show_dinner_menu(game: GameManager) -> str:
     options = []
     option_map = {}
     num = 1
+    current_day = game.day_state.day
 
     if game.can_cook():
         print(f"  {num}. 自炊する")
@@ -366,7 +386,7 @@ def show_dinner_menu(game: GameManager) -> str:
         options.append(str(num))
         num += 1
 
-    if not game.provisions.is_empty():
+    if not game.provisions.is_empty(current_day):
         print(f"  {num}. 食糧を食べる")
         option_map[str(num)] = "provision"
         options.append(str(num))

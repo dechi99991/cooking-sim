@@ -77,8 +77,6 @@ class DayState:
     month: int = GAME_START_MONTH
     phase: GamePhase = GamePhase.BREAKFAST
     daily_nutrition: Nutrition = field(default_factory=Nutrition)
-    has_bento: bool = False
-    bento: Dish | None = None
     caffeine: int = 0  # 1日のカフェイン摂取量
 
     def get_weekday(self) -> int:
@@ -111,8 +109,6 @@ class DayState:
         self.day += 1
         self.phase = GamePhase.BREAKFAST
         self.daily_nutrition.reset()
-        self.has_bento = False
-        self.bento = None
         self.caffeine = 0
 
     def add_caffeine(self, amount: int):
@@ -190,20 +186,25 @@ class GameManager:
         self.day_state.daily_nutrition.add(dish.nutrition)
         return actual_fullness
 
-    def set_bento(self, dish: Dish):
-        """弁当をセット"""
-        self.day_state.has_bento = True
-        self.day_state.bento = dish
+    def add_bento(self, dish: Dish):
+        """弁当を食糧ストックに追加（当日期限）"""
+        current_day = self.day_state.day
+        self.provisions.add_prepared(
+            dish_name=dish.name,
+            nutrition=dish.nutrition,
+            fullness=dish.fullness,
+            expiry_day=current_day,  # 当日中のみ有効
+            dish_type="弁当"
+        )
 
-    def eat_bento(self) -> Dish | None:
-        """弁当を食べる"""
-        if self.day_state.has_bento and self.day_state.bento:
-            bento = self.day_state.bento
-            self.eat_dish(bento)
-            self.day_state.has_bento = False
-            self.day_state.bento = None
-            return bento
-        return None
+    def has_bento(self) -> bool:
+        """弁当があるか確認"""
+        return self.provisions.has_prepared(self.day_state.day)
+
+    def get_bentos(self) -> list:
+        """利用可能な弁当リストを取得"""
+        from .provisions import PreparedDish
+        return self.provisions.get_prepared(self.day_state.day)
 
     def add_caffeine(self, amount: int):
         """カフェインを摂取"""
@@ -272,6 +273,8 @@ class GameManager:
         self.player.clear_penalties()
         self.player.reset_fullness()
         self.day_state.start_new_day()
+        # 期限切れの弁当などを削除
+        self.provisions.remove_expired_prepared(self.day_state.day)
 
     def is_game_over(self) -> bool:
         """ゲームオーバー判定"""

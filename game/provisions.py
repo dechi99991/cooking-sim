@@ -13,6 +13,16 @@ class Provision:
     caffeine: int = 0  # カフェイン量（0=なし）
 
 
+@dataclass
+class PreparedDish:
+    """調理済み料理（弁当など）"""
+    name: str
+    nutrition: Nutrition
+    fullness: int
+    expiry_day: int  # 期限日（この日まで食べられる）
+    dish_type: str = "弁当"  # "弁当", "作り置き" など
+
+
 # 食糧マスターデータ
 PROVISIONS = {
     'カップ麺': Provision(
@@ -71,10 +81,13 @@ PROVISIONS = {
 
 
 class ProvisionStock:
-    """食糧ストック管理"""
+    """食糧ストック管理（通販食品 + 弁当などの調理済み料理）"""
 
     def __init__(self):
-        self._items: dict[str, int] = {}
+        self._items: dict[str, int] = {}  # 通販食品
+        self._prepared: list[PreparedDish] = []  # 弁当など調理済み
+
+    # === 通販食品の管理 ===
 
     def add(self, name: str, quantity: int = 1):
         """食糧を追加"""
@@ -103,13 +116,58 @@ class ProvisionStock:
         """全ストックを取得"""
         return self._items.copy()
 
-    def is_empty(self) -> bool:
-        """ストックが空か確認"""
-        return len(self._items) == 0
-
     def get_available(self) -> list[str]:
         """利用可能な食糧名のリストを取得"""
         return [name for name, qty in self._items.items() if qty > 0]
+
+    # === 弁当・調理済み料理の管理 ===
+
+    def add_prepared(self, dish_name: str, nutrition: Nutrition, fullness: int,
+                     expiry_day: int, dish_type: str = "弁当"):
+        """調理済み料理（弁当など）を追加"""
+        prepared = PreparedDish(
+            name=dish_name,
+            nutrition=nutrition,
+            fullness=fullness,
+            expiry_day=expiry_day,
+            dish_type=dish_type
+        )
+        self._prepared.append(prepared)
+
+    def get_prepared(self, current_day: int) -> list[PreparedDish]:
+        """有効な調理済み料理のリストを取得（期限内のもの）"""
+        return [p for p in self._prepared if p.expiry_day >= current_day]
+
+    def remove_prepared(self, index: int) -> PreparedDish | None:
+        """指定インデックスの調理済み料理を消費して返す"""
+        valid_prepared = [p for p in self._prepared]
+        if 0 <= index < len(valid_prepared):
+            dish = valid_prepared[index]
+            self._prepared.remove(dish)
+            return dish
+        return None
+
+    def remove_expired_prepared(self, current_day: int) -> list[PreparedDish]:
+        """期限切れの調理済み料理を削除して返す"""
+        expired = [p for p in self._prepared if p.expiry_day < current_day]
+        self._prepared = [p for p in self._prepared if p.expiry_day >= current_day]
+        return expired
+
+    def has_prepared(self, current_day: int) -> bool:
+        """有効な調理済み料理があるか確認"""
+        return any(p.expiry_day >= current_day for p in self._prepared)
+
+    def count_prepared(self, current_day: int) -> int:
+        """有効な調理済み料理の数を取得"""
+        return len([p for p in self._prepared if p.expiry_day >= current_day])
+
+    # === 全体のチェック ===
+
+    def is_empty(self, current_day: int = 0) -> bool:
+        """ストックが空か確認（通販食品 + 有効な調理済み）"""
+        has_items = len(self._items) > 0
+        has_prepared = self.has_prepared(current_day) if current_day > 0 else len(self._prepared) > 0
+        return not has_items and not has_prepared
 
 
 def get_provision(name: str) -> Provision | None:

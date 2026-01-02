@@ -39,9 +39,32 @@ def check_and_pay_salary(game: GameManager):
 
 
 def eat_provision(game: GameManager) -> bool:
-    """食糧を食べる処理。食べたらTrue"""
-    name = select_provision(game.provisions)
-    if name:
+    """食糧を食べる処理（通販食品 + 弁当など）。食べたらTrue"""
+    current_day = game.day_state.day
+    result = select_provision(game.provisions, current_day)
+
+    if result is None:
+        return False
+
+    item_type, value = result
+
+    if item_type == "prepared":
+        # 弁当などの調理済み料理
+        dish = game.provisions.remove_prepared(value)
+        if dish:
+            game.player.add_fullness(dish.fullness)
+            game.day_state.daily_nutrition.add(dish.nutrition)
+            print(f"【{dish.dish_type}: {dish.name}】を食べました！")
+            print(f"  満腹度: +{dish.fullness}")
+            n = dish.nutrition
+            print(f"  栄養: 活力{n.vitality} 心力{n.mental} 覚醒{n.awakening} 持続{n.sustain} 防衛{n.defense}")
+            print(f"満腹感: {game.player.fullness}")
+            game.stats.record_meal_eaten()
+            return True
+
+    elif item_type == "provision":
+        # 通販食品
+        name = value
         prov = get_provision(name)
         if prov:
             game.provisions.remove(name, 1)
@@ -63,6 +86,7 @@ def eat_provision(game: GameManager) -> bool:
             print(f"満腹感: {game.player.fullness}  気力: {game.player.energy}")
             game.stats.record_meal_eaten()
             return True
+
     return False
 
 
@@ -75,7 +99,7 @@ def handle_breakfast(game: GameManager):
 
     show_status(game.player, game.day_state)
     show_stock(game.stock, current_day, game.get_freshness_extend())
-    show_provision_stock(game.provisions)
+    show_provision_stock(game.provisions, current_day)
     show_recipe_suggestions(game.stock)
 
     choice = show_breakfast_menu(game)
@@ -119,7 +143,7 @@ def handle_breakfast(game: GameManager):
                 if bento:
                     game.consume_bento_energy()
                     print(f"弁当【{bento.name}】を作りました！")
-                    game.set_bento(bento)
+                    game.add_bento(bento)  # 食糧ストックに弁当として追加
                     game.stats.record_bento()
 
     elif choice == "3":
@@ -141,7 +165,7 @@ def handle_holiday_breakfast(game: GameManager):
 
     show_status(game.player, game.day_state)
     show_stock(game.stock, current_day, game.get_freshness_extend())
-    show_provision_stock(game.provisions)
+    show_provision_stock(game.provisions, current_day)
     show_recipe_suggestions(game.stock)
 
     choice = show_holiday_breakfast_menu(game)
@@ -184,21 +208,14 @@ def handle_lunch(game: GameManager):
     """昼食フェーズの処理"""
     show_phase_header(GamePhase.LUNCH, game.day_state)
     game.reset_fullness_for_meal()
+    current_day = game.day_state.day
 
     show_status(game.player, game.day_state)
-    show_provision_stock(game.provisions)
+    show_provision_stock(game.provisions, current_day)
 
     choice = show_lunch_menu(game)
 
-    if choice == "1":
-        # 弁当
-        bento = game.eat_bento()
-        if bento:
-            print(f"弁当【{bento.name}】を食べました！")
-            print(f"満腹感: {game.player.fullness}")
-            game.stats.record_meal_eaten()
-
-    elif choice == "2":
+    if choice == "2":
         # 社食
         game.consume_cafeteria_cost()
         dish = create_cafeteria_dish()
@@ -361,7 +378,7 @@ def handle_holiday_lunch(game: GameManager):
 
     show_status(game.player, game.day_state)
     show_stock(game.stock, current_day, game.get_freshness_extend())
-    show_provision_stock(game.provisions)
+    show_provision_stock(game.provisions, current_day)
     show_recipe_suggestions(game.stock)
 
     choice = show_holiday_lunch_menu(game)
@@ -400,7 +417,7 @@ def handle_dinner(game: GameManager):
 
     show_status(game.player, game.day_state)
     show_stock(game.stock, current_day, game.get_freshness_extend())
-    show_provision_stock(game.provisions)
+    show_provision_stock(game.provisions, current_day)
     show_recipe_suggestions(game.stock)
 
     choice = show_dinner_menu(game)
