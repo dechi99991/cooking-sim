@@ -9,6 +9,7 @@ from .result import GameStats, GameResult
 from .relic import RelicInventory
 from .provisions import ProvisionStock
 from .events import EventManager
+from .event_data import register_all_events
 from .constants import (
     COOKING_ENERGY_COST, BENTO_ENERGY_COST, COMMUTE_STAMINA_COST,
     CAFETERIA_PRICE, SLEEP_ENERGY_RECOVERY, SLEEP_STAMINA_RECOVERY,
@@ -140,6 +141,7 @@ class GameManager:
         self.relics = RelicInventory()  # レリック所持
         self.provisions = ProvisionStock()  # 食糧ストック
         self.events = EventManager()  # イベント管理
+        register_all_events(self.events)  # 全イベントを登録
         self.has_bonus = has_bonus  # ボーナスの有無（キャラ設定用）
         # キャラクター別の給料・ボーナス・家賃
         self._salary_amount = salary_amount if salary_amount is not None else SALARY_AMOUNT
