@@ -134,7 +134,8 @@ class GameManager:
                  has_bonus: bool = True,
                  salary_amount: int | None = None,
                  bonus_amount: int | None = None,
-                 rent_amount: int = 0):
+                 rent_amount: int = 0,
+                 with_initial_relics: bool = True):
         self.player = player
         self.stock = stock
         self.day_state = DayState()
@@ -148,6 +149,9 @@ class GameManager:
         self._salary_amount = salary_amount if salary_amount is not None else SALARY_AMOUNT
         self._bonus_amount = bonus_amount if bonus_amount is not None else BONUS_AMOUNT
         self._rent_amount = rent_amount  # 家賃（給料から天引き）
+        # 初期レリック（冷蔵庫・電子レンジ）
+        if with_initial_relics:
+            self.relics.add_initial_relics()
 
     def get_cooking_energy_cost(self) -> int:
         """レリック効果を反映した調理気力コストを取得"""

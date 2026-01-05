@@ -601,6 +601,23 @@ class RelicInventory:
                 boost += int(relic.effect_value)
         return boost
 
+    def add_initial_relics(self):
+        """初期レリック（冷蔵庫・電子レンジ）を追加
+
+        ゲーム開始時に最初から所持している想定のレリック。
+        取得日を0にすることで、全ての食材に効果が適用される。
+        """
+        self.add('冷蔵庫', acquired_day=0)
+        self.add('電子レンジ', acquired_day=0)
+
+    def has_initial_relics(self) -> bool:
+        """初期レリックを持っているか"""
+        return self.has('冷蔵庫') and self.has('電子レンジ')
+
+
+# 初期レリックの定数
+INITIAL_RELICS = ['冷蔵庫', '電子レンジ']
+
 
 def get_relic(name: str) -> Relic | None:
     """レリック名からレリックデータを取得"""
