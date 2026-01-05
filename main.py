@@ -334,7 +334,7 @@ def handle_shopping(game: GameManager):
 
         # 本日の商品を生成（日付をシードにして毎日異なるラインナップ）
         shop_items = generate_daily_shop_items(seed=current_day)
-        purchases = show_shop(game.player, shop_items)
+        purchases = show_shop(game.player, shop_items, game.get_bag_capacity())
 
         if purchases:
             total_cost = 0
@@ -402,7 +402,7 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
         # 本日の商品を生成（日付+フェーズでシードを変えて1日2回でも別ラインナップ）
         phase_offset = 100 if phase == GamePhase.HOLIDAY_SHOPPING_2 else 0
         shop_items = generate_daily_shop_items(seed=current_day + phase_offset)
-        purchases = show_shop(game.player, shop_items)
+        purchases = show_shop(game.player, shop_items, game.get_bag_capacity())
 
         if purchases:
             total_cost = 0

@@ -15,6 +15,7 @@ from .constants import (
     CAFETERIA_PRICE, SLEEP_ENERGY_RECOVERY, SLEEP_STAMINA_RECOVERY,
     GAME_START_MONTH, GAME_START_DAY, GAME_DURATION_DAYS,
     SHOPPING_ENERGY_COST, SHOPPING_STAMINA_COST, SHOPPING_MIN_ENERGY,
+    SHOPPING_BAG_CAPACITY,
     SALARY_AMOUNT, SALARY_DAY, BONUS_AMOUNT, BONUS_MONTHS,
     CAFFEINE_INSOMNIA_THRESHOLD, CAFFEINE_ENERGY_PENALTY, CAFFEINE_STAMINA_PENALTY
 )
@@ -323,6 +324,10 @@ class GameManager:
     def get_freshness_extend(self) -> int:
         """レリック効果による鮮度延長日数を取得"""
         return self.relics.get_freshness_extend()
+
+    def get_bag_capacity(self) -> int:
+        """買い物バッグ容量を取得（レリック効果込み）"""
+        return SHOPPING_BAG_CAPACITY + self.relics.get_bag_capacity_boost()
 
     def is_payday(self) -> bool:
         """今日が給料日かどうか"""

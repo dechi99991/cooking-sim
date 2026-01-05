@@ -40,6 +40,7 @@ CAFETERIA_FULLNESS = DEFAULT_CONFIG.cafeteria_fullness
 SHOPPING_ENERGY_COST = DEFAULT_CONFIG.shopping_energy_cost
 SHOPPING_STAMINA_COST = DEFAULT_CONFIG.shopping_stamina_cost
 SHOPPING_MIN_ENERGY = DEFAULT_CONFIG.shopping_min_energy
+SHOPPING_BAG_CAPACITY = DEFAULT_CONFIG.shopping_bag_capacity
 
 # 睡眠回復
 SLEEP_ENERGY_RECOVERY = DEFAULT_CONFIG.sleep_energy_recovery

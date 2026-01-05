@@ -41,6 +41,7 @@ class GameConfig:
     shopping_energy_cost: int = 2     # 買い出しの気力消費
     shopping_stamina_cost: int = 1    # 買い出しの体力消費
     shopping_min_energy: int = 3      # 買い出しに必要な最低気力
+    shopping_bag_capacity: int = 5    # 1回の買い物で持てる食材数
 
     # === 睡眠回復 ===
     sleep_energy_recovery: int = 10   # 気力回復量

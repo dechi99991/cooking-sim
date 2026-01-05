@@ -430,6 +430,28 @@ RELICS = {
         name='包丁スタンド', price=2500, description='調理の気力消費-1',
         effect_type='energy_save', effect_target=None, effect_value=1, category='便利'
     ),
+
+    # === 買い物バッグ (5種類) ===
+    'エコバッグ': Relic(
+        name='エコバッグ', price=500, description='買い物バッグ容量+2',
+        effect_type='bag_capacity', effect_target=None, effect_value=2, category='バッグ'
+    ),
+    '保冷バッグ': Relic(
+        name='保冷バッグ', price=1500, description='買い物バッグ容量+3',
+        effect_type='bag_capacity', effect_target=None, effect_value=3, category='バッグ'
+    ),
+    'マイバスケット': Relic(
+        name='マイバスケット', price=800, description='買い物バッグ容量+3',
+        effect_type='bag_capacity', effect_target=None, effect_value=3, category='バッグ'
+    ),
+    'キャリーカート': Relic(
+        name='キャリーカート', price=3000, description='買い物バッグ容量+5',
+        effect_type='bag_capacity', effect_target=None, effect_value=5, category='バッグ'
+    ),
+    'リュックサック': Relic(
+        name='リュックサック', price=2000, description='買い物バッグ容量+4',
+        effect_type='bag_capacity', effect_target=None, effect_value=4, category='バッグ'
+    ),
 }
 
 
@@ -569,6 +591,15 @@ class RelicInventory:
             if relic and relic.effect_type == 'freshness_extend':
                 extend += int(relic.effect_value)
         return extend
+
+    def get_bag_capacity_boost(self) -> int:
+        """買い物バッグ容量の増加値を取得"""
+        boost = 0
+        for relic_name in self._owned:
+            relic = RELICS.get(relic_name)
+            if relic and relic.effect_type == 'bag_capacity':
+                boost += int(relic.effect_value)
+        return boost
 
 
 def get_relic(name: str) -> Relic | None:

@@ -481,18 +481,20 @@ def show_shopping_menu(game: GameManager) -> str:
         return "2"
 
 
-def show_shop(player: Player, shop_items: list) -> list[tuple[str, int, int]]:
+def show_shop(player: Player, shop_items: list, bag_capacity: int = 99) -> list[tuple[str, int, int]]:
     """お店の商品表示と購入UI
     Args:
         player: プレイヤー
         shop_items: ShopItemのリスト（generate_daily_shop_itemsで生成）
+        bag_capacity: 買い物バッグの容量（購入可能な最大個数）
     Returns:
         [(食材名, 数量, 残り鮮度日数), ...]
     """
     purchases = []
+    total_items = 0  # 現在の購入個数
 
     print("【スーパーマーケット】本日のラインナップ")
-    print(f"所持金: {player.money:,}円")
+    print(f"所持金: {player.money:,}円  バッグ容量: {bag_capacity}個")
     print()
     print("購入する食材を選んでください:")
     for i, item in enumerate(shop_items, 1):
@@ -512,7 +514,13 @@ def show_shop(player: Player, shop_items: list) -> list[tuple[str, int, int]]:
 
     remaining_money = player.money
     while True:
-        print(f"残り所持金: {remaining_money:,}円")
+        remaining_capacity = bag_capacity - total_items
+        print(f"残り所持金: {remaining_money:,}円  バッグ残り: {remaining_capacity}個")
+
+        if remaining_capacity <= 0:
+            print("バッグがいっぱいです！")
+            break
+
         choice = input("番号を入力 (0で終了): ").strip()
 
         if choice == "0":
@@ -526,14 +534,19 @@ def show_shop(player: Player, shop_items: list) -> list[tuple[str, int, int]]:
                 price = item.price
                 freshness = item.freshness_days_left
                 if remaining_money >= price:
-                    qty = input(f"{name}を何個買いますか？ (1-10): ").strip()
+                    max_qty = min(10, remaining_capacity)
+                    if max_qty <= 0:
+                        print("バッグがいっぱいです！")
+                        continue
+                    qty = input(f"{name}を何個買いますか？ (1-{max_qty}): ").strip()
                     try:
                         qty_num = int(qty)
-                        if 1 <= qty_num <= 10:
+                        if 1 <= qty_num <= max_qty:
                             total_price = price * qty_num
                             if remaining_money >= total_price:
                                 purchases.append((name, qty_num, freshness))
                                 remaining_money -= total_price
+                                total_items += qty_num
                                 if item.discount_type == "near_expiry":
                                     print(f"{name}を{qty_num}個購入！ (-{total_price}円) ※期限注意")
                                 else:
@@ -541,7 +554,7 @@ def show_shop(player: Player, shop_items: list) -> list[tuple[str, int, int]]:
                             else:
                                 print("お金が足りません。")
                         else:
-                            print("1から10の間で入力してください。")
+                            print(f"1から{max_qty}の間で入力してください。")
                     except ValueError:
                         print("数値を入力してください。")
                 else:
