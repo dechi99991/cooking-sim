@@ -205,7 +205,12 @@ def select_ingredients(stock: Stock, current_day: int = 1, freshness_extend: int
 
 def show_dish(dish: Dish):
     """料理情報を表示"""
-    print(f"【{dish.name}】を作りました！")
+    if dish.is_named:
+        print(f"★【{dish.name}】を作りました！ ※ネームド料理")
+        if dish.bonus_info:
+            print(f"  ボーナス: {dish.bonus_info}")
+    else:
+        print(f"【{dish.name}】を作りました！")
     print(f"  満腹度: +{dish.fullness}")
     n = dish.nutrition
     print(f"  栄養: 活力{n.vitality} 心力{n.mental} 覚醒{n.awakening} 持続{n.sustain} 防衛{n.defense}")
