@@ -633,8 +633,11 @@ def show_online_shop(game_manager, current_day: int = 1):
     relics = game_manager.relics
     provisions = game_manager.provisions
 
-    # 本日のレリックラインナップを生成
-    daily_relics = generate_daily_relic_items(seed=current_day)
+    # 本日のレリックラインナップを生成（所持済み・配送待ちを除外）
+    owned_relic_names = set(relics.get_all())
+    pending_relic_names = {p.name for p in provisions.get_pending() if p.item_type == "relic"}
+    excluded_relics = owned_relic_names | pending_relic_names
+    daily_relics = generate_daily_relic_items(seed=current_day, owned_relics=excluded_relics)
     all_provisions = get_all_provisions()
 
     # 食糧のセール品を決定（1つ20%オフ）

@@ -9,10 +9,11 @@
 - **対応:** `RelicInventory`に取得日を記録し、食材購入日以降に取得したレリックの効果のみ適用
 - **変更ファイル:** `game/relic.py`, `game/ingredients.py`, `game/cooking.py`, `game/day_cycle.py`, `ui/terminal.py`, `main.py`
 
-### 2. 購入済みレリックを通販/イベントから除外
+### 2. ~~購入済みレリックを通販/イベントから除外~~ ✅ 完了 (2026-01-05)
 - **問題:** 既に持っているレリックが通販やイベントに出る
-- **対応:** `RelicInventory.has()` でフィルタリング
-- **関連ファイル:** `game/relic.py`, `game/event_data.py`, `ui/terminal.py`
+- **対応:** `generate_daily_relic_items`に所持・配送待ちレリックを渡して除外
+- **変更ファイル:** `game/relic.py`, `ui/terminal.py`
+- **備考:** イベントでのレリック出現は未実装のため対応不要
 
 ---
 

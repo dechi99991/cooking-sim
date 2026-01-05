@@ -441,24 +441,36 @@ class ShopRelicItem:
     is_sale: bool  # セール品かどうか
 
 
-def generate_daily_relic_items(seed: int | None = None) -> list[ShopRelicItem]:
-    """その日の通販レリックを生成（5種類、1つセール）"""
+def generate_daily_relic_items(seed: int | None = None,
+                                owned_relics: set[str] | None = None) -> list[ShopRelicItem]:
+    """その日の通販レリックを生成（5種類、1つセール）
+
+    Args:
+        seed: 乱数シード
+        owned_relics: 所持済みレリック名のセット（除外用）
+    """
     if seed is not None:
         random.seed(seed + 1000)  # 食材とシードをずらす
 
+    # 所持済みレリックを除外
     all_relics = list(RELICS.values())
+    if owned_relics:
+        all_relics = [r for r in all_relics if r.name not in owned_relics]
+
+    # 利用可能なレリックが5種類未満の場合は全て表示
     selected = random.sample(all_relics, min(5, len(all_relics)))
 
     shop_items = []
-    sale_idx = random.randint(0, len(selected) - 1)
+    if selected:
+        sale_idx = random.randint(0, len(selected) - 1)
 
-    for i, relic in enumerate(selected):
-        if i == sale_idx:
-            # 20%オフ
-            price = int(relic.price * 0.8)
-            shop_items.append(ShopRelicItem(relic, price, is_sale=True))
-        else:
-            shop_items.append(ShopRelicItem(relic, relic.price, is_sale=False))
+        for i, relic in enumerate(selected):
+            if i == sale_idx:
+                # 20%オフ
+                price = int(relic.price * 0.8)
+                shop_items.append(ShopRelicItem(relic, price, is_sale=True))
+            else:
+                shop_items.append(ShopRelicItem(relic, relic.price, is_sale=False))
 
     return shop_items
 
