@@ -135,6 +135,68 @@ def eat_provision(game: GameManager) -> bool:
     return ate_something
 
 
+def cook_multiple_dishes(game: GameManager, meal_name: str = "食事") -> bool:
+    """複数の料理を作って食べる処理。1つ以上作ったらTrue
+
+    Args:
+        game: GameManager
+        meal_name: 食事名（表示用）
+
+    Returns:
+        1つ以上料理を作って食べたらTrue
+    """
+    current_day = game.day_state.day
+    cooked_count = 0
+
+    while game.can_cook() and not game.stock.is_empty():
+        # 満腹チェック
+        if game.player.fullness >= 10:
+            print("満腹です！")
+            break
+
+        # 2品目以降は在庫を表示
+        if cooked_count > 0:
+            print()
+            show_stock(game.stock, current_day, game.relics)
+            show_recipe_suggestions(game.stock)
+
+        ingredients = select_ingredients(game.stock, current_day, game.relics)
+        if not ingredients:
+            if cooked_count == 0:
+                print(f"{meal_name}を作りませんでした。")
+            break
+
+        if not confirm_cooking(ingredients):
+            print("食材を選び直します。")
+            continue  # ループの先頭に戻って再選択
+
+        dish = cook(ingredients, game.stock, current_day, game.relics)
+        if dish:
+            game.consume_cooking_energy()
+            show_dish(dish)
+            game.eat_dish(dish)
+            game.stats.record_meal_eaten()
+            game.stats.record_cooking()
+            cooked_count += 1
+            print(f"満腹感: {game.player.fullness}")
+
+            # まだ作れるか確認
+            if game.can_cook() and not game.stock.is_empty() and game.player.fullness < 10:
+                print("\nもう1品作りますか？")
+                print("  1. 作る")
+                print("  2. 終わり")
+                choice = input("選択: ").strip()
+                if choice != "1":
+                    break
+            else:
+                break
+        else:
+            # cook失敗（通常起きないが念のため）
+            break
+
+    return cooked_count > 0
+
+
 def handle_wake_up(game: GameManager):
     """起床処理（天気決定とイベント）"""
     # 天気を決定
@@ -163,42 +225,14 @@ def handle_breakfast(game: GameManager):
     choice = show_breakfast_menu(game)
 
     if choice == "1":
-        # 自炊のみ
-        ingredients = select_ingredients(game.stock, current_day, game.relics)
-        if ingredients:
-            if not confirm_cooking(ingredients):
-                print("調理をキャンセルしました。")
-                game.stats.record_meal_skipped()
-            else:
-                dish = cook(ingredients, game.stock, current_day, game.relics)
-                if dish:
-                    game.consume_cooking_energy()
-                    show_dish(dish)
-                    game.eat_dish(dish)
-                    game.stats.record_meal_eaten()
-                    game.stats.record_cooking()
-                    print(f"満腹感: {game.player.fullness}")
-                else:
-                    game.stats.record_meal_skipped()
-        else:
+        # 自炊のみ（複数料理可）
+        if not cook_multiple_dishes(game, "朝食"):
             game.stats.record_meal_skipped()
 
     elif choice == "2":
         # 自炊 + 弁当作成
         print("\n【朝食用】")
-        ingredients = select_ingredients(game.stock, current_day, game.relics)
-        if ingredients:
-            if not confirm_cooking(ingredients):
-                print("調理をキャンセルしました。")
-            else:
-                dish = cook(ingredients, game.stock, current_day, game.relics)
-                if dish:
-                    game.consume_cooking_energy()
-                    show_dish(dish)
-                    game.eat_dish(dish)
-                    game.stats.record_meal_eaten()
-                    game.stats.record_cooking()
-                    print(f"満腹感: {game.player.fullness}")
+        cook_multiple_dishes(game, "朝食")
 
         print("\n【弁当用】")
         while game.can_make_bento() and not game.stock.is_empty():
@@ -247,23 +281,8 @@ def handle_holiday_breakfast(game: GameManager):
     choice = show_holiday_breakfast_menu(game)
 
     if choice == "1":
-        ingredients = select_ingredients(game.stock, current_day, game.relics)
-        if ingredients:
-            if not confirm_cooking(ingredients):
-                print("調理をキャンセルしました。")
-                game.stats.record_meal_skipped()
-            else:
-                dish = cook(ingredients, game.stock, current_day, game.relics)
-                if dish:
-                    game.consume_cooking_energy()
-                    show_dish(dish)
-                    game.eat_dish(dish)
-                    game.stats.record_meal_eaten()
-                    game.stats.record_cooking()
-                    print(f"満腹感: {game.player.fullness}")
-                else:
-                    game.stats.record_meal_skipped()
-        else:
+        # 自炊（複数料理可）
+        if not cook_multiple_dishes(game, "朝食"):
             game.stats.record_meal_skipped()
 
     elif choice == "2":
@@ -560,23 +579,8 @@ def handle_holiday_lunch(game: GameManager):
     choice = show_holiday_lunch_menu(game)
 
     if choice == "1":
-        ingredients = select_ingredients(game.stock, current_day, game.relics)
-        if ingredients:
-            if not confirm_cooking(ingredients):
-                print("調理をキャンセルしました。")
-                game.stats.record_meal_skipped()
-            else:
-                dish = cook(ingredients, game.stock, current_day, game.relics)
-                if dish:
-                    game.consume_cooking_energy()
-                    show_dish(dish)
-                    game.eat_dish(dish)
-                    game.stats.record_meal_eaten()
-                    game.stats.record_cooking()
-                    print(f"満腹感: {game.player.fullness}")
-                else:
-                    game.stats.record_meal_skipped()
-        else:
+        # 自炊（複数料理可）
+        if not cook_multiple_dishes(game, "昼食"):
             game.stats.record_meal_skipped()
 
     elif choice == "2":
@@ -611,24 +615,8 @@ def handle_dinner(game: GameManager):
     choice = show_dinner_menu(game)
 
     if choice == "1":
-        # 自炊
-        ingredients = select_ingredients(game.stock, current_day, game.relics)
-        if ingredients:
-            if not confirm_cooking(ingredients):
-                print("調理をキャンセルしました。")
-                game.stats.record_meal_skipped()
-            else:
-                dish = cook(ingredients, game.stock, current_day, game.relics)
-                if dish:
-                    game.consume_cooking_energy()
-                    show_dish(dish)
-                    game.eat_dish(dish)
-                    game.stats.record_meal_eaten()
-                    game.stats.record_cooking()
-                    print(f"満腹感: {game.player.fullness}")
-                else:
-                    game.stats.record_meal_skipped()
-        else:
+        # 自炊（複数料理可）
+        if not cook_multiple_dishes(game, "夕食"):
             game.stats.record_meal_skipped()
 
     elif choice == "2":
