@@ -201,18 +201,23 @@ def handle_breakfast(game: GameManager):
                     print(f"満腹感: {game.player.fullness}")
 
         print("\n【弁当用】")
-        if game.can_make_bento():
+        while game.can_make_bento() and not game.stock.is_empty():
             bento_ingredients = select_ingredients(game.stock, current_day, game.relics)
-            if bento_ingredients:
-                if not confirm_cooking(bento_ingredients):
-                    print("弁当作りをキャンセルしました。")
-                else:
-                    bento = cook(bento_ingredients, game.stock, current_day, game.relics)
-                    if bento:
-                        game.consume_bento_energy()
-                        print(f"弁当【{bento.name}】を作りました！")
-                        game.add_bento(bento)  # 食糧ストックに弁当として追加
-                        game.stats.record_bento()
+            if not bento_ingredients:
+                print("弁当を作りませんでした。")
+                break
+
+            if not confirm_cooking(bento_ingredients):
+                print("食材を選び直します。")
+                continue  # ループの先頭に戻って再選択
+
+            bento = cook(bento_ingredients, game.stock, current_day, game.relics)
+            if bento:
+                game.consume_bento_energy()
+                print(f"弁当【{bento.name}】を作りました！")
+                game.add_bento(bento)  # 食糧ストックに弁当として追加
+                game.stats.record_bento()
+            break  # 弁当作成成功またはcook失敗で終了
 
     elif choice == "3":
         # 食糧を食べる
