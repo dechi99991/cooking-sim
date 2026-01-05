@@ -17,7 +17,7 @@ from ui.terminal import (
     show_game_over, show_game_clear, show_title, select_ingredients,
     show_game_result, show_provision_stock, select_provision,
     show_character_select, show_day_start, show_events, show_deliveries,
-    confirm_cooking
+    confirm_cooking, show_holiday_activity_menu
 )
 from game.events import EventTiming
 from game.provisions import get_provision
@@ -399,67 +399,146 @@ def handle_shopping(game: GameManager):
 
 def handle_holiday_shopping(game: GameManager, phase: GamePhase):
     """休日の買い出しフェーズの処理"""
+    from game.constants import SHOPPING_ENERGY_COST, SHOPPING_STAMINA_COST
+
     show_phase_header(phase, game.day_state)
     current_day = game.day_state.day
     show_status(game.player, game.day_state)
     show_stock(game.stock, current_day, game.relics)
+    show_recipe_suggestions(game.stock)
 
-    choice = show_shopping_menu(game)
+    choice = show_holiday_activity_menu(game)
 
-    if choice == "1":
+    if choice == "shop":
+        # 近所のスーパー（従来通り）
         game.go_shopping()
         print(f"スーパーへ向かいます... (気力: {game.player.energy}, 体力: {game.player.stamina})")
         print()
 
-        # 買い物中イベント
         trigger_events(game, EventTiming.AT_SHOP)
 
-        # 本日の商品を生成（日付+フェーズでシードを変えて1日2回でも別ラインナップ）
         phase_offset = 100 if phase == GamePhase.HOLIDAY_SHOPPING_2 else 0
         shop_items = generate_daily_shop_items(seed=current_day + phase_offset)
         purchases = show_shop(game.player, shop_items, game.get_bag_capacity())
 
-        if purchases:
-            total_cost = 0
-            total_items = 0
-            print("\n【購入品】")
-            for name, qty, freshness_days_left in purchases:
-                ingredient = get_ingredient(name)
-                if ingredient:
-                    # 期限近い商品は「有効購入日」を調整して鮮度を短く
-                    if freshness_days_left < ingredient.freshness_days:
-                        effective_day = current_day - (ingredient.freshness_days - freshness_days_left)
-                    else:
-                        effective_day = current_day
-                    game.stock.add(name, qty, effective_day)
-                    print(f"  {name} x{qty}")
-                    total_items += qty
-            # 合計金額の計算
-            shop_item_map = {item.ingredient.name: item for item in shop_items}
-            for name, qty, _ in purchases:
-                if name in shop_item_map:
-                    total_cost += shop_item_map[name].price * qty
-            game.player.consume_money(total_cost)
-            print(f"合計: {total_cost}円")
-            print(f"残り所持金: {game.player.money:,}円")
-            game.stats.record_shopping(total_cost, total_items)
-        else:
-            print("何も買いませんでした。")
-
+        _process_purchases(game, purchases, shop_items, current_day)
         print("\n帰宅しました。")
+        _check_expired_items(game, current_day)
 
-        # 帰宅後：期限切れ食材がある場合は廃棄オプションを表示
-        if game.stock.has_expired_items(current_day, game.relics):
-            print()
-            print("⚠ 期限切れの食材があります")
-            discard_choice = input("廃棄しますか？ (1. する  2. しない): ").strip()
-            if discard_choice == "1":
-                discards = show_discard_menu(game.stock, current_day, game.relics)
-                for name, qty in discards:
-                    game.stock.discard(name, qty)
+    elif choice == "distant":
+        # 遠出して買い物（コスト2倍、バッグ容量2倍）
+        game.player.consume_energy(SHOPPING_ENERGY_COST * 2)
+        game.player.consume_stamina(SHOPPING_STAMINA_COST * 2)
+        print(f"遠出して大きなスーパーへ向かいます... (気力: {game.player.energy}, 体力: {game.player.stamina})")
+        print()
 
-    elif choice == "2":
-        print("買い出しに行きませんでした。")
+        trigger_events(game, EventTiming.AT_SHOP)
+
+        # 遠出用のシードで別ラインナップ
+        phase_offset = 200 if phase == GamePhase.HOLIDAY_SHOPPING_2 else 150
+        shop_items = generate_daily_shop_items(seed=current_day + phase_offset)
+        # バッグ容量2倍
+        purchases = show_shop(game.player, shop_items, game.get_bag_capacity() * 2)
+
+        _process_purchases(game, purchases, shop_items, current_day)
+        print("\n帰宅しました。疲れたけど、たくさん買えた！")
+        _check_expired_items(game, current_day)
+
+    elif choice == "batch":
+        # 料理の作り置き
+        print("作り置きを始めます。複数の弁当を作れます。")
+        print()
+        bento_count = 0
+        while game.can_cook() and not game.stock.is_empty():
+            print(f"【弁当 {bento_count + 1}個目】")
+            show_stock(game.stock, current_day, game.relics)
+            show_recipe_suggestions(game.stock)
+
+            ingredients = select_ingredients(game.stock, current_day, game.relics)
+            if not ingredients:
+                print("作り置きを終了します。")
+                break
+
+            if not confirm_cooking(ingredients):
+                print("この弁当はキャンセルしました。")
+                continue
+
+            bento = cook(ingredients, game.stock, current_day, game.relics)
+            if bento:
+                game.consume_cooking_energy()
+                print(f"弁当【{bento.name}】を作りました！")
+                # 作り置きは翌日まで有効
+                game.provisions.add_prepared(
+                    dish_name=bento.name,
+                    nutrition=bento.nutrition,
+                    fullness=bento.fullness,
+                    expiry_day=current_day + 1,
+                    dish_type="作り置き"
+                )
+                game.stats.record_bento()
+                bento_count += 1
+                print()
+
+                # 続けるか確認
+                if game.can_cook() and not game.stock.is_empty():
+                    cont = input("もう1つ作りますか？ (1. はい  2. いいえ): ").strip()
+                    if cont != "1":
+                        break
+
+        if bento_count > 0:
+            print(f"\n作り置き完了！ {bento_count}個の弁当を作りました。")
+        else:
+            print("\n作り置きしませんでした。")
+
+    elif choice == "rest":
+        # のんびり休養
+        print("のんびりと過ごしました...")
+        game.player.recover_energy(2)
+        game.player.recover_stamina(1)
+        print(f"気力+2, 体力+1 (気力: {game.player.energy}, 体力: {game.player.stamina})")
+
+    elif choice == "skip":
+        print("特に何もせず過ごしました。")
+
+
+def _process_purchases(game: GameManager, purchases: list, shop_items: list, current_day: int):
+    """買い物処理（共通ロジック）"""
+    if purchases:
+        total_cost = 0
+        total_items = 0
+        print("\n【購入品】")
+        for name, qty, freshness_days_left in purchases:
+            ingredient = get_ingredient(name)
+            if ingredient:
+                if freshness_days_left < ingredient.freshness_days:
+                    effective_day = current_day - (ingredient.freshness_days - freshness_days_left)
+                else:
+                    effective_day = current_day
+                game.stock.add(name, qty, effective_day)
+                print(f"  {name} x{qty}")
+                total_items += qty
+        shop_item_map = {item.ingredient.name: item for item in shop_items}
+        for name, qty, _ in purchases:
+            if name in shop_item_map:
+                total_cost += shop_item_map[name].price * qty
+        game.player.consume_money(total_cost)
+        print(f"合計: {total_cost}円")
+        print(f"残り所持金: {game.player.money:,}円")
+        game.stats.record_shopping(total_cost, total_items)
+    else:
+        print("何も買いませんでした。")
+
+
+def _check_expired_items(game: GameManager, current_day: int):
+    """期限切れ食材チェック（共通ロジック）"""
+    if game.stock.has_expired_items(current_day, game.relics):
+        print()
+        print("⚠ 期限切れの食材があります")
+        discard_choice = input("廃棄しますか？ (1. する  2. しない): ").strip()
+        if discard_choice == "1":
+            discards = show_discard_menu(game.stock, current_day, game.relics)
+            for name, qty in discards:
+                game.stock.discard(name, qty)
 
 
 def handle_holiday_lunch(game: GameManager):

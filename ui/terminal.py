@@ -538,6 +538,58 @@ def show_shopping_menu(game: GameManager) -> str:
         return "2"
 
 
+def show_holiday_activity_menu(game: GameManager) -> str:
+    """休日の過ごし方メニュー表示
+
+    Returns:
+        "shop": 近所のスーパー
+        "distant": 遠出して買い物
+        "batch": 料理の作り置き
+        "rest": のんびり休養
+        "skip": 何もしない
+    """
+    print("休日の過ごし方を選んでください:")
+    options = []
+    option_map = {}
+    num = 1
+
+    # 近所のスーパー
+    if game.can_go_shopping():
+        print(f"  {num}. 近所のスーパーへ (気力-{SHOPPING_ENERGY_COST}, 体力-{SHOPPING_STAMINA_COST})")
+        option_map[str(num)] = "shop"
+        options.append(str(num))
+        num += 1
+
+    # 遠出して買い物（高コスト、バッグ容量2倍）
+    if game.player.energy >= SHOPPING_ENERGY_COST * 2:
+        print(f"  {num}. 遠出して買い物 (気力-{SHOPPING_ENERGY_COST * 2}, 体力-{SHOPPING_STAMINA_COST * 2}) ※バッグ容量2倍")
+        option_map[str(num)] = "distant"
+        options.append(str(num))
+        num += 1
+
+    # 料理の作り置き
+    if game.can_cook() and not game.stock.is_empty():
+        cook_cost = game.get_cooking_energy_cost()
+        print(f"  {num}. 料理の作り置き (気力-{cook_cost}/回) ※複数の弁当を作成")
+        option_map[str(num)] = "batch"
+        options.append(str(num))
+        num += 1
+
+    # のんびり休養
+    print(f"  {num}. のんびり休養 (気力+2, 体力+1)")
+    option_map[str(num)] = "rest"
+    options.append(str(num))
+    num += 1
+
+    # 何もしない
+    print(f"  {num}. 特に何もしない")
+    option_map[str(num)] = "skip"
+    options.append(str(num))
+
+    choice = get_input("選択: ", options)
+    return option_map[choice]
+
+
 def show_shop(player: Player, shop_items: list, bag_capacity: int = 99) -> list[tuple[str, int, int]]:
     """お店の商品表示と購入UI
     Args:
