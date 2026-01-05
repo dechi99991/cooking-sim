@@ -27,7 +27,11 @@ class EatProvisionRequest(BaseModel):
 
 
 class HolidayActionRequest(BaseModel):
-    action: str  # "local", "outing", "prep", "rest"
+    action: str  # "shop", "distant", "batch", "rest", "skip"
+
+
+class MakeBentoRequest(BaseModel):
+    ingredient_names: list[str]
 
 
 # === レスポンススキーマ ===
@@ -213,6 +217,21 @@ class CookResponse(BaseModel):
     dish: DishInfo
     state: GameState
     evaluation_comment: str
+
+
+class CookPreviewResponse(BaseModel):
+    dish_name: str
+    nutrition: NutritionState
+    fullness: int
+    is_named: bool
+    named_recipe_name: str | None = None
+    evaluation_comment: str
+    can_make: bool
+
+
+class MakeBentoResponse(BaseModel):
+    bento_name: str
+    state: GameState
 
 
 class AdvancePhaseResponse(BaseModel):

@@ -15,7 +15,8 @@ from game.day_cycle import GamePhase
 from .session import create_session, get_session
 from .schemas import (
     StartGameRequest, StartGameResponse,
-    CookRequest, CookResponse,
+    CookRequest, CookResponse, CookPreviewResponse,
+    MakeBentoRequest, MakeBentoResponse,
     ShopBuyRequest, ShopResponse, ShopItemInfo,
     OnlineShopBuyRequest, OnlineShopResponse, OnlineProvisionInfo, OnlineRelicInfo,
     EatProvisionRequest,
@@ -99,7 +100,7 @@ def _build_game_state(session_id: str, game) -> GameState:
     prepared_items = []
     for prep in provisions.get_prepared(current_day):
         prepared_items.append(PreparedItem(
-            name=prep.dish_name,
+            name=prep.name,
             dish_type=prep.dish_type,
             nutrition=NutritionState(
                 vitality=prep.nutrition.vitality,
@@ -435,9 +436,79 @@ def get_recipes(session_id: str) -> RecipesResponse:
     )
 
 
-@router.post("/game/{session_id}/cook")
-def cook_dish(session_id: str, request: CookRequest) -> CookResponse:
-    """調理を実行"""
+@router.post("/game/{session_id}/cook/preview")
+def cook_preview(session_id: str, request: CookRequest) -> CookPreviewResponse:
+    """調理プレビュー（確認用）"""
+    game = _get_game_or_404(session_id)
+
+    if not request.ingredient_names:
+        raise HTTPException(status_code=400, detail="No ingredients selected")
+
+    # 調理可能かチェック
+    can_make = game.can_cook() and not game.stock.is_empty()
+
+    # ネームド料理判定
+    named_recipe = find_named_recipe(request.ingredient_names)
+
+    # 料理名を決定
+    if named_recipe:
+        dish_name = named_recipe.name
+    else:
+        # 適当な名前を生成
+        dish_name = "炒め物" if len(request.ingredient_names) > 1 else f"{request.ingredient_names[0]}料理"
+
+    # 栄養値を計算（プレビュー用）
+    from game.ingredients import get_ingredient
+    total_nutrition = {"vitality": 0, "mental": 0, "awakening": 0, "sustain": 0, "defense": 0}
+    total_fullness = 0
+
+    for name in request.ingredient_names:
+        ing = get_ingredient(name)
+        if ing:
+            total_nutrition["vitality"] += ing.nutrition.vitality
+            total_nutrition["mental"] += ing.nutrition.mental
+            total_nutrition["awakening"] += ing.nutrition.awakening
+            total_nutrition["sustain"] += ing.nutrition.sustain
+            total_nutrition["defense"] += ing.nutrition.defense
+            total_fullness += ing.fullness
+
+    # ネームド料理ボーナス
+    if named_recipe:
+        for key in total_nutrition:
+            total_nutrition[key] = int(total_nutrition[key] * named_recipe.nutrition_multiplier)
+        total_fullness += named_recipe.fullness_bonus
+
+    # 調理評価
+    evaluation = evaluate_cooking(request.ingredient_names)
+    if evaluation.fullness_good and evaluation.nutrition_good:
+        comment = "これなら腹いっぱいだし栄養もいいだろう！"
+    elif evaluation.fullness_good:
+        comment = "量は十分だが、栄養が偏っているな..."
+    elif evaluation.nutrition_good:
+        comment = "栄養はいいが、これでは物足りないな..."
+    else:
+        comment = "これでは腹も空くし、栄養も偏っているだろう..."
+
+    return CookPreviewResponse(
+        dish_name=dish_name,
+        nutrition=NutritionState(
+            vitality=total_nutrition["vitality"],
+            mental=total_nutrition["mental"],
+            awakening=total_nutrition["awakening"],
+            sustain=total_nutrition["sustain"],
+            defense=total_nutrition["defense"],
+        ),
+        fullness=total_fullness,
+        is_named=named_recipe is not None,
+        named_recipe_name=named_recipe.name if named_recipe else None,
+        evaluation_comment=comment,
+        can_make=can_make,
+    )
+
+
+@router.post("/game/{session_id}/cook/confirm")
+def cook_confirm(session_id: str, request: CookRequest) -> CookResponse:
+    """調理を確定実行"""
     game = _get_game_or_404(session_id)
     current_day = game.day_state.day
 
@@ -469,12 +540,6 @@ def cook_dish(session_id: str, request: CookRequest) -> CookResponse:
     game.stats.record_meal_eaten()
     game.stats.record_cooking()
 
-    # カフェイン追加
-    for name in request.ingredient_names:
-        ing = get_ingredient(name)
-        if ing and ing.caffeine > 0:
-            game.add_caffeine(ing.caffeine)
-
     # ネームド料理判定
     named_recipe = find_named_recipe(request.ingredient_names)
 
@@ -488,7 +553,7 @@ def cook_dish(session_id: str, request: CookRequest) -> CookResponse:
             defense=dish.nutrition.defense,
         ),
         fullness=dish.fullness,
-        ingredients=dish.ingredients,
+        ingredients=dish.ingredients_used,
         is_named=named_recipe is not None,
         named_recipe_name=named_recipe.name if named_recipe else None,
     )
@@ -529,6 +594,84 @@ def eat_provision(session_id: str, request: EatProvisionRequest) -> GameState:
     return _build_game_state(session_id, game)
 
 
+@router.post("/game/{session_id}/eat-prepared")
+def eat_prepared(session_id: str, prepared_index: int) -> GameState:
+    """作り置き料理を食べる"""
+    game = _get_game_or_404(session_id)
+    current_day = game.day_state.day
+
+    # 作り置きリストを取得
+    prepared_list = game.provisions.get_prepared(current_day)
+    if prepared_index < 0 or prepared_index >= len(prepared_list):
+        raise HTTPException(status_code=400, detail="Invalid prepared dish index")
+
+    # 作り置きを削除して食べる
+    dish = game.provisions.remove_prepared(prepared_index)
+    if dish is None:
+        raise HTTPException(status_code=400, detail="Failed to remove prepared dish")
+
+    game.player.add_fullness(dish.fullness)
+    game.day_state.daily_nutrition.add(dish.nutrition)
+    game.stats.record_meal_eaten()
+
+    return _build_game_state(session_id, game)
+
+
+@router.post("/game/{session_id}/eat-cafeteria")
+def eat_cafeteria(session_id: str) -> GameState:
+    """社食を食べる（平日昼食用）"""
+    game = _get_game_or_404(session_id)
+
+    CAFETERIA_COST = 500
+
+    if game.player.money < CAFETERIA_COST:
+        raise HTTPException(status_code=400, detail="Not enough money for cafeteria")
+
+    # 社食を食べる
+    game.player.money -= CAFETERIA_COST
+
+    # 社食の栄養（固定値）
+    from game.nutrition import Nutrition
+    cafeteria_nutrition = Nutrition(vitality=3, mental=2, awakening=1, sustain=3, defense=2)
+    cafeteria_fullness = 7
+
+    game.player.add_fullness(cafeteria_fullness)
+    game.day_state.daily_nutrition.add(cafeteria_nutrition)
+    game.stats.record_meal_eaten()
+
+    return _build_game_state(session_id, game)
+
+
+@router.post("/game/{session_id}/make-bento")
+def make_bento(session_id: str, request: MakeBentoRequest) -> MakeBentoResponse:
+    """弁当を作成"""
+    game = _get_game_or_404(session_id)
+    current_day = game.day_state.day
+
+    if not game.can_make_bento():
+        raise HTTPException(status_code=400, detail="Cannot make bento")
+
+    if not request.ingredient_names:
+        raise HTTPException(status_code=400, detail="No ingredients selected")
+
+    # 弁当を調理（食べない）
+    dish = cook(request.ingredient_names, game.stock, current_day, game.relics)
+    if dish is None:
+        raise HTTPException(status_code=400, detail="Cooking failed")
+
+    # 弁当作成の気力消費
+    game.consume_bento_energy()
+
+    # 弁当として食糧ストックに追加
+    game.add_bento(dish)
+    game.stats.record_bento()
+
+    return MakeBentoResponse(
+        bento_name=dish.name,
+        state=_build_game_state(session_id, game),
+    )
+
+
 # === フェーズ進行 ===
 
 @router.post("/game/{session_id}/advance-phase")
@@ -541,46 +684,58 @@ def advance_phase(session_id: str) -> AdvancePhaseResponse:
     salary_info = None
     bonus_info = None
 
-    current_phase = game.get_current_phase()
+    # UIが不要なフェーズは自動スキップ（出勤・退勤のみ）
+    auto_skip_phases = [
+        GamePhase.GO_TO_WORK,
+        GamePhase.LEAVE_WORK,
+    ]
 
-    # 特定フェーズでの処理
-    if current_phase == GamePhase.DINNER:
-        # 配送処理
-        delivered = game.process_deliveries()
-        for d in delivered:
-            deliveries.append(PendingDeliveryItem(
-                item_type=d.item_type,
-                name=d.name,
-                quantity=d.quantity,
-                delivery_day=d.delivery_day,
-            ))
+    while True:
+        current_phase = game.get_current_phase()
 
-    elif current_phase == GamePhase.GO_TO_WORK:
-        game.commute()
+        # 特定フェーズでの処理
+        if current_phase == GamePhase.DINNER:
+            # 配送処理
+            delivered = game.process_deliveries()
+            for d in delivered:
+                deliveries.append(PendingDeliveryItem(
+                    item_type=d.item_type,
+                    name=d.name,
+                    quantity=d.quantity,
+                    delivery_day=d.delivery_day,
+                ))
 
-    elif current_phase == GamePhase.LEAVE_WORK:
-        game.commute()
+        elif current_phase == GamePhase.GO_TO_WORK:
+            game.commute()
 
-    elif current_phase == GamePhase.SLEEP:
-        # 就寝処理
-        has_insomnia = game.sleep()
-        game.start_new_day()
+        elif current_phase == GamePhase.LEAVE_WORK:
+            game.commute()
 
-        # 給料日チェック
-        if game.is_payday():
-            gross, rent, net = game.pay_salary()
-            salary_info = {"gross": gross, "rent": rent, "net": net}
+        elif current_phase == GamePhase.SLEEP:
+            # 就寝処理
+            has_insomnia = game.sleep()
+            game.start_new_day()
 
-            if game.is_bonus_day():
-                bonus = game.pay_bonus()
-                bonus_info = {"amount": bonus}
+            # 給料日チェック
+            if game.is_payday():
+                gross, rent, net = game.pay_salary()
+                salary_info = {"gross": gross, "rent": rent, "net": net}
 
-        # 天気決定
-        game.determine_weather()
+                if game.is_bonus_day():
+                    bonus = game.pay_bonus()
+                    bonus_info = {"amount": bonus}
 
-    # フェーズ進行
-    if current_phase != GamePhase.SLEEP:
-        game.advance_phase()
+            # 天気決定
+            game.determine_weather()
+
+        # フェーズ進行
+        if current_phase != GamePhase.SLEEP:
+            game.advance_phase()
+
+        # 次のフェーズがUIを必要とするか確認
+        next_phase = game.get_current_phase()
+        if next_phase not in auto_skip_phases:
+            break
 
     return AdvancePhaseResponse(
         events=events,
