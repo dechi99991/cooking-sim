@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from game.player import Player
 from game.nutrition import Nutrition
 from game.ingredients import Stock, get_ingredient, get_shop_items
-from game.cooking import Dish, get_recipe_suggestions
+from game.cooking import Dish, get_recipe_suggestions, get_available_named_recipes
 from game.day_cycle import GameManager, GamePhase
 from game.constants import (
     MAX_ENERGY, MAX_STAMINA, MAX_FULLNESS, CAFETERIA_PRICE,
@@ -66,13 +66,24 @@ def show_stock(stock: Stock, current_day: int = 1, freshness_extend: int | Relic
 
 
 def show_recipe_suggestions(stock: Stock):
-    """作れる料理の候補を表示"""
+    """作れるネームド料理の候補を表示"""
     available = stock.get_available_ingredients()
-    suggestions = get_recipe_suggestions(available)
-    if suggestions:
-        print("【作れる料理】")
-        for dish_name, ingredients in suggestions:
-            print(f"  {dish_name} ({', '.join(ingredients)})")
+    named_recipes = get_available_named_recipes(available)
+
+    if named_recipes:
+        print("【作れるネームド料理】")
+        for recipe in named_recipes:
+            # ボーナス情報を作成
+            bonus_parts = []
+            if recipe.fullness_bonus > 0:
+                bonus_parts.append(f"満腹+{recipe.fullness_bonus}")
+            if recipe.nutrition_multiplier > 1.0:
+                bonus_parts.append(f"栄養{int(recipe.nutrition_multiplier * 100)}%")
+            bonus_str = f"（{', '.join(bonus_parts)}）" if bonus_parts else ""
+
+            ingredients_str = "・".join(sorted(recipe.ingredients))
+            print(f"  ★ {recipe.name} {bonus_str}")
+            print(f"      材料: {ingredients_str}")
         print()
 
 
