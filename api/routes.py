@@ -381,10 +381,11 @@ def get_online_shop(session_id: str) -> OnlineShopResponse:
         p.name for p in game.provisions.get_pending()
         if p.item_type == "relic"
     )
+    # 所持済み・配送待ちのレリックを除外して生成
+    excluded_relics = owned_relics | pending_relics
     relic_items = generate_daily_relic_items(
         seed=current_day,
-        owned_relics=owned_relics,
-        pending_relics=pending_relics,
+        owned_relics=excluded_relics,
     )
 
     relics = []

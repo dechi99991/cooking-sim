@@ -157,14 +157,7 @@ const advanceButtonText = computed(() => {
 
         <!-- 通販フェーズ -->
         <template v-else-if="currentPhase === 'ONLINE_SHOPPING'">
-          <OnlineShopPanel />
-          <button
-            class="advance-btn"
-            :disabled="loading"
-            @click="advance"
-          >
-            {{ advanceButtonText }}
-          </button>
+          <OnlineShopPanel @done="advance" />
         </template>
 
         <!-- 就寝フェーズ -->
