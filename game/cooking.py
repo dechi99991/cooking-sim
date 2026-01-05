@@ -275,6 +275,75 @@ def get_recipe_suggestions(available_ingredients: list[str]) -> list[tuple[str, 
     return suggestions
 
 
+@dataclass
+class CookingEvaluation:
+    """調理評価結果"""
+    total_fullness: int
+    total_nutrition: Nutrition
+    is_named: bool
+    named_recipe_name: str | None
+    # 評価
+    fullness_good: bool  # 満腹度が十分か
+    nutrition_good: bool  # 栄養バランスが良いか
+
+
+def evaluate_cooking(ingredient_names: list[str]) -> CookingEvaluation:
+    """
+    選択した食材の調理結果を事前評価する（確認用）
+    """
+    from .constants import NUTRITION_MIN_THRESHOLD
+
+    if not ingredient_names:
+        return CookingEvaluation(
+            total_fullness=0,
+            total_nutrition=Nutrition(),
+            is_named=False,
+            named_recipe_name=None,
+            fullness_good=False,
+            nutrition_good=False
+        )
+
+    # ネームド料理をチェック
+    named_recipe = find_named_recipe(ingredient_names)
+    is_named = named_recipe is not None
+
+    # 栄養値と満腹度を計算（鮮度補正なし、ベース値で評価）
+    total_nutrition = Nutrition()
+    total_fullness = 0
+
+    for name in ingredient_names:
+        ingredient = get_ingredient(name)
+        if ingredient:
+            total_nutrition.add(ingredient.nutrition)
+            total_fullness += ingredient.fullness
+
+    # ネームド料理ボーナスを適用
+    if named_recipe:
+        if named_recipe.nutrition_multiplier != 1.0:
+            total_nutrition = total_nutrition.apply_modifier(named_recipe.nutrition_multiplier)
+        total_fullness += named_recipe.fullness_bonus
+
+    # 評価: 満腹度が5以上なら良い
+    fullness_good = total_fullness >= 5
+
+    # 評価: 主要な栄養素のうち2つ以上が閾値以上なら良い
+    nutrients = [
+        total_nutrition.vitality,
+        total_nutrition.mental,
+        total_nutrition.sustain
+    ]
+    nutrition_good = sum(1 for n in nutrients if n >= NUTRITION_MIN_THRESHOLD) >= 2
+
+    return CookingEvaluation(
+        total_fullness=total_fullness,
+        total_nutrition=total_nutrition,
+        is_named=is_named,
+        named_recipe_name=named_recipe.name if named_recipe else None,
+        fullness_good=fullness_good,
+        nutrition_good=nutrition_good
+    )
+
+
 def create_cafeteria_dish() -> Dish:
     """社食の料理を作成"""
     from .constants import CAFETERIA_NUTRITION, CAFETERIA_FULLNESS

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from game.player import Player
 from game.nutrition import Nutrition
 from game.ingredients import Stock, get_ingredient, get_shop_items
-from game.cooking import Dish, get_recipe_suggestions, get_available_named_recipes
+from game.cooking import Dish, get_recipe_suggestions, get_available_named_recipes, evaluate_cooking, CookingEvaluation
 from game.day_cycle import GameManager, GamePhase
 from game.constants import (
     MAX_ENERGY, MAX_STAMINA, MAX_FULLNESS, CAFETERIA_PRICE,
@@ -225,6 +225,47 @@ def show_dish(dish: Dish):
     print(f"  満腹度: +{dish.fullness}")
     n = dish.nutrition
     print(f"  栄養: 活力{n.vitality} 心力{n.mental} 覚醒{n.awakening} 持続{n.sustain} 防衛{n.defense}")
+
+
+def confirm_cooking(ingredient_names: list[str]) -> bool:
+    """調理前の確認UI
+    選んだ食材を評価してコメントを表示し、確認を求める
+
+    Returns: True=調理する, False=キャンセル
+    """
+    evaluation = evaluate_cooking(ingredient_names)
+
+    print()
+    print("─" * 30)
+
+    # ネームド料理の場合は特別表示
+    if evaluation.is_named and evaluation.named_recipe_name:
+        print(f"★ {evaluation.named_recipe_name} が作れます！")
+
+    # 評価コメントを決定
+    if evaluation.fullness_good and evaluation.nutrition_good:
+        comment = "これなら腹いっぱいだし栄養もいいだろう！"
+    elif evaluation.fullness_good and not evaluation.nutrition_good:
+        comment = "腹は膨れるけど、栄養が偏っているかも..."
+    elif not evaluation.fullness_good and evaluation.nutrition_good:
+        comment = "栄養はいいけど、ちょっと物足りないかな..."
+    else:
+        comment = "これでは腹も空くし、栄養も偏っているだろう..."
+
+    # 詳細情報
+    n = evaluation.total_nutrition
+    print(f"  満腹度: +{evaluation.total_fullness}")
+    print(f"  栄養: 活力{n.vitality} 心力{n.mental} 持続{n.sustain}")
+    print()
+    print(f"  → {comment}")
+    print("─" * 30)
+
+    # 確認
+    print("これで作りますか？")
+    print("  1. はい")
+    print("  2. いいえ")
+    choice = get_input("選択: ", ["1", "2"])
+    return choice == "1"
 
 
 def show_phase_header(phase: GamePhase, day_state):
