@@ -155,7 +155,7 @@ def handle_breakfast(game: GameManager):
     current_day = game.day_state.day
 
     show_status(game.player, game.day_state)
-    show_stock(game.stock, current_day, game.get_freshness_extend())
+    show_stock(game.stock, current_day, game.relics)
     show_provision_stock(game.provisions, current_day)
     show_recipe_suggestions(game.stock)
 
@@ -163,7 +163,7 @@ def handle_breakfast(game: GameManager):
 
     if choice == "1":
         # 自炊のみ
-        ingredients = select_ingredients(game.stock, current_day, game.get_freshness_extend())
+        ingredients = select_ingredients(game.stock, current_day, game.relics)
         if ingredients:
             dish = cook(ingredients, game.stock, current_day, game.relics)
             if dish:
@@ -181,7 +181,7 @@ def handle_breakfast(game: GameManager):
     elif choice == "2":
         # 自炊 + 弁当作成
         print("\n【朝食用】")
-        ingredients = select_ingredients(game.stock, current_day, game.get_freshness_extend())
+        ingredients = select_ingredients(game.stock, current_day, game.relics)
         if ingredients:
             dish = cook(ingredients, game.stock, current_day, game.relics)
             if dish:
@@ -194,7 +194,7 @@ def handle_breakfast(game: GameManager):
 
         print("\n【弁当用】")
         if game.can_make_bento():
-            bento_ingredients = select_ingredients(game.stock, current_day, game.get_freshness_extend())
+            bento_ingredients = select_ingredients(game.stock, current_day, game.relics)
             if bento_ingredients:
                 bento = cook(bento_ingredients, game.stock, current_day, game.relics)
                 if bento:
@@ -224,14 +224,14 @@ def handle_holiday_breakfast(game: GameManager):
     current_day = game.day_state.day
 
     show_status(game.player, game.day_state)
-    show_stock(game.stock, current_day, game.get_freshness_extend())
+    show_stock(game.stock, current_day, game.relics)
     show_provision_stock(game.provisions, current_day)
     show_recipe_suggestions(game.stock)
 
     choice = show_holiday_breakfast_menu(game)
 
     if choice == "1":
-        ingredients = select_ingredients(game.stock, current_day, game.get_freshness_extend())
+        ingredients = select_ingredients(game.stock, current_day, game.relics)
         if ingredients:
             dish = cook(ingredients, game.stock, current_day, game.relics)
             if dish:
@@ -319,7 +319,7 @@ def handle_shopping(game: GameManager):
     show_phase_header(GamePhase.SHOPPING, game.day_state)
     current_day = game.day_state.day
     show_status(game.player, game.day_state)
-    show_stock(game.stock, current_day, game.get_freshness_extend())
+    show_stock(game.stock, current_day, game.relics)
 
     choice = show_shopping_menu(game)
 
@@ -369,12 +369,12 @@ def handle_shopping(game: GameManager):
         print("\n帰宅しました。")
 
         # 帰宅後：期限切れ食材がある場合は廃棄オプションを表示
-        if game.stock.has_expired_items(current_day, game.get_freshness_extend()):
+        if game.stock.has_expired_items(current_day, game.relics):
             print()
             print("⚠ 期限切れの食材があります")
             discard_choice = input("廃棄しますか？ (1. する  2. しない): ").strip()
             if discard_choice == "1":
-                discards = show_discard_menu(game.stock, current_day, game.get_freshness_extend())
+                discards = show_discard_menu(game.stock, current_day, game.relics)
                 for name, qty in discards:
                     game.stock.discard(name, qty)
 
@@ -387,7 +387,7 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
     show_phase_header(phase, game.day_state)
     current_day = game.day_state.day
     show_status(game.player, game.day_state)
-    show_stock(game.stock, current_day, game.get_freshness_extend())
+    show_stock(game.stock, current_day, game.relics)
 
     choice = show_shopping_menu(game)
 
@@ -434,12 +434,12 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
         print("\n帰宅しました。")
 
         # 帰宅後：期限切れ食材がある場合は廃棄オプションを表示
-        if game.stock.has_expired_items(current_day, game.get_freshness_extend()):
+        if game.stock.has_expired_items(current_day, game.relics):
             print()
             print("⚠ 期限切れの食材があります")
             discard_choice = input("廃棄しますか？ (1. する  2. しない): ").strip()
             if discard_choice == "1":
-                discards = show_discard_menu(game.stock, current_day, game.get_freshness_extend())
+                discards = show_discard_menu(game.stock, current_day, game.relics)
                 for name, qty in discards:
                     game.stock.discard(name, qty)
 
@@ -454,14 +454,14 @@ def handle_holiday_lunch(game: GameManager):
     current_day = game.day_state.day
 
     show_status(game.player, game.day_state)
-    show_stock(game.stock, current_day, game.get_freshness_extend())
+    show_stock(game.stock, current_day, game.relics)
     show_provision_stock(game.provisions, current_day)
     show_recipe_suggestions(game.stock)
 
     choice = show_holiday_lunch_menu(game)
 
     if choice == "1":
-        ingredients = select_ingredients(game.stock, current_day, game.get_freshness_extend())
+        ingredients = select_ingredients(game.stock, current_day, game.relics)
         if ingredients:
             dish = cook(ingredients, game.stock, current_day, game.relics)
             if dish:
@@ -501,7 +501,7 @@ def handle_dinner(game: GameManager):
     current_day = game.day_state.day
 
     show_status(game.player, game.day_state)
-    show_stock(game.stock, current_day, game.get_freshness_extend())
+    show_stock(game.stock, current_day, game.relics)
     show_provision_stock(game.provisions, current_day)
     show_recipe_suggestions(game.stock)
 
@@ -509,7 +509,7 @@ def handle_dinner(game: GameManager):
 
     if choice == "1":
         # 自炊
-        ingredients = select_ingredients(game.stock, current_day, game.get_freshness_extend())
+        ingredients = select_ingredients(game.stock, current_day, game.relics)
         if ingredients:
             dish = cook(ingredients, game.stock, current_day, game.relics)
             if dish:
@@ -679,7 +679,7 @@ def main():
     print(f"【{character.name}】でスタート！")
     print(f"【初期状態】")
     show_status(player, game.day_state)
-    show_stock(stock, game.day_state.day, game.get_freshness_extend())
+    show_stock(stock, game.day_state.day, game.relics)
 
     # ゲームループ
     game_loop(game)

@@ -1,4 +1,6 @@
 """ターミナルUI"""
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from game.player import Player
 from game.nutrition import Nutrition
 from game.ingredients import Stock, get_ingredient, get_shop_items
@@ -9,6 +11,9 @@ from game.constants import (
     SHOPPING_ENERGY_COST, SHOPPING_STAMINA_COST
 )
 from game.provisions import get_provision
+
+if TYPE_CHECKING:
+    from game.relic import RelicInventory
 
 
 def clear_screen():
@@ -45,7 +50,7 @@ def show_nutrition(nutrition: Nutrition):
     print()
 
 
-def show_stock(stock: Stock, current_day: int = 1, freshness_extend: int = 0):
+def show_stock(stock: Stock, current_day: int = 1, freshness_extend: int | RelicInventory = 0):
     """ストック表示（鮮度情報付き）"""
     items = stock.get_all()
     if items:
@@ -161,7 +166,7 @@ def get_number_input(prompt: str, min_val: int, max_val: int) -> int:
             print("数値を入力してください。")
 
 
-def select_ingredients(stock: Stock, current_day: int = 1, freshness_extend: int = 0) -> list[str]:
+def select_ingredients(stock: Stock, current_day: int = 1, freshness_extend: int | RelicInventory = 0) -> list[str]:
     """食材選択UI（鮮度情報付き）"""
     available = stock.get_available_ingredients()
     if not available:
@@ -549,7 +554,7 @@ def show_shop(player: Player, shop_items: list) -> list[tuple[str, int, int]]:
     return purchases
 
 
-def show_discard_menu(stock: Stock, current_day: int, freshness_extend: int = 0) -> list[tuple[str, int]]:
+def show_discard_menu(stock: Stock, current_day: int, freshness_extend: int | RelicInventory = 0) -> list[tuple[str, int]]:
     """食材廃棄メニュー
     Returns: [(食材名, 廃棄数), ...]
     """

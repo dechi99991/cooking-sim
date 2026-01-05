@@ -288,10 +288,10 @@ class GameManager:
         current_day = self.day_state.day
         delivered = self.provisions.process_deliveries(current_day)
 
-        # レリックの配送処理
+        # レリックの配送処理（取得日を記録）
         for item in delivered:
             if item.item_type == "relic":
-                self.relics.add(item.name)
+                self.relics.add(item.name, current_day)
 
         return delivered
 

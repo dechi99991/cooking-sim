@@ -1,7 +1,12 @@
 """食材データ・ストック管理"""
+from __future__ import annotations
 import random
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from .nutrition import Nutrition, create_nutrition
+
+if TYPE_CHECKING:
+    from .relic import RelicInventory
 
 
 @dataclass
@@ -218,12 +223,13 @@ class Stock:
         return items[0] if items else None
 
     def calculate_freshness_modifier(self, ingredient_name: str, current_day: int,
-                                       freshness_extend: int = 0) -> float:
+                                       freshness_extend: int | RelicInventory = 0) -> float:
         """最も古い食材の鮮度補正値を計算（0.1〜1.0）
         Args:
             ingredient_name: 食材名
             current_day: 現在のゲーム日
-            freshness_extend: 鮮度延長日数（レリック効果）
+            freshness_extend: 鮮度延長日数（int）またはRelicInventory
+                              RelicInventoryの場合、食材購入日を考慮して適切な延長日数を計算
         """
         oldest_day = self.get_oldest_day(ingredient_name)
         if oldest_day is None:
@@ -233,8 +239,15 @@ class Stock:
         if ingredient is None:
             return 1.0
 
+        # 鮮度延長日数を計算
+        if isinstance(freshness_extend, int):
+            extend_days = freshness_extend
+        else:
+            # RelicInventoryの場合、食材購入日を考慮
+            extend_days = freshness_extend.get_freshness_extend_for_purchase_day(oldest_day)
+
         # レリック効果で鮮度維持日数を延長
-        effective_freshness_days = ingredient.freshness_days + freshness_extend
+        effective_freshness_days = ingredient.freshness_days + extend_days
 
         elapsed_days = current_day - oldest_day
         if elapsed_days <= effective_freshness_days:
@@ -246,12 +259,12 @@ class Stock:
         return max(0.1, modifier)  # 最低10%
 
     def get_freshness_status(self, ingredient_name: str, current_day: int,
-                             freshness_extend: int = 0) -> str:
+                             freshness_extend: int | RelicInventory = 0) -> str:
         """鮮度ステータス文字列を取得
         Args:
             ingredient_name: 食材名
             current_day: 現在のゲーム日
-            freshness_extend: 鮮度延長日数（レリック効果）
+            freshness_extend: 鮮度延長日数（int）またはRelicInventory
         """
         oldest_day = self.get_oldest_day(ingredient_name)
         if oldest_day is None:
@@ -261,8 +274,15 @@ class Stock:
         if ingredient is None:
             return ""
 
+        # 鮮度延長日数を計算
+        if isinstance(freshness_extend, int):
+            extend_days = freshness_extend
+        else:
+            # RelicInventoryの場合、食材購入日を考慮
+            extend_days = freshness_extend.get_freshness_extend_for_purchase_day(oldest_day)
+
         # レリック効果で鮮度維持日数を延長
-        effective_freshness_days = ingredient.freshness_days + freshness_extend
+        effective_freshness_days = ingredient.freshness_days + extend_days
 
         elapsed_days = current_day - oldest_day
         remaining = effective_freshness_days - elapsed_days
@@ -277,11 +297,11 @@ class Stock:
             return f"栄養-{penalty}%"
 
     def get_items_for_discard(self, current_day: int,
-                               freshness_extend: int = 0) -> list[tuple[str, int, int, float]]:
+                               freshness_extend: int | RelicInventory = 0) -> list[tuple[str, int, int, float]]:
         """廃棄候補の食材リストを取得（期限切れのみ）
         Args:
             current_day: 現在のゲーム日
-            freshness_extend: 鮮度延長日数（レリック効果）
+            freshness_extend: 鮮度延長日数（int）またはRelicInventory
         Returns: [(食材名, 数量, 経過日数, 鮮度補正値), ...]
         """
         result = []
@@ -298,7 +318,7 @@ class Stock:
         result.sort(key=lambda x: x[3])
         return result
 
-    def has_expired_items(self, current_day: int, freshness_extend: int = 0) -> bool:
+    def has_expired_items(self, current_day: int, freshness_extend: int | RelicInventory = 0) -> bool:
         """期限切れ食材があるかチェック"""
         for name in self._items:
             modifier = self.calculate_freshness_modifier(name, current_day, freshness_extend)

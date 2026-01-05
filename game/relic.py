@@ -467,13 +467,17 @@ class RelicInventory:
     """所持レリック管理"""
 
     def __init__(self):
-        self._owned: set[str] = set()
+        self._owned: dict[str, int] = {}  # レリック名 → 取得日
 
-    def add(self, name: str) -> bool:
-        """レリックを追加。既に持っていればFalse"""
+    def add(self, name: str, acquired_day: int = 1) -> bool:
+        """レリックを追加。既に持っていればFalse
+        Args:
+            name: レリック名
+            acquired_day: 取得日（ゲーム日数）
+        """
         if name in self._owned:
             return False
-        self._owned.add(name)
+        self._owned[name] = acquired_day
         return True
 
     def has(self, name: str) -> bool:
@@ -482,11 +486,15 @@ class RelicInventory:
 
     def get_all(self) -> list[str]:
         """所持レリック一覧"""
-        return list(self._owned)
+        return list(self._owned.keys())
 
     def count(self) -> int:
         """所持レリック数"""
         return len(self._owned)
+
+    def get_acquired_day(self, name: str) -> int | None:
+        """レリックの取得日を取得"""
+        return self._owned.get(name)
 
     def get_nutrition_boost(self, ingredient_name: str) -> float:
         """指定食材の栄養ブースト倍率を取得"""
@@ -518,9 +526,33 @@ class RelicInventory:
         return save
 
     def get_freshness_extend(self) -> int:
-        """鮮度延長日数を取得"""
+        """鮮度延長日数を取得（全レリックの合計）"""
         extend = 0
         for relic_name in self._owned:
+            relic = RELICS.get(relic_name)
+            if relic and relic.effect_type == 'freshness_extend':
+                extend += int(relic.effect_value)
+        return extend
+
+    def get_freshness_extend_for_purchase_day(self, purchase_day: int) -> int:
+        """指定購入日の食材に適用される鮮度延長日数を取得
+
+        レリック取得日以降に購入した食材にのみ効果を適用する。
+        これにより、レリック取得前に既に期限切れだった食材が
+        復活することを防ぐ。
+
+        Args:
+            purchase_day: 食材の購入日
+
+        Returns:
+            適用される鮮度延長日数
+        """
+        extend = 0
+        for relic_name, acquired_day in self._owned.items():
+            # レリック取得日 <= 食材購入日 の場合のみ効果を適用
+            # （レリックを持っている状態で購入した食材のみ恩恵を受ける）
+            if acquired_day > purchase_day:
+                continue
             relic = RELICS.get(relic_name)
             if relic and relic.effect_type == 'freshness_extend':
                 extend += int(relic.effect_value)

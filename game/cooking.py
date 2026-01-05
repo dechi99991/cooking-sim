@@ -55,10 +55,11 @@ def cook(ingredient_names: list[str], stock: Stock, current_day: int = 1,
     dish_name = RECIPES.get(ingredient_set, 'ミックス料理')
 
     # 各食材の鮮度補正値を先に計算（消費前に、レリック効果適用）
-    freshness_extend = relics.get_freshness_extend() if relics else 0
+    # RelicInventoryを渡して食材購入日を考慮した鮮度延長を計算
+    freshness_arg = relics if relics else 0
     freshness_modifiers = {}
     for name in ingredient_names:
-        freshness_modifiers[name] = stock.calculate_freshness_modifier(name, current_day, freshness_extend)
+        freshness_modifiers[name] = stock.calculate_freshness_modifier(name, current_day, freshness_arg)
 
     # 栄養値と満腹度を計算（食材の合算、鮮度補正・レリック効果適用）
     total_nutrition = Nutrition()
