@@ -102,6 +102,19 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
+  async function goShopping() {
+    if (!sessionId.value) return
+    loading.value = true
+    error.value = null
+    try {
+      state.value = await api.goShopping(sessionId.value)
+    } catch (e: any) {
+      error.value = e.message
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function fetchShop() {
     if (!sessionId.value) return
     loading.value = true
@@ -343,6 +356,7 @@ export const useGameStore = defineStore('game', () => {
     fetchCharacters,
     startGame,
     refreshState,
+    goShopping,
     fetchShop,
     buyFromShop,
     fetchOnlineShop,

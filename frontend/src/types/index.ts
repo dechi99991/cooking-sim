@@ -153,7 +153,9 @@ export interface DishInfo {
 
 export interface EventInfo {
   id: string
+  name: string
   description: string
+  timing: string
 }
 
 export interface CookResponse {

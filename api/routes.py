@@ -11,6 +11,7 @@ from game.cooking import cook, find_named_recipe, get_available_named_recipes, e
 from game.relic import generate_daily_relic_items, get_relic
 from game.provisions import get_all_provisions
 from game.day_cycle import GamePhase
+from game.events import EventTiming
 
 from .session import create_session, get_session
 from .schemas import (
@@ -231,6 +232,23 @@ def get_game_state(session_id: str) -> GameState:
 
 
 # === 買い物 ===
+
+@router.post("/game/{session_id}/go-shopping")
+def go_shopping(session_id: str) -> GameState:
+    """買い出しに行く（気力・体力を消費）"""
+    game = _get_game_or_404(session_id)
+
+    if not game.can_go_shopping():
+        raise HTTPException(status_code=400, detail="Cannot go shopping (not enough energy)")
+
+    # 買い物のイベントトリガー
+    events = _trigger_events(game, EventTiming.AT_SHOP)
+
+    # 気力・体力を消費
+    game.go_shopping()
+
+    return _build_game_state(session_id, game)
+
 
 @router.get("/game/{session_id}/shop")
 def get_shop(session_id: str) -> ShopResponse:
@@ -672,6 +690,23 @@ def make_bento(session_id: str, request: MakeBentoRequest) -> MakeBentoResponse:
     )
 
 
+# === ヘルパー: イベントトリガー ===
+
+def _trigger_events(game, timing: EventTiming) -> list[EventInfo]:
+    """イベントをトリガーし、EventInfoリストを返す"""
+    context = game.get_event_context()
+    results = game.events.check_and_trigger_events(timing, context, game)
+    return [
+        EventInfo(
+            id=r.event.id,
+            name=r.event.name,
+            description=r.message,
+            timing=timing.name,
+        )
+        for r in results
+    ]
+
+
 # === フェーズ進行 ===
 
 @router.post("/game/{session_id}/advance-phase")
@@ -706,15 +741,22 @@ def advance_phase(session_id: str) -> AdvancePhaseResponse:
                 ))
 
         elif current_phase == GamePhase.GO_TO_WORK:
+            # 出勤イベント
+            events.extend(_trigger_events(game, EventTiming.GO_TO_WORK))
             game.commute()
 
         elif current_phase == GamePhase.LEAVE_WORK:
+            # 退勤イベント
+            events.extend(_trigger_events(game, EventTiming.LEAVE_WORK))
             game.commute()
 
         elif current_phase == GamePhase.SLEEP:
             # 就寝処理
             has_insomnia = game.sleep()
             game.start_new_day()
+
+            # 起床イベント
+            events.extend(_trigger_events(game, EventTiming.WAKE_UP))
 
             # 給料日チェック
             if game.is_payday():

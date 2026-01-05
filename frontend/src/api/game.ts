@@ -38,6 +38,12 @@ export async function getState(sessionId: string): Promise<GameState> {
   return res.data
 }
 
+// 買い出しに行く（気力・体力消費）
+export async function goShopping(sessionId: string): Promise<GameState> {
+  const res = await api.post(`/api/game/${sessionId}/go-shopping`)
+  return res.data
+}
+
 // ショップ情報
 export async function getShop(sessionId: string): Promise<ShopResponse> {
   const res = await api.get(`/api/game/${sessionId}/shop`)

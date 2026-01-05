@@ -89,7 +89,9 @@ class PendingDeliveryItem(BaseModel):
 
 class EventInfo(BaseModel):
     id: str
+    name: str
     description: str
+    timing: str
 
 
 class DishInfo(BaseModel):
