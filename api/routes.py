@@ -281,8 +281,8 @@ def get_shop(session_id: str) -> ShopResponse:
             name=ing.name,
             category=ing.category,
             price=item.price,
-            quantity=item.quantity,
-            is_sale=item.is_sale,
+            quantity=5,  # 各商品5個まで購入可能
+            is_sale=item.discount_type in ("sale", "near_expiry"),
             nutrition=NutritionState(
                 vitality=ing.nutrition.vitality,
                 mental=ing.nutrition.mental,
@@ -291,7 +291,7 @@ def get_shop(session_id: str) -> ShopResponse:
                 defense=ing.nutrition.defense,
             ),
             fullness=ing.fullness,
-            expiry_days=ing.freshness_days,
+            expiry_days=item.freshness_days_left,
         ))
 
     return ShopResponse(
