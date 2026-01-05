@@ -227,13 +227,20 @@ def show_dish(dish: Dish):
     print(f"  栄養: 活力{n.vitality} 心力{n.mental} 覚醒{n.awakening} 持続{n.sustain} 防衛{n.defense}")
 
 
-def confirm_cooking(ingredient_names: list[str]) -> bool:
+def confirm_cooking(ingredient_names: list[str],
+                    meal_nutrition: Nutrition | None = None,
+                    meal_fullness: int = 0) -> bool:
     """調理前の確認UI
     選んだ食材を評価してコメントを表示し、確認を求める
 
+    Args:
+        ingredient_names: 選択した食材名のリスト
+        meal_nutrition: この食事で既に摂取した栄養（複数料理の場合）
+        meal_fullness: この食事で既に得た満腹度（複数料理の場合）
+
     Returns: True=調理する, False=キャンセル
     """
-    evaluation = evaluate_cooking(ingredient_names)
+    evaluation = evaluate_cooking(ingredient_names, meal_nutrition, meal_fullness)
 
     print()
     print("─" * 30)

@@ -287,9 +287,18 @@ class CookingEvaluation:
     nutrition_good: bool  # 栄養バランスが良いか
 
 
-def evaluate_cooking(ingredient_names: list[str]) -> CookingEvaluation:
+def evaluate_cooking(
+    ingredient_names: list[str],
+    meal_nutrition: Nutrition | None = None,
+    meal_fullness: int = 0
+) -> CookingEvaluation:
     """
     選択した食材の調理結果を事前評価する（確認用）
+
+    Args:
+        ingredient_names: 選択した食材名のリスト
+        meal_nutrition: この食事で既に摂取した栄養（複数料理の場合）
+        meal_fullness: この食事で既に得た満腹度（複数料理の場合）
     """
     from .constants import NUTRITION_MIN_THRESHOLD
 
@@ -307,26 +316,33 @@ def evaluate_cooking(ingredient_names: list[str]) -> CookingEvaluation:
     named_recipe = find_named_recipe(ingredient_names)
     is_named = named_recipe is not None
 
-    # 栄養値と満腹度を計算（鮮度補正なし、ベース値で評価）
-    total_nutrition = Nutrition()
-    total_fullness = 0
+    # この料理の栄養値と満腹度を計算（鮮度補正なし、ベース値で評価）
+    dish_nutrition = Nutrition()
+    dish_fullness = 0
 
     for name in ingredient_names:
         ingredient = get_ingredient(name)
         if ingredient:
-            total_nutrition.add(ingredient.nutrition)
-            total_fullness += ingredient.fullness
+            dish_nutrition.add(ingredient.nutrition)
+            dish_fullness += ingredient.fullness
 
     # ネームド料理ボーナスを適用
     if named_recipe:
         if named_recipe.nutrition_multiplier != 1.0:
-            total_nutrition = total_nutrition.apply_modifier(named_recipe.nutrition_multiplier)
-        total_fullness += named_recipe.fullness_bonus
+            dish_nutrition = dish_nutrition.apply_modifier(named_recipe.nutrition_multiplier)
+        dish_fullness += named_recipe.fullness_bonus
 
-    # 評価: 満腹度が5以上なら良い
+    # 食事トータル = 既存 + この料理
+    total_nutrition = Nutrition()
+    if meal_nutrition:
+        total_nutrition.add(meal_nutrition)
+    total_nutrition.add(dish_nutrition)
+    total_fullness = meal_fullness + dish_fullness
+
+    # 評価: 満腹度が5以上なら良い（トータルで評価）
     fullness_good = total_fullness >= 5
 
-    # 評価: 主要な栄養素のうち2つ以上が閾値以上なら良い
+    # 評価: 主要な栄養素のうち2つ以上が閾値以上なら良い（トータルで評価）
     nutrients = [
         total_nutrition.vitality,
         total_nutrition.mental,
@@ -335,12 +351,12 @@ def evaluate_cooking(ingredient_names: list[str]) -> CookingEvaluation:
     nutrition_good = sum(1 for n in nutrients if n >= NUTRITION_MIN_THRESHOLD) >= 2
 
     return CookingEvaluation(
-        total_fullness=total_fullness,
-        total_nutrition=total_nutrition,
+        total_fullness=dish_fullness,  # この料理の満腹度
+        total_nutrition=dish_nutrition,  # この料理の栄養
         is_named=is_named,
         named_recipe_name=named_recipe.name if named_recipe else None,
-        fullness_good=fullness_good,
-        nutrition_good=nutrition_good
+        fullness_good=fullness_good,  # トータルで評価
+        nutrition_good=nutrition_good  # トータルで評価
     )
 
 

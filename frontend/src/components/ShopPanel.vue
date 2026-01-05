@@ -20,6 +20,9 @@ const shopState = ref<ShopState>('menu')
 
 const cart = ref<Record<string, number>>({})
 
+// この買い物トリップで既に購入した個数を追跡
+const purchasedCount = ref(0)
+
 const cartTotal = computed(() => {
   if (!shopData.value) return 0
   let total = 0
@@ -34,11 +37,17 @@ const cartCount = computed(() => {
   return Object.values(cart.value).reduce((a, b) => a + b, 0)
 })
 
+// バッグの残り容量（購入済み + カート内を考慮）
+const remainingCapacity = computed(() => {
+  if (!shopData.value) return 0
+  return shopData.value.bag_capacity - purchasedCount.value - cartCount.value
+})
+
 const canBuy = computed(() => {
   if (!shopData.value) return false
   return cartTotal.value > 0 &&
          cartTotal.value <= shopData.value.player_money &&
-         cartCount.value <= shopData.value.bag_capacity
+         (purchasedCount.value + cartCount.value) <= shopData.value.bag_capacity
 })
 
 // 気力が足りるかチェック
@@ -48,7 +57,8 @@ function addToCart(name: string) {
   if (!shopData.value) return
   const item = shopData.value.items.find(i => i.name === name)
   if (!item || item.quantity <= (cart.value[name] || 0)) return
-  if (cartCount.value >= shopData.value.bag_capacity) return
+  // バッグ残り容量をチェック（購入済み + カート内）
+  if (remainingCapacity.value <= 0) return
 
   cart.value[name] = (cart.value[name] || 0) + 1
 }
@@ -67,6 +77,7 @@ async function goShopping() {
   await store.goShopping()
   await store.fetchShop()
   cart.value = {}
+  purchasedCount.value = 0  // 新しい買い物トリップ開始
   shopState.value = 'shopping'
 }
 
@@ -81,6 +92,8 @@ async function checkout() {
     ingredient_name: name,
     quantity: qty,
   }))
+  // カート内の個数を購入済みカウントに加算
+  purchasedCount.value += cartCount.value
   await store.buyFromShop(items)
   cart.value = {}
   await store.fetchShop()
@@ -96,6 +109,7 @@ watch(() => state.value?.phase, (phase) => {
   if (phase === 'SHOPPING') {
     shopState.value = 'menu'
     cart.value = {}
+    purchasedCount.value = 0
   }
 }, { immediate: true })
 
@@ -158,7 +172,7 @@ const itemsByCategory = computed(() => {
       <template v-else>
         <div class="shop-info">
           <span>所持金: ¥{{ shopData.player_money.toLocaleString() }}</span>
-          <span>バッグ: {{ cartCount }}/{{ shopData.bag_capacity }}</span>
+          <span>バッグ: {{ purchasedCount + cartCount }}/{{ shopData.bag_capacity }}</span>
         </div>
 
         <div class="categories">
@@ -197,7 +211,7 @@ const itemsByCategory = computed(() => {
                   <span class="qty">{{ cart[item.name] || 0 }}</span>
                   <button
                     class="plus"
-                    :disabled="item.quantity <= (cart[item.name] || 0) || cartCount >= shopData.bag_capacity"
+                    :disabled="item.quantity <= (cart[item.name] || 0) || remainingCapacity <= 0"
                     @click="addToCart(item.name)"
                   >+</button>
                 </div>

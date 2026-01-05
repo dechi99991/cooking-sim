@@ -145,8 +145,14 @@ def cook_multiple_dishes(game: GameManager, meal_name: str = "食事") -> bool:
     Returns:
         1つ以上料理を作って食べたらTrue
     """
+    from game.nutrition import Nutrition
+
     current_day = game.day_state.day
     cooked_count = 0
+
+    # この食事での累計栄養と満腹度を追跡（評価用）
+    meal_nutrition = Nutrition()
+    meal_fullness = 0
 
     while game.can_cook() and not game.stock.is_empty():
         # 満腹チェック
@@ -166,7 +172,8 @@ def cook_multiple_dishes(game: GameManager, meal_name: str = "食事") -> bool:
                 print(f"{meal_name}を作りませんでした。")
             break
 
-        if not confirm_cooking(ingredients):
+        # 食事トータルを渡して評価
+        if not confirm_cooking(ingredients, meal_nutrition, meal_fullness):
             print("食材を選び直します。")
             continue  # ループの先頭に戻って再選択
 
@@ -178,6 +185,11 @@ def cook_multiple_dishes(game: GameManager, meal_name: str = "食事") -> bool:
             game.stats.record_meal_eaten()
             game.stats.record_cooking()
             cooked_count += 1
+
+            # 累計に追加（次の料理の評価用）
+            meal_nutrition.add(dish.nutrition)
+            meal_fullness += dish.fullness
+
             print(f"満腹感: {game.player.fullness}")
 
             # まだ作れるか確認
