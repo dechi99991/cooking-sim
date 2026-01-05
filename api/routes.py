@@ -191,6 +191,21 @@ def _get_game_or_404(session_id: str):
     return game
 
 
+def _trigger_events(game, timing: EventTiming) -> list[EventInfo]:
+    """イベントをトリガーし、EventInfoリストを返す"""
+    context = game.get_event_context()
+    results = game.events.check_and_trigger_events(timing, context, game)
+    return [
+        EventInfo(
+            id=r.event.id,
+            name=r.event.name,
+            description=r.message,
+            timing=timing.name,
+        )
+        for r in results
+    ]
+
+
 # === キャラクター ===
 
 @router.get("/characters")
@@ -688,23 +703,6 @@ def make_bento(session_id: str, request: MakeBentoRequest) -> MakeBentoResponse:
         bento_name=dish.name,
         state=_build_game_state(session_id, game),
     )
-
-
-# === ヘルパー: イベントトリガー ===
-
-def _trigger_events(game, timing: EventTiming) -> list[EventInfo]:
-    """イベントをトリガーし、EventInfoリストを返す"""
-    context = game.get_event_context()
-    results = game.events.check_and_trigger_events(timing, context, game)
-    return [
-        EventInfo(
-            id=r.event.id,
-            name=r.event.name,
-            description=r.message,
-            timing=timing.name,
-        )
-        for r in results
-    ]
 
 
 # === フェーズ進行 ===
