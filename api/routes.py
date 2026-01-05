@@ -341,7 +341,9 @@ def buy_from_shop(session_id: str, request: ShopBuyRequest) -> GameState:
 
         game.player.consume_money(shop_item.price * qty)
         game.stock.add(name, qty, current_day)
-        game.stats.record_shopping(shop_item.price * qty)
+
+    # 買い物統計を記録
+    game.stats.record_shopping(total_cost, total_items)
 
     return _build_game_state(session_id, game)
 
