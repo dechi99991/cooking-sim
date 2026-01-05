@@ -2025,6 +2025,143 @@ NIGHT_EVENTS = [
 ]
 
 
+# === 休日専用イベント (20種類) ===
+
+HOLIDAY_EVENTS = [
+    # 起床時 (5種)
+    RandomEvent(
+        id='holiday_wake_late', name='朝寝坊',
+        description='休日だしゆっくり寝てしまった',
+        timing=EventTiming.WAKE_UP, probability=0.15,
+        condition=cond_holiday, effect=effect_combined(effect_stamina(2), effect_energy(-1))
+    ),
+    RandomEvent(
+        id='holiday_wake_refresh', name='休日の朝',
+        description='のんびりした休日の朝。リフレッシュできた',
+        timing=EventTiming.WAKE_UP, probability=0.12,
+        condition=cond_holiday, effect=effect_combined(effect_energy(2), effect_stamina(1))
+    ),
+    RandomEvent(
+        id='holiday_wake_brunch', name='ブランチの予定',
+        description='今日は友人とブランチの約束がある',
+        timing=EventTiming.WAKE_UP, probability=0.05,
+        condition=cond_holiday, effect=effect_energy(1)
+    ),
+    RandomEvent(
+        id='holiday_wake_cleaning', name='大掃除日和',
+        description='今日は部屋を掃除しよう！',
+        timing=EventTiming.WAKE_UP, probability=0.08,
+        condition=lambda ctx: cond_holiday(ctx) and cond_sunny(ctx),
+        effect=effect_energy(1)
+    ),
+    RandomEvent(
+        id='holiday_wake_lazy', name='ダラダラ休日',
+        description='何もする気が起きない...',
+        timing=EventTiming.WAKE_UP, probability=0.1,
+        condition=cond_holiday, effect=effect_energy(-1)
+    ),
+
+    # 買い物中 (5種)
+    RandomEvent(
+        id='holiday_shop_crowded', name='休日の混雑',
+        description='休日でスーパーが混んでいる...',
+        timing=EventTiming.AT_SHOP, probability=0.2,
+        condition=cond_holiday, effect=effect_stamina(-1)
+    ),
+    RandomEvent(
+        id='holiday_shop_sale', name='週末セール',
+        description='週末限定セールでお得に買い物できた！',
+        timing=EventTiming.AT_SHOP, probability=0.1,
+        condition=cond_holiday, effect=effect_money(200)
+    ),
+    RandomEvent(
+        id='holiday_shop_friend', name='友人に遭遇',
+        description='買い物中に友人に会った。おすそ分けをもらった',
+        timing=EventTiming.AT_SHOP, probability=0.05,
+        condition=cond_holiday, effect=effect_add_ingredient('卵', 1)
+    ),
+    RandomEvent(
+        id='holiday_shop_sample', name='試食コーナー',
+        description='試食コーナーでいろいろ味見できた',
+        timing=EventTiming.AT_SHOP, probability=0.08,
+        condition=cond_holiday, effect=effect_fullness(1)
+    ),
+    RandomEvent(
+        id='holiday_shop_bargain', name='特売品発見',
+        description='タイムセールでお肉が半額！',
+        timing=EventTiming.AT_SHOP, probability=0.06,
+        condition=cond_holiday, effect=effect_add_ingredient('豚バラ肉', 1)
+    ),
+
+    # 昼食後 (5種)
+    RandomEvent(
+        id='holiday_lunch_nap', name='昼寝',
+        description='食後についうとうと...',
+        timing=EventTiming.AFTER_LUNCH, probability=0.15,
+        condition=cond_holiday, effect=effect_combined(effect_stamina(1), effect_energy(1))
+    ),
+    RandomEvent(
+        id='holiday_lunch_walk', name='散歩',
+        description='食後に近所を散歩した',
+        timing=EventTiming.AFTER_LUNCH, probability=0.1,
+        condition=lambda ctx: cond_holiday(ctx) and cond_sunny(ctx),
+        effect=effect_combined(effect_stamina(1), effect_energy(1))
+    ),
+    RandomEvent(
+        id='holiday_lunch_game', name='ゲーム三昧',
+        description='積みゲーを消化した',
+        timing=EventTiming.AFTER_LUNCH, probability=0.08,
+        condition=cond_holiday, effect=effect_energy(1)
+    ),
+    RandomEvent(
+        id='holiday_lunch_movie', name='映画鑑賞',
+        description='録画していた映画を見た',
+        timing=EventTiming.AFTER_LUNCH, probability=0.08,
+        condition=cond_holiday, effect=effect_energy(1)
+    ),
+    RandomEvent(
+        id='holiday_lunch_bbq', name='友人とBBQ',
+        description='友人に誘われてBBQに行った。楽しかった！',
+        timing=EventTiming.AFTER_LUNCH, probability=0.03,
+        condition=lambda ctx: cond_holiday(ctx) and cond_sunny(ctx),
+        effect=effect_combined(effect_fullness(3), effect_energy(2), effect_money(-1000))
+    ),
+
+    # 夜 (5種)
+    RandomEvent(
+        id='holiday_night_tired', name='休日の疲れ',
+        description='遊び疲れた...',
+        timing=EventTiming.NIGHT, probability=0.1,
+        condition=cond_holiday, effect=effect_stamina(-1)
+    ),
+    RandomEvent(
+        id='holiday_night_satisfied', name='充実した休日',
+        description='良い休日だった。明日からまた頑張ろう',
+        timing=EventTiming.NIGHT, probability=0.12,
+        condition=cond_holiday, effect=effect_combined(effect_energy(1), effect_stamina(1))
+    ),
+    RandomEvent(
+        id='holiday_night_sunday', name='サザエさん症候群',
+        description='明日から仕事か...',
+        timing=EventTiming.NIGHT, probability=0.15,
+        condition=lambda ctx: ctx.get('weekday') == 6,  # 日曜日
+        effect=effect_energy(-2)
+    ),
+    RandomEvent(
+        id='holiday_night_hobby', name='趣味の時間',
+        description='好きなことに没頭できた',
+        timing=EventTiming.NIGHT, probability=0.08,
+        condition=cond_holiday, effect=effect_energy(1)
+    ),
+    RandomEvent(
+        id='holiday_night_call', name='実家から電話',
+        description='実家から元気かと電話があった',
+        timing=EventTiming.NIGHT, probability=0.04,
+        condition=cond_holiday, effect=effect_combined(effect_energy(1), effect_money(5000))
+    ),
+]
+
+
 # === 全イベントを取得 ===
 
 def get_all_events() -> list[RandomEvent]:
@@ -2036,7 +2173,8 @@ def get_all_events() -> list[RandomEvent]:
         AT_SHOP_EVENTS +
         LEAVE_WORK_EVENTS +
         AFTER_WORK_EVENTS +
-        NIGHT_EVENTS
+        NIGHT_EVENTS +
+        HOLIDAY_EVENTS
     )
 
 
