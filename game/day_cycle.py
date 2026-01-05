@@ -330,8 +330,13 @@ class GameManager:
         return self.relics.get_freshness_extend()
 
     def get_bag_capacity(self) -> int:
-        """買い物バッグ容量を取得（レリック効果込み）"""
-        return SHOPPING_BAG_CAPACITY + self.relics.get_bag_capacity_boost()
+        """買い物バッグ容量を取得（レリック効果込み）
+
+        買い物は帰宅（DINNER）前に行われるため、当日届いたレリックは
+        翌日の買い物から効果を発揮する。
+        """
+        current_day = self.day_state.day
+        return SHOPPING_BAG_CAPACITY + self.relics.get_bag_capacity_boost(current_day)
 
     def is_payday(self) -> bool:
         """今日が給料日かどうか"""

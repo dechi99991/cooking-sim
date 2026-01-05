@@ -592,10 +592,18 @@ class RelicInventory:
                 extend += int(relic.effect_value)
         return extend
 
-    def get_bag_capacity_boost(self) -> int:
-        """買い物バッグ容量の増加値を取得"""
+    def get_bag_capacity_boost(self, current_day: int | None = None) -> int:
+        """買い物バッグ容量の増加値を取得
+
+        Args:
+            current_day: 現在のゲーム日。指定時、当日以降に取得したレリックは除外
+                        （買い物は帰宅前なので、当日届いたレリックは翌日から有効）
+        """
         boost = 0
-        for relic_name in self._owned:
+        for relic_name, acquired_day in self._owned.items():
+            # 当日以降に取得したレリックは買い物に影響しない
+            if current_day is not None and acquired_day >= current_day:
+                continue
             relic = RELICS.get(relic_name)
             if relic and relic.effect_type == 'bag_capacity':
                 boost += int(relic.effect_value)
