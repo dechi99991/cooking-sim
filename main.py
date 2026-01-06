@@ -160,9 +160,13 @@ def cook_multiple_dishes(game: GameManager, meal_name: str = "食事") -> bool:
             print("満腹です！")
             break
 
+        # 次の料理番号
+        dish_number = cooked_count + 1
+
         # 2品目以降は在庫を表示
         if cooked_count > 0:
             print()
+            print(f"─── {dish_number}品目を作る ───")
             show_stock(game.stock, current_day, game.relics)
             show_recipe_suggestions(game.stock)
 
@@ -172,14 +176,15 @@ def cook_multiple_dishes(game: GameManager, meal_name: str = "食事") -> bool:
                 print(f"{meal_name}を作りませんでした。")
             break
 
-        # 食事トータルを渡して評価
-        if not confirm_cooking(ingredients, meal_nutrition, meal_fullness):
+        # 食事トータルと料理番号を渡して評価
+        if not confirm_cooking(ingredients, meal_nutrition, meal_fullness, dish_number):
             print("食材を選び直します。")
             continue  # ループの先頭に戻って再選択
 
         dish = cook(ingredients, game.stock, current_day, game.relics)
         if dish:
             game.consume_cooking_energy()
+            print(f"\n【{dish_number}品目完成】")
             show_dish(dish)
             game.eat_dish(dish)
             game.stats.record_meal_eaten()
@@ -194,7 +199,7 @@ def cook_multiple_dishes(game: GameManager, meal_name: str = "食事") -> bool:
 
             # まだ作れるか確認
             if game.can_cook() and not game.stock.is_empty() and game.player.fullness < 10:
-                print("\nもう1品作りますか？")
+                print(f"\nもう1品（{cooked_count + 1}品目）作りますか？")
                 print("  1. 作る")
                 print("  2. 終わり")
                 choice = input("選択: ").strip()
@@ -495,7 +500,8 @@ def handle_holiday_shopping(game: GameManager, phase: GamePhase):
                 print("作り置きを終了します。")
                 break
 
-            if not confirm_cooking(ingredients):
+            # 弁当は食事トータルでなく単品評価（dish_number で弁当番号を表示）
+            if not confirm_cooking(ingredients, dish_number=bento_count + 1):
                 print("この弁当はキャンセルしました。")
                 continue
 

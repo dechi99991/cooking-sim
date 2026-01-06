@@ -229,7 +229,8 @@ def show_dish(dish: Dish):
 
 def confirm_cooking(ingredient_names: list[str],
                     meal_nutrition: Nutrition | None = None,
-                    meal_fullness: int = 0) -> bool:
+                    meal_fullness: int = 0,
+                    dish_number: int = 1) -> bool:
     """調理前の確認UI
     選んだ食材を評価してコメントを表示し、確認を求める
 
@@ -237,6 +238,7 @@ def confirm_cooking(ingredient_names: list[str],
         ingredient_names: 選択した食材名のリスト
         meal_nutrition: この食事で既に摂取した栄養（複数料理の場合）
         meal_fullness: この食事で既に得た満腹度（複数料理の場合）
+        dish_number: 何品目か（1から開始）
 
     Returns: True=調理する, False=キャンセル
     """
@@ -244,12 +246,22 @@ def confirm_cooking(ingredient_names: list[str],
 
     print()
     print("─" * 30)
+    print(f"【{dish_number}品目】")
 
     # ネームド料理の場合は特別表示
     if evaluation.is_named and evaluation.named_recipe_name:
         print(f"★ {evaluation.named_recipe_name} が作れます！")
 
-    # 評価コメントを決定
+    # この料理の情報
+    dn = evaluation.dish_nutrition
+    print(f"  この料理: 満腹+{evaluation.dish_fullness}  活力{dn.vitality} 心力{dn.mental} 持続{dn.sustain}")
+
+    # 2品目以降は食事トータルも表示
+    if dish_number > 1:
+        mn = evaluation.meal_nutrition
+        print(f"  食事計:   満腹={evaluation.meal_fullness}  活力{mn.vitality} 心力{mn.mental} 持続{mn.sustain}")
+
+    # 評価コメントを決定（トータルで評価）
     if evaluation.fullness_good and evaluation.nutrition_good:
         comment = "これなら腹いっぱいだし栄養もいいだろう！"
     elif evaluation.fullness_good and not evaluation.nutrition_good:
@@ -259,10 +271,6 @@ def confirm_cooking(ingredient_names: list[str],
     else:
         comment = "これでは腹も空くし、栄養も偏っているだろう..."
 
-    # 詳細情報
-    n = evaluation.total_nutrition
-    print(f"  満腹度: +{evaluation.total_fullness}")
-    print(f"  栄養: 活力{n.vitality} 心力{n.mental} 持続{n.sustain}")
     print()
     print(f"  → {comment}")
     print("─" * 30)

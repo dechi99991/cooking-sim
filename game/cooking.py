@@ -278,11 +278,13 @@ def get_recipe_suggestions(available_ingredients: list[str]) -> list[tuple[str, 
 @dataclass
 class CookingEvaluation:
     """調理評価結果"""
-    total_fullness: int
-    total_nutrition: Nutrition
+    dish_fullness: int  # この料理の満腹度
+    dish_nutrition: Nutrition  # この料理の栄養
+    meal_fullness: int  # 食事トータルの満腹度（この料理含む）
+    meal_nutrition: Nutrition  # 食事トータルの栄養（この料理含む）
     is_named: bool
     named_recipe_name: str | None
-    # 評価
+    # 評価（トータルで判定）
     fullness_good: bool  # 満腹度が十分か
     nutrition_good: bool  # 栄養バランスが良いか
 
@@ -304,8 +306,10 @@ def evaluate_cooking(
 
     if not ingredient_names:
         return CookingEvaluation(
-            total_fullness=0,
-            total_nutrition=Nutrition(),
+            dish_fullness=0,
+            dish_nutrition=Nutrition(),
+            meal_fullness=meal_fullness,
+            meal_nutrition=meal_nutrition or Nutrition(),
             is_named=False,
             named_recipe_name=None,
             fullness_good=False,
@@ -351,8 +355,10 @@ def evaluate_cooking(
     nutrition_good = sum(1 for n in nutrients if n >= NUTRITION_MIN_THRESHOLD) >= 2
 
     return CookingEvaluation(
-        total_fullness=dish_fullness,  # この料理の満腹度
-        total_nutrition=dish_nutrition,  # この料理の栄養
+        dish_fullness=dish_fullness,
+        dish_nutrition=dish_nutrition,
+        meal_fullness=total_fullness,
+        meal_nutrition=total_nutrition,
         is_named=is_named,
         named_recipe_name=named_recipe.name if named_recipe else None,
         fullness_good=fullness_good,  # トータルで評価
