@@ -160,6 +160,7 @@ export interface EventInfo {
   name: string
   description: string
   timing: string
+  reason: string  // イベント発生の根拠
 }
 
 export interface AutoConsumeInfo {

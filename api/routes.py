@@ -224,6 +224,7 @@ def _trigger_events(game, timing: EventTiming) -> list[EventInfo]:
             name=r.event.name,
             description=r.message,
             timing=timing.name,
+            reason=r.event.reason,
         )
         for r in results
     ]

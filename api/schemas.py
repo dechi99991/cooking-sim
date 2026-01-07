@@ -97,6 +97,7 @@ class EventInfo(BaseModel):
     name: str
     description: str
     timing: str
+    reason: str = ""  # イベント発生の根拠
 
 
 class AutoConsumeInfo(BaseModel):

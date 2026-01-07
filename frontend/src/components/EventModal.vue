@@ -63,7 +63,8 @@ const emit = defineEmits<{
         <h4>イベント</h4>
         <div class="event-list">
           <div v-for="event in events" :key="event.id" class="event-item">
-            {{ event.description }}
+            <div v-if="event.reason" class="event-reason">{{ event.reason }}</div>
+            <div class="event-result">{{ event.description }}</div>
           </div>
         </div>
       </div>
@@ -200,6 +201,17 @@ h4 {
   background: white;
   border-radius: 4px;
   border-left: 3px solid #9b59b6;
+}
+
+.event-reason {
+  font-size: 0.95em;
+  color: #2c3e50;
+  margin-bottom: 5px;
+}
+
+.event-result {
+  font-size: 0.9em;
+  color: #7f8c8d;
 }
 
 .info-box.encouragement {

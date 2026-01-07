@@ -61,6 +61,7 @@ class RandomEvent:
     condition: Callable[[dict], bool] | None = None  # 発生条件（Noneなら常に発生可能）
     effect: Callable[[Any], str] | None = None       # 効果（GameManagerを受け取る）
     once_per_day: bool = True   # 1日1回のみか
+    reason: str = ""            # イベント発生の根拠（「小指をぶつけた！」など）
 
     def check_condition(self, context: dict) -> bool:
         """イベント発生条件をチェック"""
