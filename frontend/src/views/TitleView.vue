@@ -37,6 +37,13 @@ function startGame() {
       <div class="release-notes">
         <h3>📝 更新情報</h3>
         <div class="release-entry">
+          <div class="release-date">2025/01/07（その2）</div>
+          <ul>
+            <li>昼食自動選択時に何を消費したか表示されるようになりました</li>
+            <li>買い物でバッグが一杯になると警告が表示されます</li>
+          </ul>
+        </div>
+        <div class="release-entry">
           <div class="release-date">2025/01/07</div>
           <ul>
             <li>出勤キャラの昼食が自動化されました（弁当→食糧→社食）</li>
