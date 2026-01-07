@@ -155,6 +155,10 @@ class EventManager:
         """
         results = []
 
+        # 最初の3日間はイベント発生しない（チュートリアル期間）
+        if context.get('day', 1) <= 3:
+            return results
+
         # コンテキストに天気を追加
         context['weather'] = self.weather
 
