@@ -336,8 +336,9 @@ class GameManager:
     def go_shopping(self) -> AutoConsumeResult | None:
         """買い出しの気力・体力を消費（カフェイン自動消費）"""
         auto_result = self.try_auto_consume_caffeine(SHOPPING_ENERGY_COST)
-        self.player.consume_energy(SHOPPING_ENERGY_COST)
+        # 体力消費を先に（根性回復が必要な場合、気力を使うため）
         self.player.consume_stamina(SHOPPING_STAMINA_COST)
+        self.player.consume_energy(SHOPPING_ENERGY_COST)
         return auto_result
 
     def sleep(self) -> bool:
