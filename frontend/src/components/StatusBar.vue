@@ -22,11 +22,11 @@ const { state } = storeToRefs(store)
       </div>
       <div class="stat">
         <span class="label">気力</span>
-        <span class="value" :class="{ low: state.player.energy <= 3 }">{{ state.player.energy }}/10</span>
+        <span class="value" :class="{ low: state.player.energy <= 3 }">{{ state.player.energy }}/{{ state.player.max_energy }}</span>
       </div>
       <div class="stat">
         <span class="label">体力</span>
-        <span class="value" :class="{ low: state.player.stamina <= 3 }">{{ state.player.stamina }}/10</span>
+        <span class="value" :class="{ low: state.player.stamina <= 3 }">{{ state.player.stamina }}/{{ state.player.max_stamina }}</span>
       </div>
       <div class="stat">
         <span class="label">満腹</span>

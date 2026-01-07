@@ -51,11 +51,11 @@ function restart() {
           </div>
           <div class="stat">
             <span class="label">気力</span>
-            <span class="value">{{ state.player.energy }}/10</span>
+            <span class="value">{{ state.player.energy }}/{{ state.player.max_energy }}</span>
           </div>
           <div class="stat">
             <span class="label">体力</span>
-            <span class="value">{{ state.player.stamina }}/10</span>
+            <span class="value">{{ state.player.stamina }}/{{ state.player.max_stamina }}</span>
           </div>
           <div class="stat">
             <span class="label">所持レリック</span>
