@@ -159,10 +159,18 @@ export interface EventInfo {
   timing: string
 }
 
+export interface AutoConsumeInfo {
+  consumed_name: string
+  caffeine_amount: number
+  energy_restored: number
+  will_cause_insomnia: boolean
+}
+
 export interface CookResponse {
   dish: DishInfo
   state: GameState
   evaluation_comment: string
+  auto_consume: AutoConsumeInfo | null
 }
 
 export interface AdvancePhaseResponse {
@@ -191,4 +199,10 @@ export interface CookPreviewResponse {
 export interface MakeBentoResponse {
   bento_name: string
   state: GameState
+  auto_consume: AutoConsumeInfo | null
+}
+
+export interface GoShoppingResponse {
+  state: GameState
+  auto_consume: AutoConsumeInfo | null
 }

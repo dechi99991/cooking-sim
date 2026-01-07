@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useGameStore } from '../stores/game'
 import { storeToRefs } from 'pinia'
 import CookingPreview from './CookingPreview.vue'
+import AutoConsumeModal from './AutoConsumeModal.vue'
 import type { CookPreviewResponse, NutritionState, NamedRecipeInfo } from '../types'
 
 const props = defineProps<{
@@ -15,7 +16,10 @@ const emit = defineEmits<{
 }>()
 
 const store = useGameStore()
-const { state, recipesData, lastCookedDish, lastEvaluationComment, lastBentoName, loading } = storeToRefs(store)
+const { state, recipesData, lastCookedDish, lastEvaluationComment, lastBentoName, lastAutoConsume, loading } = storeToRefs(store)
+
+// カフェイン自動消費モーダル
+const showAutoConsumeModal = ref(false)
 
 // フロー状態: 'select' | 'preview' | 'result' | 'continue'
 type FlowState = 'select' | 'preview' | 'result' | 'continue'
@@ -111,6 +115,16 @@ async function confirmCook() {
       dishNumber.value++
     }
   }
+  // カフェイン自動消費があった場合はモーダルを表示
+  if (lastAutoConsume.value) {
+    showAutoConsumeModal.value = true
+  } else {
+    flowState.value = 'result'
+  }
+}
+
+function closeAutoConsumeModal() {
+  showAutoConsumeModal.value = false
   flowState.value = 'result'
 }
 
@@ -153,6 +167,13 @@ onMounted(async () => {
 
 <template>
   <div class="cooking-flow">
+    <!-- カフェイン自動消費モーダル -->
+    <AutoConsumeModal
+      :show="showAutoConsumeModal"
+      :info="lastAutoConsume"
+      @close="closeAutoConsumeModal"
+    />
+
     <!-- 食材選択 -->
     <template v-if="flowState === 'select'">
       <h3>調理</h3>

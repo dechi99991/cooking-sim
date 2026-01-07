@@ -11,6 +11,7 @@ import type {
   PendingDeliveryItem,
   CookPreviewResponse,
   NutritionState,
+  AutoConsumeInfo,
 } from '../types'
 import * as api from '../api/game'
 
@@ -32,6 +33,7 @@ export const useGameStore = defineStore('game', () => {
   const lastSalaryInfo = ref<{ gross: number; rent: number; net: number } | null>(null)
   const lastBonusInfo = ref<{ amount: number } | null>(null)
   const lastEncouragementMessage = ref<string | null>(null)
+  const lastAutoConsume = ref<AutoConsumeInfo | null>(null)
 
   // ショップデータ
   const shopData = ref<ShopResponse | null>(null)
@@ -109,7 +111,9 @@ export const useGameStore = defineStore('game', () => {
     loading.value = true
     error.value = null
     try {
-      state.value = await api.goShopping(sessionId.value)
+      const result = await api.goShopping(sessionId.value)
+      state.value = result.state
+      lastAutoConsume.value = result.auto_consume
     } catch (e: any) {
       error.value = e.message
     } finally {
@@ -230,6 +234,7 @@ export const useGameStore = defineStore('game', () => {
       lastCookedDish.value = result.dish
       lastEvaluationComment.value = result.evaluation_comment
       lastCookPreview.value = null
+      lastAutoConsume.value = result.auto_consume
     } catch (e: any) {
       error.value = e.message
     } finally {
@@ -261,6 +266,7 @@ export const useGameStore = defineStore('game', () => {
       console.log('[makeBento] prepared in response:', result.state?.prepared)
       state.value = result.state
       lastBentoName.value = result.bento_name
+      lastAutoConsume.value = result.auto_consume
       console.log('[makeBento] state.prepared after update:', state.value?.prepared)
     } catch (e: any) {
       console.error('[makeBento] Error:', e)
@@ -357,6 +363,7 @@ export const useGameStore = defineStore('game', () => {
     lastSalaryInfo,
     lastBonusInfo,
     lastEncouragementMessage,
+    lastAutoConsume,
     shopData,
     onlineShopData,
     recipesData,

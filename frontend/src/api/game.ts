@@ -8,6 +8,7 @@ import type {
   CookResponse,
   CookPreviewResponse,
   MakeBentoResponse,
+  GoShoppingResponse,
   AdvancePhaseResponse,
   NutritionState,
 } from '../types'
@@ -41,7 +42,7 @@ export async function getState(sessionId: string): Promise<GameState> {
 }
 
 // 買い出しに行く（気力・体力消費）
-export async function goShopping(sessionId: string): Promise<GameState> {
+export async function goShopping(sessionId: string): Promise<GoShoppingResponse> {
   const res = await api.post(`/api/game/${sessionId}/go-shopping`)
   return res.data
 }

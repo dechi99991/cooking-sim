@@ -99,6 +99,14 @@ class EventInfo(BaseModel):
     timing: str
 
 
+class AutoConsumeInfo(BaseModel):
+    """カフェイン自動消費の結果"""
+    consumed_name: str
+    caffeine_amount: int
+    energy_restored: int
+    will_cause_insomnia: bool
+
+
 class DishInfo(BaseModel):
     name: str
     nutrition: NutritionState
@@ -225,6 +233,7 @@ class CookResponse(BaseModel):
     dish: DishInfo
     state: GameState
     evaluation_comment: str
+    auto_consume: AutoConsumeInfo | None = None
 
 
 class CookPreviewResponse(BaseModel):
@@ -244,6 +253,12 @@ class CookPreviewResponse(BaseModel):
 class MakeBentoResponse(BaseModel):
     bento_name: str
     state: GameState
+    auto_consume: AutoConsumeInfo | None = None
+
+
+class GoShoppingResponse(BaseModel):
+    state: GameState
+    auto_consume: AutoConsumeInfo | None = None
 
 
 class AdvancePhaseResponse(BaseModel):

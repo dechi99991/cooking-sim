@@ -221,6 +221,21 @@ class ProvisionStock:
         """配送待ちの数"""
         return len(self._pending)
 
+    def get_caffeinated_provisions(self) -> list[tuple[str, int, int]]:
+        """カフェイン飲料をカフェイン量昇順で取得
+
+        Returns:
+            list of (name, caffeine_amount, quantity)
+        """
+        result = []
+        for name, qty in self._items.items():
+            if qty > 0:
+                prov = get_provision(name)
+                if prov and prov.caffeine > 0:
+                    result.append((name, prov.caffeine, qty))
+        # カフェイン量が少ない順にソート
+        return sorted(result, key=lambda x: x[1])
+
 
 def get_provision(name: str) -> Provision | None:
     """食糧名から食糧データを取得"""

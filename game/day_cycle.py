@@ -127,6 +127,15 @@ class DayState:
         return self.day > GAME_DURATION_DAYS
 
 
+@dataclass
+class AutoConsumeResult:
+    """カフェイン自動消費の結果"""
+    consumed_name: str
+    caffeine_amount: int
+    energy_restored: int
+    will_cause_insomnia: bool
+
+
 class GameManager:
     """ゲーム全体を管理するクラス"""
 
@@ -179,13 +188,19 @@ class GameManager:
         """社食利用可能か"""
         return self.player.money >= CAFETERIA_PRICE
 
-    def consume_cooking_energy(self):
-        """調理の気力を消費（レリック効果適用）"""
-        self.player.consume_energy(self.get_cooking_energy_cost())
+    def consume_cooking_energy(self) -> AutoConsumeResult | None:
+        """調理の気力を消費（レリック効果適用、カフェイン自動消費）"""
+        cost = self.get_cooking_energy_cost()
+        auto_result = self.try_auto_consume_caffeine(cost)
+        self.player.consume_energy(cost)
+        return auto_result
 
-    def consume_bento_energy(self):
-        """弁当作成の気力を消費（レリック効果適用）"""
-        self.player.consume_energy(self.get_bento_energy_cost())
+    def consume_bento_energy(self) -> AutoConsumeResult | None:
+        """弁当作成の気力を消費（レリック効果適用、カフェイン自動消費）"""
+        cost = self.get_bento_energy_cost()
+        auto_result = self.try_auto_consume_caffeine(cost)
+        self.player.consume_energy(cost)
+        return auto_result
 
     def consume_cafeteria_cost(self):
         """社食の費用を消費"""
@@ -229,6 +244,49 @@ class GameManager:
         """現在のカフェイン量で不眠になるかどうか"""
         return self.day_state.caffeine >= CAFFEINE_INSOMNIA_THRESHOLD
 
+    def try_auto_consume_caffeine(self, energy_needed: int) -> AutoConsumeResult | None:
+        """気力が足りない場合にカフェイン飲料を自動消費する
+
+        Args:
+            energy_needed: 必要な気力
+
+        Returns:
+            消費した場合はAutoConsumeResult、しなかった場合はNone
+        """
+        from .provisions import get_provision
+
+        # 気力が足りている場合は何もしない
+        if self.player.energy >= energy_needed:
+            return None
+
+        # カフェイン飲料を取得（カフェイン量が少ない順）
+        caffeinated = self.provisions.get_caffeinated_provisions()
+        if not caffeinated:
+            return None
+
+        # 最もカフェイン量が少ない飲料を消費
+        name, caffeine, qty = caffeinated[0]
+        prov = get_provision(name)
+        if not prov:
+            return None
+
+        # 消費処理
+        self.provisions.remove(name, 1)
+        energy_boost = caffeine * 2
+        self.player.energy = min(self.player.energy + energy_boost, 10)
+        self.add_caffeine(caffeine)
+
+        # 栄養・満腹度も追加
+        self.day_state.daily_nutrition.add(prov.nutrition)
+        self.player.add_fullness(prov.fullness)
+
+        return AutoConsumeResult(
+            consumed_name=name,
+            caffeine_amount=caffeine,
+            energy_restored=energy_boost,
+            will_cause_insomnia=self.will_have_insomnia()
+        )
+
     def commute(self):
         """出退勤処理"""
         self.player.consume_stamina(COMMUTE_STAMINA_COST)
@@ -237,10 +295,12 @@ class GameManager:
         """買い出し可能か"""
         return self.player.energy >= SHOPPING_MIN_ENERGY
 
-    def go_shopping(self):
-        """買い出しの気力・体力を消費"""
+    def go_shopping(self) -> AutoConsumeResult | None:
+        """買い出しの気力・体力を消費（カフェイン自動消費）"""
+        auto_result = self.try_auto_consume_caffeine(SHOPPING_ENERGY_COST)
         self.player.consume_energy(SHOPPING_ENERGY_COST)
         self.player.consume_stamina(SHOPPING_STAMINA_COST)
+        return auto_result
 
     def sleep(self) -> bool:
         """就寝処理。不眠が発生したらTrueを返す"""

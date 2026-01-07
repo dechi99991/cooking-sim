@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { useGameStore } from '../stores/game'
 import { storeToRefs } from 'pinia'
+import AutoConsumeModal from './AutoConsumeModal.vue'
 
 defineProps<{
   isDistant?: boolean
@@ -12,7 +13,10 @@ const emit = defineEmits<{
 }>()
 
 const store = useGameStore()
-const { state, shopData, loading } = storeToRefs(store)
+const { state, shopData, lastAutoConsume, loading } = storeToRefs(store)
+
+// カフェイン自動消費モーダル
+const showAutoConsumeModal = ref(false)
 
 // 状態: 'menu' | 'shopping'
 type ShopState = 'menu' | 'shopping'
@@ -75,10 +79,18 @@ function removeFromCart(name: string) {
 async function goShopping() {
   // 買い出しに行く（気力・体力消費）
   await store.goShopping()
+  // カフェイン自動消費があった場合はモーダルを表示
+  if (lastAutoConsume.value) {
+    showAutoConsumeModal.value = true
+  }
   await store.fetchShop()
   cart.value = {}
   purchasedCount.value = 0  // 新しい買い物トリップ開始
   shopState.value = 'shopping'
+}
+
+function closeAutoConsumeModal() {
+  showAutoConsumeModal.value = false
 }
 
 function goHome() {
@@ -129,6 +141,13 @@ const itemsByCategory = computed(() => {
 
 <template>
   <div class="shop-panel">
+    <!-- カフェイン自動消費モーダル -->
+    <AutoConsumeModal
+      :show="showAutoConsumeModal"
+      :info="lastAutoConsume"
+      @close="closeAutoConsumeModal"
+    />
+
     <!-- メニュー選択 -->
     <template v-if="shopState === 'menu'">
       <div class="menu-header">

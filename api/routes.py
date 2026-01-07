@@ -27,6 +27,7 @@ from .schemas import (
     RecipesResponse, NamedRecipeInfo,
     GameState, PlayerState, NutritionState, StockItem, ProvisionItem,
     PreparedItem, PendingDeliveryItem, EventInfo, DishInfo, CharacterInfo,
+    GoShoppingResponse, AutoConsumeInfo,
 )
 
 router = APIRouter(prefix="/api")
@@ -264,7 +265,7 @@ def get_game_state(session_id: str) -> GameState:
 # === 買い物 ===
 
 @router.post("/game/{session_id}/go-shopping")
-def go_shopping(session_id: str) -> GameState:
+def go_shopping(session_id: str) -> GoShoppingResponse:
     """買い出しに行く（気力・体力を消費）"""
     game = _get_game_or_404(session_id)
 
@@ -274,10 +275,23 @@ def go_shopping(session_id: str) -> GameState:
     # 買い物のイベントトリガー
     events = _trigger_events(game, EventTiming.AT_SHOP)
 
-    # 気力・体力を消費
-    game.go_shopping()
+    # 気力・体力を消費（カフェイン自動消費あり）
+    auto_result = game.go_shopping()
 
-    return _build_game_state(session_id, game)
+    # 自動消費情報を変換
+    auto_consume = None
+    if auto_result:
+        auto_consume = AutoConsumeInfo(
+            consumed_name=auto_result.consumed_name,
+            caffeine_amount=auto_result.caffeine_amount,
+            energy_restored=auto_result.energy_restored,
+            will_cause_insomnia=auto_result.will_cause_insomnia
+        )
+
+    return GoShoppingResponse(
+        state=_build_game_state(session_id, game),
+        auto_consume=auto_consume
+    )
 
 
 @router.get("/game/{session_id}/shop")
@@ -618,11 +632,21 @@ def cook_confirm(session_id: str, request: CookRequest) -> CookResponse:
     if dish is None:
         raise HTTPException(status_code=400, detail="Cooking failed")
 
-    # 気力消費・食事
-    game.consume_cooking_energy()
+    # 気力消費・食事（カフェイン自動消費あり）
+    auto_result = game.consume_cooking_energy()
     game.eat_dish(dish)
     game.stats.record_meal_eaten()
     game.stats.record_cooking()
+
+    # 自動消費情報を変換
+    auto_consume = None
+    if auto_result:
+        auto_consume = AutoConsumeInfo(
+            consumed_name=auto_result.consumed_name,
+            caffeine_amount=auto_result.caffeine_amount,
+            energy_restored=auto_result.energy_restored,
+            will_cause_insomnia=auto_result.will_cause_insomnia
+        )
 
     # ネームド料理判定
     named_recipe = find_named_recipe(request.ingredient_names)
@@ -646,6 +670,7 @@ def cook_confirm(session_id: str, request: CookRequest) -> CookResponse:
         dish=dish_info,
         state=_build_game_state(session_id, game),
         evaluation_comment=comment,
+        auto_consume=auto_consume,
     )
 
 
@@ -743,8 +768,18 @@ def make_bento(session_id: str, request: MakeBentoRequest) -> MakeBentoResponse:
     if dish is None:
         raise HTTPException(status_code=400, detail="Cooking failed")
 
-    # 弁当作成の気力消費
-    game.consume_bento_energy()
+    # 弁当作成の気力消費（カフェイン自動消費あり）
+    auto_result = game.consume_bento_energy()
+
+    # 自動消費情報を変換
+    auto_consume = None
+    if auto_result:
+        auto_consume = AutoConsumeInfo(
+            consumed_name=auto_result.consumed_name,
+            caffeine_amount=auto_result.caffeine_amount,
+            energy_restored=auto_result.energy_restored,
+            will_cause_insomnia=auto_result.will_cause_insomnia
+        )
 
     # 弁当として食糧ストックに追加
     game.add_bento(dish)
@@ -753,6 +788,7 @@ def make_bento(session_id: str, request: MakeBentoRequest) -> MakeBentoResponse:
     return MakeBentoResponse(
         bento_name=dish.name,
         state=_build_game_state(session_id, game),
+        auto_consume=auto_consume,
     )
 
 
