@@ -37,6 +37,23 @@ function startGame() {
       <div class="release-notes">
         <h3>📝 更新情報</h3>
         <div class="release-entry">
+          <div class="release-date">2025/01/07（その6）</div>
+          <ul>
+            <li>食材がない場合、料理コマンドを非表示に</li>
+            <li>食糧がない場合、「食糧を食べる」を非表示に</li>
+          </ul>
+        </div>
+        <div class="release-entry">
+          <div class="release-date">2025/01/07（その5）</div>
+          <ul>
+            <li>5栄養素がイベント発生に影響するようになりました</li>
+            <li>心力素が高いと気力マイナスイベントの発生率が下がります</li>
+            <li>防衛素が高いと体力マイナスイベントの発生率が下がります</li>
+            <li>活力素・覚醒素が3日連続高いと体力・気力上限が増加します</li>
+            <li>イベント発生時に「なぜ起きたか」の理由が表示されます</li>
+          </ul>
+        </div>
+        <div class="release-entry">
           <div class="release-date">2025/01/07（その4）</div>
           <ul>
             <li>ネームド料理を10種類追加（計27種類）</li>
