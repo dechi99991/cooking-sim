@@ -37,6 +37,15 @@ function startGame() {
       <div class="release-notes">
         <h3>📝 更新情報</h3>
         <div class="release-entry">
+          <div class="release-date">2025/01/07（その8）</div>
+          <ul>
+            <li>難易度調整: 出退勤の体力消費を軽減（往復で2消費に）</li>
+            <li>最初の3日間はランダムイベントが発生しません</li>
+            <li>フリーランスには通勤・退勤イベントが発生しなくなりました</li>
+            <li>根性回復が正しく発動しないバグを修正</li>
+          </ul>
+        </div>
+        <div class="release-entry">
           <div class="release-date">2025/01/07（その7）</div>
           <ul>
             <li>根性回復システム追加: 体力0でも気力2消費で体力1回復</li>
