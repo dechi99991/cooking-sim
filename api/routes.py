@@ -697,6 +697,9 @@ def eat_provision(session_id: str, request: EatProvisionRequest) -> GameState:
 
         if prov.caffeine > 0:
             game.add_caffeine(prov.caffeine)
+            # カフェイン飲料で気力回復（caffeine * 2）
+            energy_boost = prov.caffeine * 2
+            game.player.energy = min(game.player.energy + energy_boost, 10)
 
         game.stats.record_meal_eaten()
 
