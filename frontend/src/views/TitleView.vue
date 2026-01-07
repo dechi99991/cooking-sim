@@ -37,6 +37,12 @@ function startGame() {
       <div class="release-notes">
         <h3>📝 更新情報</h3>
         <div class="release-entry">
+          <div class="release-date">2025/01/07（その9）</div>
+          <ul>
+            <li>体力・気力の最大値表示が正しく反映されるようになりました</li>
+          </ul>
+        </div>
+        <div class="release-entry">
           <div class="release-date">2025/01/07（その8）</div>
           <ul>
             <li>難易度調整: 出退勤の体力消費を軽減（往復で2消費に）</li>
