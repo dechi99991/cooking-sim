@@ -33,6 +33,19 @@ function startGame() {
           <li>😴 就寝: 翌日へ</li>
         </ul>
       </div>
+
+      <div class="release-notes">
+        <h3>📝 更新情報</h3>
+        <div class="release-entry">
+          <div class="release-date">2025/01/07</div>
+          <ul>
+            <li>出勤キャラの昼食が自動化されました（弁当→食糧→社食）</li>
+            <li>調理画面で作れるレシピが表示されるようになりました</li>
+            <li>1日の終わりにねぎらいメッセージが表示されます</li>
+            <li>休日の買い物画面のUIを改善しました</li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -118,5 +131,49 @@ h1 {
 
 .info li:last-child {
   border-bottom: none;
+}
+
+.release-notes {
+  margin-top: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px 20px;
+  border-radius: 12px;
+  text-align: left;
+  font-size: 0.9em;
+}
+
+.release-notes h3 {
+  margin: 0 0 10px 0;
+  text-align: center;
+}
+
+.release-entry {
+  margin-bottom: 10px;
+}
+
+.release-entry:last-child {
+  margin-bottom: 0;
+}
+
+.release-date {
+  font-size: 0.85em;
+  opacity: 0.8;
+  margin-bottom: 5px;
+}
+
+.release-notes ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.release-notes li {
+  padding: 4px 0;
+  padding-left: 1em;
+  text-indent: -1em;
+}
+
+.release-notes li::before {
+  content: "• ";
 }
 </style>
