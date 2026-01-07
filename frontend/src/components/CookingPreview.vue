@@ -17,6 +17,11 @@ const emit = defineEmits<{
   <div class="cooking-preview">
     <h4>調理確認</h4>
 
+    <!-- 何品目かの表示 -->
+    <div v-if="preview.dish_number > 1" class="dish-number">
+      【{{ preview.dish_number }}品目】
+    </div>
+
     <div class="dish-preview">
       <div class="dish-name">
         <span v-if="preview.is_named" class="star">★</span>
@@ -29,6 +34,9 @@ const emit = defineEmits<{
       <div class="ingredients-used">
         使用食材: {{ ingredients.join(' + ') }}
       </div>
+
+      <!-- この料理の情報 -->
+      <div class="section-label" v-if="preview.dish_number > 1">この料理:</div>
 
       <div class="stats">
         <div class="stat">
@@ -57,6 +65,39 @@ const emit = defineEmits<{
         <div class="nutrition-item">
           <span class="label">防御</span>
           <span class="value">{{ preview.nutrition.defense }}</span>
+        </div>
+      </div>
+
+      <!-- 食事トータル（2品目以降） -->
+      <div v-if="preview.dish_number > 1" class="meal-total">
+        <div class="section-label">食事計:</div>
+        <div class="stats">
+          <div class="stat">
+            <span class="label">満腹度</span>
+            <span class="value total-value">={{ preview.meal_fullness }}</span>
+          </div>
+        </div>
+        <div class="nutrition total-nutrition">
+          <div class="nutrition-item">
+            <span class="label">活力</span>
+            <span class="value">{{ preview.meal_nutrition.vitality }}</span>
+          </div>
+          <div class="nutrition-item">
+            <span class="label">精神</span>
+            <span class="value">{{ preview.meal_nutrition.mental }}</span>
+          </div>
+          <div class="nutrition-item">
+            <span class="label">覚醒</span>
+            <span class="value">{{ preview.meal_nutrition.awakening }}</span>
+          </div>
+          <div class="nutrition-item">
+            <span class="label">持続</span>
+            <span class="value">{{ preview.meal_nutrition.sustain }}</span>
+          </div>
+          <div class="nutrition-item">
+            <span class="label">防御</span>
+            <span class="value">{{ preview.meal_nutrition.defense }}</span>
+          </div>
         </div>
       </div>
 
@@ -173,12 +214,51 @@ h4 {
   color: #2c3e50;
 }
 
+.dish-number {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 2px dashed #f39c12;
+}
+
+.section-label {
+  font-size: 0.9em;
+  font-weight: bold;
+  color: #7f8c8d;
+  margin-bottom: 8px;
+  margin-top: 10px;
+}
+
+.meal-total {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #f39c12;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 15px;
+  border-radius: 4px;
+}
+
+.total-nutrition {
+  background: #eafaf1;
+}
+
+.total-nutrition .nutrition-item {
+  background: #d5f5e3;
+}
+
+.total-value {
+  color: #2980b9 !important;
+}
+
 .comment {
   font-style: italic;
   color: #8e44ad;
   padding: 10px;
   background: rgba(142, 68, 173, 0.1);
   border-radius: 4px;
+  margin-top: 15px;
 }
 
 .warning {

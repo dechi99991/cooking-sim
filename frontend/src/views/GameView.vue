@@ -27,6 +27,7 @@ const {
   lastDeliveries,
   lastSalaryInfo,
   lastBonusInfo,
+  lastEncouragementMessage,
 } = storeToRefs(store)
 
 const showEventModal = ref(false)
@@ -49,7 +50,7 @@ watch([isGameOver, isGameClear], ([gameOver, gameClear]) => {
 async function advance() {
   await store.advancePhase()
   // イベントがある場合はモーダル表示
-  if (lastEvents.value.length > 0 || lastDeliveries.value.length > 0 || lastSalaryInfo.value || lastBonusInfo.value) {
+  if (lastEvents.value.length > 0 || lastDeliveries.value.length > 0 || lastSalaryInfo.value || lastBonusInfo.value || lastEncouragementMessage.value) {
     showEventModal.value = true
   }
 }
@@ -228,6 +229,7 @@ const advanceButtonText = computed(() => {
       :deliveries="lastDeliveries"
       :salary-info="lastSalaryInfo"
       :bonus-info="lastBonusInfo"
+      :encouragement-message="lastEncouragementMessage"
       @close="closeEventModal"
     />
   </div>

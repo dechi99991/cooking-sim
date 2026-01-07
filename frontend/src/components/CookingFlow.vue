@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useGameStore } from '../stores/game'
 import { storeToRefs } from 'pinia'
 import CookingPreview from './CookingPreview.vue'
-import type { CookPreviewResponse } from '../types'
+import type { CookPreviewResponse, NutritionState, NamedRecipeInfo } from '../types'
 
 const props = defineProps<{
   allowBento?: boolean
@@ -23,6 +23,11 @@ const flowState = ref<FlowState>('select')
 
 const selectedIngredients = ref<string[]>([])
 const currentPreview = ref<CookPreviewResponse | null>(null)
+
+// 食事トータル追跡（複数料理時用）
+const mealNutrition = ref<NutritionState | null>(null)
+const mealFullness = ref(0)
+const dishNumber = ref(1)
 
 const availableIngredients = computed(() => {
   if (!state.value) return []
@@ -47,6 +52,11 @@ const canCookMore = computed(() => {
   return hasEnergy && hasIngredients && hasRoom
 })
 
+// 作れるレシピのみフィルタ
+const makeableRecipes = computed(() =>
+  recipesData.value.filter(r => r.can_make)
+)
+
 function toggleIngredient(name: string) {
   const idx = selectedIngredients.value.indexOf(name)
   if (idx >= 0) {
@@ -62,7 +72,12 @@ function clearSelection() {
 
 async function showPreview() {
   if (!canCook.value) return
-  const preview = await store.cookPreview(selectedIngredients.value)
+  const preview = await store.cookPreview(
+    selectedIngredients.value,
+    mealNutrition.value ?? undefined,
+    mealFullness.value,
+    dishNumber.value
+  )
   if (preview) {
     currentPreview.value = preview
     flowState.value = 'preview'
@@ -76,6 +91,25 @@ async function confirmCook() {
     console.log('[CookingFlow] Bento made, lastBentoName:', lastBentoName.value)
   } else {
     await store.cookConfirm(selectedIngredients.value)
+    // 食事トータルを更新
+    if (lastCookedDish.value) {
+      const dish = lastCookedDish.value
+      if (mealNutrition.value) {
+        // 既存の累計に追加
+        mealNutrition.value = {
+          vitality: mealNutrition.value.vitality + dish.nutrition.vitality,
+          mental: mealNutrition.value.mental + dish.nutrition.mental,
+          awakening: mealNutrition.value.awakening + dish.nutrition.awakening,
+          sustain: mealNutrition.value.sustain + dish.nutrition.sustain,
+          defense: mealNutrition.value.defense + dish.nutrition.defense,
+        }
+      } else {
+        // 最初の料理
+        mealNutrition.value = { ...dish.nutrition }
+      }
+      mealFullness.value += dish.fullness
+      dishNumber.value++
+    }
   }
   flowState.value = 'result'
 }
@@ -94,6 +128,10 @@ function cookMore() {
 function finishCooking() {
   selectedIngredients.value = []
   currentPreview.value = null
+  // 食事トータルをリセット
+  mealNutrition.value = null
+  mealFullness.value = 0
+  dishNumber.value = 1
   flowState.value = 'select'
   emit('done')
 }
@@ -101,6 +139,16 @@ function finishCooking() {
 async function loadRecipes() {
   await store.fetchRecipes()
 }
+
+// レシピ選択で食材を自動セット
+function selectRecipeIngredients(recipe: NamedRecipeInfo) {
+  selectedIngredients.value = [...recipe.required_ingredients]
+}
+
+// マウント時にレシピを自動取得
+onMounted(async () => {
+  await store.fetchRecipes()
+})
 </script>
 
 <template>
@@ -111,6 +159,22 @@ async function loadRecipes() {
 
       <div v-if="!state?.can_cook" class="warning">
         気力が足りません（必要: {{ state?.cooking_energy_cost }}）
+      </div>
+
+      <!-- 作れるレシピの表示 -->
+      <div v-if="makeableRecipes.length > 0" class="makeable-recipes">
+        <h4>作れるレシピ</h4>
+        <div class="recipe-buttons">
+          <button
+            v-for="recipe in makeableRecipes"
+            :key="recipe.name"
+            class="recipe-select-btn"
+            @click="selectRecipeIngredients(recipe)"
+          >
+            <span class="recipe-btn-name">{{ recipe.name }}</span>
+            <span class="recipe-btn-ingredients">{{ recipe.required_ingredients.join(' + ') }}</span>
+          </button>
+        </div>
       </div>
 
       <div class="section">
@@ -279,6 +343,61 @@ h4 {
   padding: 10px;
   border-radius: 4px;
   margin-bottom: 15px;
+}
+
+.makeable-recipes {
+  background: #eafaf1;
+  border: 1px solid #27ae60;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.makeable-recipes h4 {
+  color: #27ae60;
+  margin: 0 0 10px 0;
+}
+
+.recipe-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recipe-select-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 10px 15px;
+  background: white;
+  border: 2px solid #27ae60;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recipe-select-btn:hover {
+  background: #27ae60;
+  color: white;
+}
+
+.recipe-select-btn:hover .recipe-btn-ingredients {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.recipe-btn-name {
+  font-weight: bold;
+  color: #27ae60;
+}
+
+.recipe-select-btn:hover .recipe-btn-name {
+  color: white;
+}
+
+.recipe-btn-ingredients {
+  font-size: 0.8em;
+  color: #7f8c8d;
+  margin-top: 2px;
 }
 
 .section {

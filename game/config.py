@@ -30,7 +30,7 @@ class GameConfig:
     # === アクション消費 ===
     cooking_energy_cost: int = 2      # 調理の気力消費
     bento_energy_cost: int = 3        # 弁当作成の気力消費
-    commute_stamina_cost: int = 2     # 出退勤の体力消費
+    commute_stamina_cost: int = 3     # 出退勤の体力消費（往復で6消費）
 
     # === 社食 ===
     cafeteria_price: int = 500

@@ -9,9 +9,11 @@ import type {
   CookPreviewResponse,
   MakeBentoResponse,
   AdvancePhaseResponse,
+  NutritionState,
 } from '../types'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// 本番環境では同一オリジンからAPI配信、開発時はlocalhost:8000
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -87,8 +89,19 @@ export async function getRecipes(sessionId: string): Promise<{ available: NamedR
 }
 
 // 調理プレビュー
-export async function cookPreview(sessionId: string, ingredientNames: string[]): Promise<CookPreviewResponse> {
-  const res = await api.post(`/api/game/${sessionId}/cook/preview`, { ingredient_names: ingredientNames })
+export async function cookPreview(
+  sessionId: string,
+  ingredientNames: string[],
+  mealNutrition?: NutritionState,
+  mealFullness: number = 0,
+  dishNumber: number = 1
+): Promise<CookPreviewResponse> {
+  const res = await api.post(`/api/game/${sessionId}/cook/preview`, {
+    ingredient_names: ingredientNames,
+    meal_nutrition: mealNutrition ?? null,
+    meal_fullness: mealFullness,
+    dish_number: dishNumber,
+  })
   return res.data
 }
 

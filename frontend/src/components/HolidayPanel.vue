@@ -71,7 +71,7 @@ function onBatchCookDone() {
 
     <!-- 近所のスーパー -->
     <template v-else-if="currentChoice === 'shop'">
-      <div class="back-link">
+      <div class="back-link back-link-dark">
         <button class="back-btn" @click="backToMenu">← 戻る</button>
       </div>
       <ShopPanel @done="onShopDone" />
@@ -79,7 +79,7 @@ function onBatchCookDone() {
 
     <!-- 遠出して買い物 -->
     <template v-else-if="currentChoice === 'distant'">
-      <div class="back-link">
+      <div class="back-link back-link-dark">
         <button class="back-btn" @click="backToMenu">← 戻る</button>
       </div>
       <ShopPanel :is-distant="true" @done="onShopDone" />
@@ -185,6 +185,17 @@ h4 {
 
 .back-btn:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* 買い物フェーズ用（白背景対応） */
+.back-link-dark .back-btn {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  color: #2c3e50;
+}
+
+.back-link-dark .back-btn:hover {
+  background: #e9ecef;
 }
 
 .batch-section {

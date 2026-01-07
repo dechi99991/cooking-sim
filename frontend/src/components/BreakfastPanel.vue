@@ -100,6 +100,9 @@ function backToMenu() {
 
     <!-- 弁当作成（自炊+弁当の場合） -->
     <template v-else-if="currentChoice === 'cook-bento' && cookingDone && !bentoDone">
+      <div class="back-link">
+        <button class="back-btn" @click="backToMenu">← メニューに戻る</button>
+      </div>
       <div class="bento-section">
         <h3>弁当を作る</h3>
         <p>お昼用の弁当を作りましょう。</p>

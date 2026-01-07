@@ -1,4 +1,5 @@
 """APIエンドポイント定義"""
+import random
 from fastapi import APIRouter, HTTPException
 
 import sys
@@ -30,6 +31,19 @@ from .schemas import (
 
 router = APIRouter(prefix="/api")
 
+# === ねぎらいメッセージ ===
+ENCOURAGEMENT_MESSAGES = [
+    "今日も一日お疲れ様でした！",
+    "よく頑張りました。ゆっくり休んでください。",
+    "明日も良い一日になりますように。",
+    "今日の自分を褒めてあげてください。",
+    "しっかり食べて、しっかり休む。それが大事です。",
+    "お疲れ様！明日もぼちぼちやっていきましょう。",
+    "今日も無事に過ごせましたね。おやすみなさい。",
+    "自炊、えらい！その調子です。",
+    "一日の終わりにほっと一息。お疲れ様でした。",
+    "今日もよく生き延びました。明日も頑張りましょう。",
+]
 
 # === ヘルパー関数 ===
 
@@ -475,6 +489,8 @@ def get_recipes(session_id: str) -> RecipesResponse:
 @router.post("/game/{session_id}/cook/preview")
 def cook_preview(session_id: str, request: CookRequest) -> CookPreviewResponse:
     """調理プレビュー（確認用）"""
+    from game.nutrition import Nutrition
+
     game = _get_game_or_404(session_id)
 
     if not request.ingredient_names:
@@ -495,27 +511,49 @@ def cook_preview(session_id: str, request: CookRequest) -> CookPreviewResponse:
 
     # 栄養値を計算（プレビュー用）
     from game.ingredients import get_ingredient
-    total_nutrition = {"vitality": 0, "mental": 0, "awakening": 0, "sustain": 0, "defense": 0}
-    total_fullness = 0
+    dish_nutrition = {"vitality": 0, "mental": 0, "awakening": 0, "sustain": 0, "defense": 0}
+    dish_fullness = 0
 
     for name in request.ingredient_names:
         ing = get_ingredient(name)
         if ing:
-            total_nutrition["vitality"] += ing.nutrition.vitality
-            total_nutrition["mental"] += ing.nutrition.mental
-            total_nutrition["awakening"] += ing.nutrition.awakening
-            total_nutrition["sustain"] += ing.nutrition.sustain
-            total_nutrition["defense"] += ing.nutrition.defense
-            total_fullness += ing.fullness
+            dish_nutrition["vitality"] += ing.nutrition.vitality
+            dish_nutrition["mental"] += ing.nutrition.mental
+            dish_nutrition["awakening"] += ing.nutrition.awakening
+            dish_nutrition["sustain"] += ing.nutrition.sustain
+            dish_nutrition["defense"] += ing.nutrition.defense
+            dish_fullness += ing.fullness
 
     # ネームド料理ボーナス
     if named_recipe:
-        for key in total_nutrition:
-            total_nutrition[key] = int(total_nutrition[key] * named_recipe.nutrition_multiplier)
-        total_fullness += named_recipe.fullness_bonus
+        for key in dish_nutrition:
+            dish_nutrition[key] = int(dish_nutrition[key] * named_recipe.nutrition_multiplier)
+        dish_fullness += named_recipe.fullness_bonus
 
-    # 調理評価
-    evaluation = evaluate_cooking(request.ingredient_names)
+    # 食事トータルを計算（累計 + この料理）
+    meal_nutrition = {**dish_nutrition}
+    meal_fullness = dish_fullness
+
+    if request.meal_nutrition:
+        meal_nutrition["vitality"] += request.meal_nutrition.vitality
+        meal_nutrition["mental"] += request.meal_nutrition.mental
+        meal_nutrition["awakening"] += request.meal_nutrition.awakening
+        meal_nutrition["sustain"] += request.meal_nutrition.sustain
+        meal_nutrition["defense"] += request.meal_nutrition.defense
+        meal_fullness += request.meal_fullness
+
+    # 調理評価（累計情報を使用してトータルで評価）
+    prev_nutrition = None
+    if request.meal_nutrition:
+        prev_nutrition = Nutrition(
+            vitality=request.meal_nutrition.vitality,
+            mental=request.meal_nutrition.mental,
+            awakening=request.meal_nutrition.awakening,
+            sustain=request.meal_nutrition.sustain,
+            defense=request.meal_nutrition.defense
+        )
+    evaluation = evaluate_cooking(request.ingredient_names, prev_nutrition, request.meal_fullness)
+
     if evaluation.fullness_good and evaluation.nutrition_good:
         comment = "これなら腹いっぱいだし栄養もいいだろう！"
     elif evaluation.fullness_good:
@@ -528,17 +566,26 @@ def cook_preview(session_id: str, request: CookRequest) -> CookPreviewResponse:
     return CookPreviewResponse(
         dish_name=dish_name,
         nutrition=NutritionState(
-            vitality=total_nutrition["vitality"],
-            mental=total_nutrition["mental"],
-            awakening=total_nutrition["awakening"],
-            sustain=total_nutrition["sustain"],
-            defense=total_nutrition["defense"],
+            vitality=dish_nutrition["vitality"],
+            mental=dish_nutrition["mental"],
+            awakening=dish_nutrition["awakening"],
+            sustain=dish_nutrition["sustain"],
+            defense=dish_nutrition["defense"],
         ),
-        fullness=total_fullness,
+        fullness=dish_fullness,
         is_named=named_recipe is not None,
         named_recipe_name=named_recipe.name if named_recipe else None,
         evaluation_comment=comment,
         can_make=can_make,
+        meal_nutrition=NutritionState(
+            vitality=meal_nutrition["vitality"],
+            mental=meal_nutrition["mental"],
+            awakening=meal_nutrition["awakening"],
+            sustain=meal_nutrition["sustain"],
+            defense=meal_nutrition["defense"],
+        ),
+        meal_fullness=meal_fullness,
+        dish_number=request.dish_number,
     )
 
 
@@ -719,6 +766,7 @@ def advance_phase(session_id: str) -> AdvancePhaseResponse:
     deliveries = []
     salary_info = None
     bonus_info = None
+    encouragement_message = None
 
     # UIが不要なフェーズは自動スキップ（出勤・退勤のみ）
     auto_skip_phases = [
@@ -754,6 +802,10 @@ def advance_phase(session_id: str) -> AdvancePhaseResponse:
         elif current_phase == GamePhase.SLEEP:
             # 就寝処理
             has_insomnia = game.sleep()
+
+            # ねぎらいメッセージをランダム選択
+            encouragement_message = random.choice(ENCOURAGEMENT_MESSAGES)
+
             game.start_new_day()
 
             # 起床イベント
@@ -786,6 +838,7 @@ def advance_phase(session_id: str) -> AdvancePhaseResponse:
         deliveries=deliveries,
         salary_info=salary_info,
         bonus_info=bonus_info,
+        encouragement_message=encouragement_message,
     )
 
 

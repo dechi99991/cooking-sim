@@ -10,6 +10,7 @@ import type {
   EventInfo,
   PendingDeliveryItem,
   CookPreviewResponse,
+  NutritionState,
 } from '../types'
 import * as api from '../api/game'
 
@@ -30,6 +31,7 @@ export const useGameStore = defineStore('game', () => {
   const lastDeliveries = ref<PendingDeliveryItem[]>([])
   const lastSalaryInfo = ref<{ gross: number; rent: number; net: number } | null>(null)
   const lastBonusInfo = ref<{ amount: number } | null>(null)
+  const lastEncouragementMessage = ref<string | null>(null)
 
   // ショップデータ
   const shopData = ref<ShopResponse | null>(null)
@@ -191,12 +193,23 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
-  async function cookPreview(ingredientNames: string[]) {
+  async function cookPreview(
+    ingredientNames: string[],
+    mealNutrition?: NutritionState,
+    mealFullness: number = 0,
+    dishNumber: number = 1
+  ) {
     if (!sessionId.value) return null
     loading.value = true
     error.value = null
     try {
-      const result = await api.cookPreview(sessionId.value, ingredientNames)
+      const result = await api.cookPreview(
+        sessionId.value,
+        ingredientNames,
+        mealNutrition,
+        mealFullness,
+        dishNumber
+      )
       lastCookPreview.value = result
       return result
     } catch (e: any) {
@@ -292,6 +305,7 @@ export const useGameStore = defineStore('game', () => {
       lastDeliveries.value = result.deliveries
       lastSalaryInfo.value = result.salary_info
       lastBonusInfo.value = result.bonus_info
+      lastEncouragementMessage.value = result.encouragement_message ?? null
     } catch (e: any) {
       error.value = e.message
     } finally {
@@ -342,6 +356,7 @@ export const useGameStore = defineStore('game', () => {
     lastDeliveries,
     lastSalaryInfo,
     lastBonusInfo,
+    lastEncouragementMessage,
     shopData,
     onlineShopData,
     recipesData,

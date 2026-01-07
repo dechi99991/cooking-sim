@@ -170,16 +170,21 @@ export interface AdvancePhaseResponse {
   deliveries: PendingDeliveryItem[]
   salary_info: { gross: number; rent: number; net: number } | null
   bonus_info: { amount: number } | null
+  encouragement_message: string | null
 }
 
 export interface CookPreviewResponse {
   dish_name: string
-  nutrition: NutritionState
-  fullness: number
+  nutrition: NutritionState  // この料理の栄養
+  fullness: number           // この料理の満腹度
   is_named: boolean
   named_recipe_name: string | null
   evaluation_comment: string
   can_make: boolean
+  // 食事トータル（複数料理時）
+  meal_nutrition: NutritionState  // 食事トータル栄養
+  meal_fullness: number           // 食事トータル満腹度
+  dish_number: number             // 何品目か
 }
 
 export interface MakeBentoResponse {

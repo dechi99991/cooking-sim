@@ -6,6 +6,7 @@ defineProps<{
   deliveries: PendingDeliveryItem[]
   salaryInfo: { gross: number; rent: number; net: number } | null
   bonusInfo: { amount: number } | null
+  encouragementMessage: string | null
 }>()
 
 const emit = defineEmits<{
@@ -64,6 +65,14 @@ const emit = defineEmits<{
           <div v-for="event in events" :key="event.id" class="event-item">
             {{ event.description }}
           </div>
+        </div>
+      </div>
+
+      <!-- ねぎらいメッセージ -->
+      <div v-if="encouragementMessage" class="info-box encouragement">
+        <div class="encouragement-content">
+          <span class="encouragement-icon">🌙</span>
+          <p>{{ encouragementMessage }}</p>
         </div>
       </div>
 
@@ -191,6 +200,27 @@ h4 {
   background: white;
   border-radius: 4px;
   border-left: 3px solid #9b59b6;
+}
+
+.info-box.encouragement {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.encouragement-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.encouragement-icon {
+  font-size: 2em;
+}
+
+.encouragement-content p {
+  margin: 0;
+  font-size: 1.1em;
+  line-height: 1.4;
 }
 
 .close-btn {

@@ -1,4 +1,5 @@
 """Pydanticスキーマ定義"""
+from __future__ import annotations
 from pydantic import BaseModel
 
 
@@ -10,6 +11,10 @@ class StartGameRequest(BaseModel):
 
 class CookRequest(BaseModel):
     ingredient_names: list[str]
+    # 複数料理時の累計（オプション）
+    meal_nutrition: NutritionState | None = None
+    meal_fullness: int = 0
+    dish_number: int = 1
 
 
 class ShopBuyRequest(BaseModel):
@@ -223,12 +228,16 @@ class CookResponse(BaseModel):
 
 class CookPreviewResponse(BaseModel):
     dish_name: str
-    nutrition: NutritionState
-    fullness: int
+    nutrition: NutritionState  # この料理の栄養
+    fullness: int              # この料理の満腹度
     is_named: bool
     named_recipe_name: str | None = None
     evaluation_comment: str
     can_make: bool
+    # 食事トータル（複数料理時）
+    meal_nutrition: NutritionState  # 食事トータル栄養
+    meal_fullness: int              # 食事トータル満腹度
+    dish_number: int                # 何品目か
 
 
 class MakeBentoResponse(BaseModel):
@@ -242,3 +251,4 @@ class AdvancePhaseResponse(BaseModel):
     deliveries: list[PendingDeliveryItem]
     salary_info: dict | None = None
     bonus_info: dict | None = None
+    encouragement_message: str | None = None
