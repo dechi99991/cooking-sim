@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useGameStore } from '../stores/game'
 import { storeToRefs } from 'pinia'
 import ShopPanel from './ShopPanel.vue'
@@ -10,18 +10,28 @@ const emit = defineEmits<{
 }>()
 
 const store = useGameStore()
-const { loading } = storeToRefs(store)
+const { state, loading } = storeToRefs(store)
 
 type ActionChoice = 'none' | 'shop' | 'distant' | 'batch' | 'rest' | 'skip'
 const currentChoice = ref<ActionChoice>('none')
 
-const actions = [
+// 食材の有無
+const hasStock = computed(() => (state.value?.stock.length ?? 0) > 0)
+
+const actionsBase = [
   { id: 'shop', name: '近所のスーパー', description: '近くのスーパーで買い物', icon: '🛒' },
   { id: 'distant', name: '遠出して買い物', description: '遠くの店で特別な食材を探す', icon: '🚃' },
-  { id: 'batch', name: '料理の作り置き', description: '作り置き料理を作る', icon: '🍲' },
+  { id: 'batch', name: '料理の作り置き', description: '作り置き料理を作る', icon: '🍲', needsStock: true },
   { id: 'rest', name: 'のんびり休養', description: '気力と体力を回復', icon: '😴' },
   { id: 'skip', name: '何もしない', description: 'そのまま次へ進む', icon: '⏭️' },
 ]
+
+const actions = computed(() => {
+  return actionsBase.filter(item => {
+    if (item.needsStock && !hasStock.value) return false
+    return true
+  })
+})
 
 async function selectAction(id: string) {
   if (id === 'rest') {

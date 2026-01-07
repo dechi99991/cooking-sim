@@ -93,31 +93,44 @@ const currentChoice = ref<MenuChoice>('none')
 // オフィスワーカーかどうか
 const isOfficeWorker = computed(() => state.value?.is_office_worker ?? true)
 
+// 食材・食糧の有無
+const hasStock = computed(() => (state.value?.stock.length ?? 0) > 0)
+const hasProvisions = computed(() => (state.value?.provisions.length ?? 0) > 0)
+
 // 平日メニュー（オフィスワーカー：社食あり）
-const weekdayOfficeMenu = [
+const weekdayOfficeMenuBase = [
   { id: 'cafeteria', label: '社食（500円）', icon: '🍽️', description: '社員食堂で食べる' },
-  { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費' },
+  { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費', needsProvision: true },
   { id: 'skip', label: '食べない', icon: '❌', description: '何も食べずに次へ' },
 ]
 
 // 平日メニュー（フリーランス：デリバリーあり）
-const weekdayFreelanceMenu = [
+const weekdayFreelanceMenuBase = [
   { id: 'delivery', label: 'うぼあデリバリ（700円）', icon: '🛵', description: 'デリバリーで食べる' },
-  { id: 'cook', label: '自炊する', icon: '🍳', description: '食材を使って料理を作る' },
-  { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費' },
+  { id: 'cook', label: '自炊する', icon: '🍳', description: '食材を使って料理を作る', needsStock: true },
+  { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費', needsProvision: true },
   { id: 'skip', label: '食べない', icon: '❌', description: '何も食べずに次へ' },
 ]
 
 // 休日メニュー（自炊可能）
-const holidayMenu = [
-  { id: 'cook', label: '自炊する', icon: '🍳', description: '食材を使って料理を作る' },
-  { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費' },
+const holidayMenuBase = [
+  { id: 'cook', label: '自炊する', icon: '🍳', description: '食材を使って料理を作る', needsStock: true },
+  { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費', needsProvision: true },
   { id: 'skip', label: '食べない', icon: '❌', description: '何も食べずに次へ' },
 ]
 
 const menu = computed(() => {
-  if (props.isHoliday) return holidayMenu
-  return isOfficeWorker.value ? weekdayOfficeMenu : weekdayFreelanceMenu
+  let base: typeof holidayMenuBase
+  if (props.isHoliday) {
+    base = holidayMenuBase
+  } else {
+    base = isOfficeWorker.value ? weekdayOfficeMenuBase : weekdayFreelanceMenuBase
+  }
+  return base.filter(item => {
+    if (item.needsStock && !hasStock.value) return false
+    if (item.needsProvision && !hasProvisions.value) return false
+    return true
+  })
 })
 
 const canAffordCafeteria = computed(() => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useGameStore } from '../stores/game'
 import { storeToRefs } from 'pinia'
 import CookingFlow from './CookingFlow.vue'
@@ -10,16 +10,28 @@ const emit = defineEmits<{
 }>()
 
 const store = useGameStore()
-const { loading } = storeToRefs(store)
+const { state, loading } = storeToRefs(store)
 
 type MenuChoice = 'none' | 'cook' | 'provision' | 'skip'
 const currentChoice = ref<MenuChoice>('none')
 
-const menu = [
-  { id: 'cook', label: '自炊する', icon: '🍳', description: '食材を使って料理を作る' },
-  { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費' },
+// 食材・食糧の有無
+const hasStock = computed(() => (state.value?.stock.length ?? 0) > 0)
+const hasProvisions = computed(() => (state.value?.provisions.length ?? 0) > 0)
+
+const menuBase = [
+  { id: 'cook', label: '自炊する', icon: '🍳', description: '食材を使って料理を作る', needsStock: true },
+  { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費', needsProvision: true },
   { id: 'skip', label: '食べない', icon: '❌', description: '何も食べずに次へ' },
 ]
+
+const menu = computed(() => {
+  return menuBase.filter(item => {
+    if (item.needsStock && !hasStock.value) return false
+    if (item.needsProvision && !hasProvisions.value) return false
+    return true
+  })
+})
 
 function selectChoice(id: string) {
   if (id === 'skip') {

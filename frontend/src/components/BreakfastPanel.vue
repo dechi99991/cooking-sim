@@ -25,22 +25,33 @@ const currentChoice = ref<MenuChoice>('none')
 const cookingDone = ref(false)
 const bentoDone = ref(false)
 
+// 食材・食糧の有無
+const hasStock = computed(() => (state.value?.stock.length ?? 0) > 0)
+const hasProvisions = computed(() => (state.value?.provisions.length ?? 0) > 0)
+
 // 平日メニュー
-const weekdayMenu = [
-  { id: 'cook', label: '自炊する', icon: '🍳', description: '食材を使って料理を作る' },
-  { id: 'cook-bento', label: '自炊して弁当も作る', icon: '🍱', description: '料理を作り、さらに弁当も用意' },
-  { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費' },
+const weekdayMenuBase = [
+  { id: 'cook', label: '自炊する', icon: '🍳', description: '食材を使って料理を作る', needsStock: true },
+  { id: 'cook-bento', label: '自炊して弁当も作る', icon: '🍱', description: '料理を作り、さらに弁当も用意', needsStock: true },
+  { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費', needsProvision: true },
   { id: 'skip', label: '食べない', icon: '❌', description: '何も食べずに次へ' },
 ]
 
 // 休日メニュー（弁当オプションなし）
-const holidayMenu = [
-  { id: 'cook', label: '自炊する', icon: '🍳', description: '食材を使って料理を作る' },
-  { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費' },
+const holidayMenuBase = [
+  { id: 'cook', label: '自炊する', icon: '🍳', description: '食材を使って料理を作る', needsStock: true },
+  { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費', needsProvision: true },
   { id: 'skip', label: '食べない', icon: '❌', description: '何も食べずに次へ' },
 ]
 
-const menu = computed(() => props.isHoliday ? holidayMenu : weekdayMenu)
+const menu = computed(() => {
+  const base = props.isHoliday ? holidayMenuBase : weekdayMenuBase
+  return base.filter(item => {
+    if (item.needsStock && !hasStock.value) return false
+    if (item.needsProvision && !hasProvisions.value) return false
+    return true
+  })
+})
 
 // 出勤で体力が0になる場合は確認を求める
 function tryAdvance() {
