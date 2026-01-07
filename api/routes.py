@@ -194,6 +194,7 @@ def _build_game_state(session_id: str, game) -> GameState:
         cooking_energy_cost=game.get_cooking_energy_cost(),
         can_cook=game.can_cook(),
         can_go_shopping=game.can_go_shopping(),
+        is_office_worker=game.character_id != 'freelance',
     )
 
 

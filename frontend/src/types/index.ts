@@ -75,6 +75,7 @@ export interface GameState {
   cooking_energy_cost: number
   can_cook: boolean
   can_go_shopping: boolean
+  is_office_worker: boolean  // 出勤キャラかどうか（昼食自動化用）
 }
 
 export interface CharacterInfo {

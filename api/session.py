@@ -53,6 +53,7 @@ def create_session(character_id: str | None = None) -> tuple[str, GameManager]:
         salary_amount=character.salary_amount,
         bonus_amount=character.bonus_amount,
         rent_amount=character.rent_amount,
+        character_id=character.id,
     )
 
     # 天気を決定（1日目開始時）

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useGameStore } from '../stores/game'
 import { storeToRefs } from 'pinia'
 import CookingFlow from './CookingFlow.vue'
@@ -7,6 +7,7 @@ import ProvisionPanel from './ProvisionPanel.vue'
 
 const props = defineProps<{
   isHoliday: boolean
+  autoEat?: boolean  // 昼食自動化フラグ
 }>()
 
 const emit = defineEmits<{
@@ -15,6 +16,60 @@ const emit = defineEmits<{
 
 const store = useGameStore()
 const { state, loading } = storeToRefs(store)
+
+// 自動選択結果の表示用
+const autoEatMessage = ref<string | null>(null)
+const isAutoEating = ref(false)
+
+// 自動選択ロジック
+async function autoSelectLunch() {
+  if (!state.value) return
+
+  const prepared = state.value.prepared ?? []
+  const provisions = state.value.provisions ?? []
+
+  isAutoEating.value = true
+
+  // 1. 弁当（賞味期限近い順）
+  if (prepared.length > 0) {
+    const sorted = [...prepared].sort((a, b) => a.expiry_day - b.expiry_day)
+    const first = sorted[0]!
+    const targetIndex = prepared.findIndex(p => p.name === first.name && p.expiry_day === first.expiry_day)
+    autoEatMessage.value = `${first.name}を食べました`
+    await store.eatPrepared(targetIndex)
+    setTimeout(() => emit('done'), 1000)
+    return
+  }
+
+  // 2. ノンカフェイン食糧
+  const nonCaffeine = provisions.filter(p => p.caffeine === 0)
+  if (nonCaffeine.length > 0) {
+    const first = nonCaffeine[0]!
+    autoEatMessage.value = `${first.name}を食べました`
+    await store.eatProvision([first.name])
+    setTimeout(() => emit('done'), 1000)
+    return
+  }
+
+  // 3. 社食
+  if ((state.value.player.money ?? 0) >= 500) {
+    autoEatMessage.value = '社食で食べました'
+    await store.eatCafeteria()
+    setTimeout(() => emit('done'), 1000)
+    return
+  }
+
+  // 4. スキップ
+  autoEatMessage.value = '食べるものがありませんでした'
+  setTimeout(() => emit('done'), 1000)
+}
+
+// マウント時に自動選択を実行
+onMounted(() => {
+  if (props.autoEat && !props.isHoliday) {
+    autoSelectLunch()
+  }
+})
 
 type MenuChoice = 'none' | 'cafeteria' | 'cook' | 'provision' | 'skip'
 const currentChoice = ref<MenuChoice>('none')
@@ -62,8 +117,16 @@ function backToMenu() {
 
 <template>
   <div class="lunch-panel">
+    <!-- 自動選択中 -->
+    <template v-if="isAutoEating">
+      <div class="auto-eat-message">
+        <div class="auto-eat-icon">🍱</div>
+        <p>{{ autoEatMessage || '昼食を選択中...' }}</p>
+      </div>
+    </template>
+
     <!-- メニュー選択 -->
-    <template v-if="currentChoice === 'none'">
+    <template v-else-if="currentChoice === 'none'">
       <div class="menu-header">
         <h3>{{ isHoliday ? '休日の昼食' : '昼食' }}</h3>
         <p>何をしますか？</p>
@@ -221,5 +284,25 @@ function backToMenu() {
 
 .done-btn:hover {
   background: #219a52;
+}
+
+.auto-eat-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.auto-eat-icon {
+  font-size: 4em;
+  margin-bottom: 15px;
+}
+
+.auto-eat-message p {
+  font-size: 1.2em;
+  color: #2c3e50;
+  margin: 0;
 }
 </style>

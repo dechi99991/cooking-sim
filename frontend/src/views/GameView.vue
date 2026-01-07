@@ -128,7 +128,7 @@ const advanceButtonText = computed(() => {
 
         <!-- 昼食フェーズ（平日：社食あり、休日：自炊あり） -->
         <template v-else-if="currentPhase === 'LUNCH'">
-          <LunchPanel :is-holiday="isHoliday" @done="onMealDone" />
+          <LunchPanel :is-holiday="isHoliday" :auto-eat="state?.is_office_worker && !isHoliday" @done="onMealDone" />
         </template>
 
         <!-- 休日行動フェーズ1 -->
@@ -138,7 +138,7 @@ const advanceButtonText = computed(() => {
 
         <!-- 休日昼食フェーズ -->
         <template v-else-if="currentPhase === 'HOLIDAY_LUNCH'">
-          <LunchPanel :is-holiday="true" @done="onMealDone" />
+          <LunchPanel :is-holiday="true" :auto-eat="false" @done="onMealDone" />
         </template>
 
         <!-- 休日行動フェーズ2 -->

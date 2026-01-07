@@ -144,6 +144,7 @@ class GameState(BaseModel):
     cooking_energy_cost: int
     can_cook: bool
     can_go_shopping: bool
+    is_office_worker: bool  # 出勤キャラかどうか（昼食自動化用）
 
 
 class StartGameResponse(BaseModel):

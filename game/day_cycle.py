@@ -135,9 +135,11 @@ class GameManager:
                  salary_amount: int | None = None,
                  bonus_amount: int | None = None,
                  rent_amount: int = 0,
-                 with_initial_relics: bool = True):
+                 with_initial_relics: bool = True,
+                 character_id: str = 'regular'):
         self.player = player
         self.stock = stock
+        self.character_id = character_id  # キャラクターID
         self.day_state = DayState()
         self.stats = GameStats()  # 統計収集用
         self.relics = RelicInventory()  # レリック所持
