@@ -26,6 +26,9 @@ class Player:
     # クレジットカード未払い残高
     card_debt: int = 0
 
+    # 根性回復フラグ（体力0時に気力で耐えた場合）
+    grit_used: bool = False
+
     def consume_energy(self, amount: int) -> bool:
         """気力を消費する。消費可能ならTrue"""
         if self.energy >= amount:
@@ -34,10 +37,32 @@ class Player:
         return False
 
     def consume_stamina(self, amount: int) -> bool:
-        """体力を消費する。消費可能ならTrue"""
+        """体力を消費する。消費可能ならTrue
+
+        体力が足りない場合、気力が2以上あれば根性回復を発動
+        （気力-2、体力を1に回復してから消費を試みる）
+        """
+        self.grit_used = False  # リセット
+
         if self.stamina >= amount:
             self.stamina -= amount
             return True
+
+        # 体力が足りない → 根性回復を試みる（気力2で体力1回復）
+        if self.energy >= 2:
+            self.energy -= 2
+            self.stamina = 1  # 体力1に回復
+            self.grit_used = True
+            # 回復後に消費を試みる（体力1なので消費量1なら成功）
+            if self.stamina >= amount:
+                self.stamina -= amount
+            else:
+                # 消費量が1より大きい場合は体力0になる
+                self.stamina = 0
+            return True
+
+        # 根性も足りない → ゲームオーバー
+        self.stamina = 0
         return False
 
     def consume_money(self, amount: int) -> bool:

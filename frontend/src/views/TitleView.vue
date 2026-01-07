@@ -37,6 +37,13 @@ function startGame() {
       <div class="release-notes">
         <h3>📝 更新情報</h3>
         <div class="release-entry">
+          <div class="release-date">2025/01/07（その7）</div>
+          <ul>
+            <li>根性回復システム追加: 体力0でも気力2消費で体力1回復</li>
+            <li>体力も気力も尽きた時は「力尽きた」演出が表示されます</li>
+          </ul>
+        </div>
+        <div class="release-entry">
           <div class="release-date">2025/01/07（その6）</div>
           <ul>
             <li>食材がない場合、料理コマンドを非表示に</li>

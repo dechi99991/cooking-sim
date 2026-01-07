@@ -12,6 +12,8 @@ import ShopPanel from '../components/ShopPanel.vue'
 import OnlineShopPanel from '../components/OnlineShopPanel.vue'
 import HolidayPanel from '../components/HolidayPanel.vue'
 import EventModal from '../components/EventModal.vue'
+import GritRecoveryModal from '../components/GritRecoveryModal.vue'
+import ExhaustedModal from '../components/ExhaustedModal.vue'
 
 const router = useRouter()
 const store = useGameStore()
@@ -31,6 +33,8 @@ const {
 } = storeToRefs(store)
 
 const showEventModal = ref(false)
+const showGritModal = ref(false)
+const showExhaustedModal = ref(false)
 
 // ゲームが開始されていない場合はキャラクター選択へ
 onMounted(() => {
@@ -41,8 +45,22 @@ onMounted(() => {
 
 // ゲーム終了チェック
 watch([isGameOver, isGameClear], ([gameOver, gameClear]) => {
-  if (gameOver || gameClear) {
+  if (gameOver) {
+    // 体力＆気力枯渇の場合は力尽きモーダルを表示
+    if (state.value?.game_over_reason === 'exhausted') {
+      showExhaustedModal.value = true
+    } else {
+      router.push('/result')
+    }
+  } else if (gameClear) {
     router.push('/result')
+  }
+})
+
+// 根性回復モーダル表示
+watch(() => state.value?.player.grit_used, (used) => {
+  if (used) {
+    showGritModal.value = true
   }
 })
 
@@ -57,6 +75,15 @@ async function advance() {
 
 function closeEventModal() {
   showEventModal.value = false
+}
+
+function closeGritModal() {
+  showGritModal.value = false
+}
+
+function closeExhaustedModal() {
+  showExhaustedModal.value = false
+  router.push('/result')
 }
 
 // 各パネルの完了ハンドラ
@@ -232,6 +259,18 @@ const advanceButtonText = computed(() => {
       :bonus-info="lastBonusInfo"
       :encouragement-message="lastEncouragementMessage"
       @close="closeEventModal"
+    />
+
+    <!-- 根性回復モーダル -->
+    <GritRecoveryModal
+      :show="showGritModal"
+      @close="closeGritModal"
+    />
+
+    <!-- 力尽きモーダル -->
+    <ExhaustedModal
+      :show="showExhaustedModal"
+      @close="closeExhaustedModal"
     />
   </div>
 </template>

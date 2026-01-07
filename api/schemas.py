@@ -57,6 +57,7 @@ class PlayerState(BaseModel):
     card_debt: int
     max_energy: int
     max_stamina: int
+    grit_used: bool = False  # 根性回復を使用したか
 
 
 class StockItem(BaseModel):

@@ -473,6 +473,9 @@ class GameManager:
         if self.player.money <= 0:
             return "money"
         if self.player.stamina <= 0:
+            # 体力も気力も足りない場合は"exhausted"（根性回復不可）
+            if self.player.energy < 2:
+                return "exhausted"
             return "stamina"
         return None
 
