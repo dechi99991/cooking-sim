@@ -136,6 +136,67 @@ NAMED_RECIPES: list[NamedRecipe] = [
         nutrition_multiplier=1.2, fullness_bonus=1,
         description='和食の基本'
     ),
+    # === 追加レシピ ===
+    NamedRecipe(
+        name='オムライス',
+        ingredients=frozenset(['米', '卵', '鶏もも肉']),
+        nutrition_multiplier=1.3, fullness_bonus=2,
+        description='ふわとろ卵の定番洋食'
+    ),
+    NamedRecipe(
+        name='チャーハン',
+        ingredients=frozenset(['米', '卵', 'ねぎ']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='パラパラ炒飯'
+    ),
+    NamedRecipe(
+        name='野菜炒め',
+        ingredients=frozenset(['キャベツ', 'もやし', 'にんじん']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='シャキシャキ野菜'
+    ),
+    NamedRecipe(
+        name='豚の生姜焼き',
+        ingredients=frozenset(['豚ロース', 'たまねぎ', 'しょうが']),
+        nutrition_multiplier=1.3, fullness_bonus=2,
+        description='ご飯がすすむ定番おかず'
+    ),
+    NamedRecipe(
+        name='ニラレバ炒め',
+        ingredients=frozenset(['レバー', 'にら', 'もやし']),
+        nutrition_multiplier=1.3, fullness_bonus=1,
+        description='スタミナ満点'
+    ),
+    NamedRecipe(
+        name='シーフードサラダ',
+        ingredients=frozenset(['エビ', 'レタス', 'トマト']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='海鮮たっぷりサラダ'
+    ),
+    NamedRecipe(
+        name='きのこの炊き込みご飯',
+        ingredients=frozenset(['米', 'しめじ', 'しいたけ']),
+        nutrition_multiplier=1.2, fullness_bonus=2,
+        description='秋の味覚'
+    ),
+    NamedRecipe(
+        name='オムレツ',
+        ingredients=frozenset(['卵', 'チーズ', 'ベーコン']),
+        nutrition_multiplier=1.3, fullness_bonus=1,
+        description='とろーりチーズ'
+    ),
+    NamedRecipe(
+        name='鶏そぼろ丼',
+        ingredients=frozenset(['米', 'ひき肉', '卵']),
+        nutrition_multiplier=1.3, fullness_bonus=2,
+        description='三色丼の定番'
+    ),
+    NamedRecipe(
+        name='肉うどん',
+        ingredients=frozenset(['うどん', '牛切り落とし', 'ねぎ']),
+        nutrition_multiplier=1.3, fullness_bonus=2,
+        description='あったか和風麺'
+    ),
 ]
 
 

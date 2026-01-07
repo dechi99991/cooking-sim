@@ -37,6 +37,13 @@ function startGame() {
       <div class="release-notes">
         <h3>📝 更新情報</h3>
         <div class="release-entry">
+          <div class="release-date">2025/01/07（その4）</div>
+          <ul>
+            <li>ネームド料理を10種類追加（計27種類）</li>
+            <li>買い物バッグ系レリックの効果を調整</li>
+          </ul>
+        </div>
+        <div class="release-entry">
           <div class="release-date">2025/01/07（その3）</div>
           <ul>
             <li>体力が0になる行動の前に確認モーダルが表示されます</li>

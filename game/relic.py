@@ -433,24 +433,24 @@ RELICS = {
 
     # === 買い物バッグ (5種類) ===
     'エコバッグ': Relic(
-        name='エコバッグ', price=500, description='買い物バッグ容量+2',
-        effect_type='bag_capacity', effect_target=None, effect_value=2, category='バッグ'
+        name='エコバッグ', price=500, description='買い物バッグ容量+1',
+        effect_type='bag_capacity', effect_target=None, effect_value=1, category='バッグ'
     ),
     '保冷バッグ': Relic(
-        name='保冷バッグ', price=1500, description='買い物バッグ容量+3',
-        effect_type='bag_capacity', effect_target=None, effect_value=3, category='バッグ'
+        name='保冷バッグ', price=1500, description='買い物バッグ容量+1',
+        effect_type='bag_capacity', effect_target=None, effect_value=1, category='バッグ'
     ),
     'マイバスケット': Relic(
-        name='マイバスケット', price=800, description='買い物バッグ容量+3',
-        effect_type='bag_capacity', effect_target=None, effect_value=3, category='バッグ'
+        name='マイバスケット', price=800, description='買い物バッグ容量+1',
+        effect_type='bag_capacity', effect_target=None, effect_value=1, category='バッグ'
     ),
     'キャリーカート': Relic(
-        name='キャリーカート', price=3000, description='買い物バッグ容量+5',
-        effect_type='bag_capacity', effect_target=None, effect_value=5, category='バッグ'
+        name='キャリーカート', price=3000, description='買い物バッグ容量+2',
+        effect_type='bag_capacity', effect_target=None, effect_value=2, category='バッグ'
     ),
     'リュックサック': Relic(
-        name='リュックサック', price=2000, description='買い物バッグ容量+4',
-        effect_type='bag_capacity', effect_target=None, effect_value=4, category='バッグ'
+        name='リュックサック', price=2000, description='買い物バッグ容量+2',
+        effect_type='bag_capacity', effect_target=None, effect_value=2, category='バッグ'
     ),
 }
 
