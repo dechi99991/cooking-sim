@@ -120,6 +120,14 @@ class DishInfo(BaseModel):
     named_recipe_name: str | None = None
 
 
+class TemperamentInfo(BaseModel):
+    """気質情報"""
+    id: str
+    name: str
+    description: str
+    icon: str
+
+
 class GameState(BaseModel):
     session_id: str
 
@@ -161,6 +169,10 @@ class GameState(BaseModel):
     # 体力警告フラグ
     commute_will_cause_game_over: bool  # 出勤で体力が0になるか
     shopping_will_cause_game_over: bool  # 買い出しで体力が0になるか
+
+    # 気質システム
+    temperament: TemperamentInfo | None  # 判定された気質（4日目以降）
+    temperament_just_revealed: bool  # 気質が今回発表されたか
 
 
 class StartGameResponse(BaseModel):

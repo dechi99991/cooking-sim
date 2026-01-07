@@ -314,6 +314,7 @@ const itemsByCategory = computed(() => {
   border-radius: 8px;
   padding: 15px;
   border: 1px solid #ddd;
+  color: #2c3e50;
 }
 
 h3 {

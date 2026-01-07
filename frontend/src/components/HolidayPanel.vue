@@ -12,7 +12,7 @@ const emit = defineEmits<{
 const store = useGameStore()
 const { state, loading } = storeToRefs(store)
 
-type ActionChoice = 'none' | 'shop' | 'distant' | 'batch' | 'rest' | 'skip'
+type ActionChoice = 'none' | 'shop' | 'distant' | 'batch' | 'rest' | 'eat_out' | 'cleanup'
 const currentChoice = ref<ActionChoice>('none')
 
 // 食材の有無
@@ -22,8 +22,9 @@ const actionsBase = [
   { id: 'shop', name: '近所のスーパー', description: '近くのスーパーで買い物', icon: '🛒' },
   { id: 'distant', name: '遠出して買い物', description: '遠くの店で特別な食材を探す', icon: '🚃' },
   { id: 'batch', name: '料理の作り置き', description: '作り置き料理を作る', icon: '🍲', needsStock: true },
-  { id: 'rest', name: 'のんびり休養', description: '気力と体力を回復', icon: '😴' },
-  { id: 'skip', name: '何もしない', description: 'そのまま次へ進む', icon: '⏭️' },
+  { id: 'rest', name: 'のんびり休養', description: '気力+2, 体力+1', icon: '😴' },
+  { id: 'eat_out', name: '友人と外食', description: '¥1,000 / 全栄養+3 / 気力+1', icon: '🍽️' },
+  { id: 'cleanup', name: '掃除・整理', description: '気力-1 / 翌日回復+2', icon: '🧹' },
 ]
 
 const actions = computed(() => {
@@ -34,10 +35,8 @@ const actions = computed(() => {
 })
 
 async function selectAction(id: string) {
-  if (id === 'rest') {
-    await store.doHolidayAction('rest')
-    emit('done')
-  } else if (id === 'skip') {
+  if (id === 'rest' || id === 'eat_out' || id === 'cleanup') {
+    await store.doHolidayAction(id)
     emit('done')
   } else {
     currentChoice.value = id as ActionChoice

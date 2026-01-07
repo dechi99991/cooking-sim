@@ -29,6 +29,9 @@ class Player:
     # 根性回復フラグ（体力0時に気力で耐えた場合）
     grit_used: bool = False
 
+    # 次回睡眠時のボーナス（掃除・整理などで付与）
+    next_sleep_bonus: int = 0
+
     def consume_energy(self, amount: int) -> bool:
         """気力を消費する。消費可能ならTrue"""
         if self.energy >= amount:

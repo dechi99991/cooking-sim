@@ -206,6 +206,22 @@ def _build_game_state(session_id: str, game) -> GameState:
         is_office_worker=game.character_id != 'freelance',
         commute_will_cause_game_over=commute_will_cause_game_over,
         shopping_will_cause_game_over=shopping_will_cause_game_over,
+        temperament=_build_temperament_info(game),
+        temperament_just_revealed=game.temperament_just_revealed,
+    )
+
+
+def _build_temperament_info(game):
+    """気質情報を構築"""
+    from api.schemas import TemperamentInfo
+    temp_info = game.get_temperament_info()
+    if temp_info is None:
+        return None
+    return TemperamentInfo(
+        id=temp_info['id'],
+        name=temp_info['name'],
+        description=temp_info['description'],
+        icon=temp_info['icon'],
     )
 
 
@@ -384,6 +400,8 @@ def buy_from_shop(session_id: str, request: ShopBuyRequest) -> GameState:
 
     # 買い物統計を記録
     game.stats.record_shopping(total_cost, total_items)
+    game.record_behavior_shop()  # 気質判定用
+    game.record_behavior_spending(total_cost)
 
     return _build_game_state(session_id, game)
 
@@ -482,6 +500,9 @@ def buy_from_online_shop(session_id: str, request: OnlineShopBuyRequest) -> Game
 
     else:
         raise HTTPException(status_code=400, detail=f"Invalid item_type: {request.item_type}")
+
+    # 気質判定用
+    game.record_behavior_online_shop()
 
     return _build_game_state(session_id, game)
 
@@ -648,6 +669,7 @@ def cook_confirm(session_id: str, request: CookRequest) -> CookResponse:
     game.eat_dish(dish)
     game.stats.record_meal_eaten()
     game.stats.record_cooking()
+    game.record_behavior_cook()  # 気質判定用
 
     # 自動消費情報を変換
     auto_consume = None
@@ -930,8 +952,30 @@ def holiday_action(session_id: str, request: HolidayActionRequest) -> GameState:
 
     if request.action == "rest":
         # 休養: 気力+2, 体力+1
-        game.player.energy = min(game.player.energy + 2, 10)
-        game.player.stamina = min(game.player.stamina + 1, 10)
+        game.player.energy = min(game.player.energy + 2, game.player.max_energy)
+        game.player.stamina = min(game.player.stamina + 1, game.player.max_stamina)
+        game.record_behavior_rest()  # 気質判定用
+    elif request.action == "eat_out":
+        # 友人と外食: ¥1,000, 全栄養+3, 満腹+5, 気力+1
+        EAT_OUT_COST = 1000
+        if game.player.money < EAT_OUT_COST:
+            raise HTTPException(status_code=400, detail="お金が足りません")
+        game.player.consume_money(EAT_OUT_COST)
+        # 栄養追加
+        from game.nutrition import Nutrition
+        eat_out_nutrition = Nutrition(vitality=3, mental=3, awakening=3, sustain=3, defense=3)
+        game.day_state.daily_nutrition.add(eat_out_nutrition)
+        game.player.add_fullness(5)
+        game.player.energy = min(game.player.energy + 1, game.player.max_energy)
+        game.record_behavior_eat_out()  # 気質判定用
+        game.record_behavior_spending(EAT_OUT_COST)
+    elif request.action == "cleanup":
+        # 掃除・整理: 気力-1, 翌日回復+2
+        if game.player.energy < 1:
+            raise HTTPException(status_code=400, detail="気力が足りません")
+        game.player.consume_energy(1)
+        game.player.next_sleep_bonus += 2  # 翌日の睡眠回復ボーナス
+        game.record_behavior_cleanup()  # 気質判定用
 
     # local, outing, prep はフロントエンド側で処理を分岐
 

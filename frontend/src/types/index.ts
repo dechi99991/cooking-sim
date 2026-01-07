@@ -54,6 +54,13 @@ export interface PendingDeliveryItem {
   delivery_day: number
 }
 
+export interface TemperamentInfo {
+  id: string
+  name: string
+  description: string
+  icon: string
+}
+
 export interface GameState {
   session_id: string
   day: number
@@ -82,6 +89,9 @@ export interface GameState {
   // 体力警告フラグ
   commute_will_cause_game_over: boolean
   shopping_will_cause_game_over: boolean
+  // 気質システム
+  temperament: TemperamentInfo | null
+  temperament_just_revealed: boolean
 }
 
 export interface CharacterInfo {

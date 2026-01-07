@@ -14,6 +14,7 @@ import HolidayPanel from '../components/HolidayPanel.vue'
 import EventModal from '../components/EventModal.vue'
 import GritRecoveryModal from '../components/GritRecoveryModal.vue'
 import ExhaustedModal from '../components/ExhaustedModal.vue'
+import TemperamentRevealModal from '../components/TemperamentRevealModal.vue'
 
 const router = useRouter()
 const store = useGameStore()
@@ -35,6 +36,7 @@ const {
 const showEventModal = ref(false)
 const showGritModal = ref(false)
 const showExhaustedModal = ref(false)
+const showTemperamentModal = ref(false)
 
 // ゲームが開始されていない場合はキャラクター選択へ
 onMounted(() => {
@@ -64,6 +66,13 @@ watch(() => state.value?.player.grit_used, (used) => {
   }
 })
 
+// 気質発表モーダル表示
+watch(() => state.value?.temperament_just_revealed, (revealed) => {
+  if (revealed) {
+    showTemperamentModal.value = true
+  }
+})
+
 // フェーズ進行
 async function advance() {
   await store.advancePhase()
@@ -84,6 +93,10 @@ function closeGritModal() {
 function closeExhaustedModal() {
   showExhaustedModal.value = false
   router.push('/result')
+}
+
+function closeTemperamentModal() {
+  showTemperamentModal.value = false
 }
 
 // 各パネルの完了ハンドラ
@@ -271,6 +284,13 @@ const advanceButtonText = computed(() => {
     <ExhaustedModal
       :show="showExhaustedModal"
       @close="closeExhaustedModal"
+    />
+
+    <!-- 気質発表モーダル -->
+    <TemperamentRevealModal
+      :show="showTemperamentModal"
+      :temperament="state?.temperament ?? null"
+      @close="closeTemperamentModal"
     />
   </div>
 </template>

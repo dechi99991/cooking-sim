@@ -37,6 +37,16 @@ function startGame() {
       <div class="release-notes">
         <h3>📝 更新情報</h3>
         <div class="release-entry">
+          <div class="release-date">2025/01/07（その10）</div>
+          <ul>
+            <li>休日の買い物画面の文字色バグを修正</li>
+            <li>休日アクション「友人と外食」追加（¥1,000 / 全栄養+3 / 気力+1）</li>
+            <li>休日アクション「掃除・整理」追加（気力-1 / 翌日回復+2）</li>
+            <li>「何もしない」オプションを削除</li>
+            <li>気質システム導入: 3日間の行動傾向から気質が判定されます</li>
+          </ul>
+        </div>
+        <div class="release-entry">
           <div class="release-date">2025/01/07（その9）</div>
           <ul>
             <li>体力・気力の最大値表示が正しく反映されるようになりました</li>

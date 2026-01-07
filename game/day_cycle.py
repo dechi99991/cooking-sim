@@ -11,6 +11,7 @@ from .provisions import ProvisionStock
 from .events import EventManager
 from .event_data import register_all_events
 from .character import get_character
+from .temperament import BehaviorTracker, get_temperament, calculate_nutrition_balance
 from .constants import (
     COOKING_ENERGY_COST, BENTO_ENERGY_COST, COMMUTE_STAMINA_COST,
     CAFETERIA_PRICE, SLEEP_ENERGY_RECOVERY, SLEEP_STAMINA_RECOVERY,
@@ -194,6 +195,9 @@ class GameManager:
         register_all_events(self.events)  # 全イベントを登録
         self.has_bonus = has_bonus  # ボーナスの有無（キャラ設定用）
         self.nutrition_streak = NutritionStreak()  # 栄養素連続高値トラッキング
+        self.behavior_tracker = BehaviorTracker()  # 行動トラッカー（気質判定用）
+        self.temperament_id: str | None = None  # 判定された気質ID
+        self.temperament_just_revealed: bool = False  # 気質が今発表されたかどうか
         # キャラクター別の給料・ボーナス・家賃
         self._salary_amount = salary_amount if salary_amount is not None else SALARY_AMOUNT
         self._bonus_amount = bonus_amount if bonus_amount is not None else BONUS_AMOUNT
@@ -368,9 +372,11 @@ class GameManager:
             self.player.stamina_recovery_penalty += CAFFEINE_STAMINA_PENALTY
             self.stats.record_insomnia()
 
-        # 回復
-        self.player.recover_energy(SLEEP_ENERGY_RECOVERY)
-        self.player.recover_stamina(SLEEP_STAMINA_RECOVERY)
+        # 回復（掃除・整理ボーナス + 気質ボーナスを含む）
+        sleep_bonus = self.player.next_sleep_bonus + self.get_temperament_sleep_bonus()
+        self.player.recover_energy(SLEEP_ENERGY_RECOVERY + sleep_bonus)
+        self.player.recover_stamina(SLEEP_STAMINA_RECOVERY + sleep_bonus)
+        self.player.next_sleep_bonus = 0  # 一時ボーナスをリセット
 
         return has_insomnia
 
@@ -383,6 +389,11 @@ class GameManager:
         # 栄養ストリークを更新（栄養リセット前に）
         self.nutrition_streak.update(self.day_state.daily_nutrition)
 
+        # 行動トラッカー: 栄養バランスを記録（3日目まで）
+        if self.day_state.day <= 3:
+            balance = calculate_nutrition_balance(self.day_state.daily_nutrition)
+            self.behavior_tracker.record_nutrition_balance(balance)
+
         self.player.clear_penalties()
         self.player.reset_fullness()
         self.day_state.start_new_day()
@@ -390,6 +401,12 @@ class GameManager:
         self.provisions.remove_expired_prepared(self.day_state.day)
         # イベントの日次リセット
         self.events.new_day()
+
+        # 4日目の朝に気質を判定
+        self.temperament_just_revealed = False
+        if self.day_state.day == 4 and self.temperament_id is None:
+            self.temperament_id = self.behavior_tracker.determine_temperament()
+            self.temperament_just_revealed = True
 
     def process_deliveries(self) -> list:
         """配送処理。届いた商品リストを返す"""
@@ -541,3 +558,100 @@ class GameManager:
                 'defense': streak.defense,
             },
         }
+
+    # === 気質（Temperament）関連 ===
+
+    def get_temperament(self):
+        """判定された気質を取得"""
+        if self.temperament_id is None:
+            return None
+        return get_temperament(self.temperament_id)
+
+    def get_temperament_info(self) -> dict | None:
+        """気質情報を辞書形式で取得"""
+        temp = self.get_temperament()
+        if temp is None:
+            return None
+        return {
+            'id': temp.id,
+            'name': temp.name,
+            'description': temp.description,
+            'icon': temp.icon,
+        }
+
+    def record_behavior_cook(self):
+        """調理行動を記録"""
+        if self.day_state.day <= 3:
+            self.behavior_tracker.record_cook()
+
+    def record_behavior_shop(self):
+        """買い物行動を記録"""
+        if self.day_state.day <= 3:
+            self.behavior_tracker.record_shop()
+
+    def record_behavior_online_shop(self):
+        """通販行動を記録"""
+        if self.day_state.day <= 3:
+            self.behavior_tracker.record_online_shop()
+
+    def record_behavior_eat_out(self):
+        """外食行動を記録"""
+        if self.day_state.day <= 3:
+            self.behavior_tracker.record_eat_out()
+
+    def record_behavior_cleanup(self):
+        """掃除行動を記録"""
+        if self.day_state.day <= 3:
+            self.behavior_tracker.record_cleanup()
+
+    def record_behavior_rest(self):
+        """休養行動を記録"""
+        if self.day_state.day <= 3:
+            self.behavior_tracker.record_rest()
+
+    def record_behavior_spending(self, amount: int):
+        """支出を記録"""
+        if self.day_state.day <= 3:
+            self.behavior_tracker.record_spending(amount)
+
+    def get_temperament_cook_bonus(self) -> int:
+        """気質による調理時の気力ボーナスを取得"""
+        temp = self.get_temperament()
+        if temp is None:
+            return 0
+        return temp.on_cook_energy
+
+    def get_temperament_shop_bonus(self) -> int:
+        """気質による買い物時の気力ボーナスを取得"""
+        temp = self.get_temperament()
+        if temp is None:
+            return 0
+        return temp.on_shop_energy
+
+    def get_temperament_online_shop_bonus(self) -> int:
+        """気質による通販時の気力ボーナスを取得"""
+        temp = self.get_temperament()
+        if temp is None:
+            return 0
+        return temp.on_online_shop_energy
+
+    def get_temperament_sleep_bonus(self) -> int:
+        """気質による睡眠回復ボーナスを取得"""
+        temp = self.get_temperament()
+        if temp is None:
+            return 0
+        return temp.sleep_bonus
+
+    def get_temperament_penalty_reduction(self) -> float:
+        """気質による栄養ペナルティ軽減率を取得"""
+        temp = self.get_temperament()
+        if temp is None:
+            return 0.0
+        return temp.penalty_reduction
+
+    def get_temperament_shop_discount(self) -> float:
+        """気質による買い物割引率を取得"""
+        temp = self.get_temperament()
+        if temp is None:
+            return 0.0
+        return temp.shop_discount
