@@ -172,7 +172,12 @@ const itemsByCategory = computed(() => {
       <template v-else>
         <div class="shop-info">
           <span>所持金: ¥{{ shopData.player_money.toLocaleString() }}</span>
-          <span>バッグ: {{ purchasedCount + cartCount }}/{{ shopData.bag_capacity }}</span>
+          <span :class="{ 'bag-full': remainingCapacity <= 0 }">
+            バッグ: {{ purchasedCount + cartCount }}/{{ shopData.bag_capacity }}
+          </span>
+        </div>
+        <div v-if="remainingCapacity <= 0" class="bag-full-warning">
+          バッグが一杯です！
         </div>
 
         <div class="categories">
@@ -347,6 +352,22 @@ h4 {
   justify-content: space-between;
   background: #f8f9fa;
   padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.shop-info .bag-full {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.bag-full-warning {
+  color: #e74c3c;
+  font-weight: bold;
+  text-align: center;
+  padding: 8px;
+  background: #fef5f5;
+  border: 1px solid #e74c3c;
   border-radius: 4px;
   margin-bottom: 15px;
 }

@@ -19,7 +19,10 @@ const { state, loading } = storeToRefs(store)
 
 // 自動選択結果の表示用
 const autoEatMessage = ref<string | null>(null)
+const autoEatDetail = ref<string | null>(null)
+const autoEatIcon = ref<string>('🍱')
 const isAutoEating = ref(false)
+const showAutoEatModal = ref(false)
 
 // 自動選択ロジック
 async function autoSelectLunch() {
@@ -36,8 +39,10 @@ async function autoSelectLunch() {
     const first = sorted[0]!
     const targetIndex = prepared.findIndex(p => p.name === first.name && p.expiry_day === first.expiry_day)
     autoEatMessage.value = `${first.name}を食べました`
+    autoEatDetail.value = '弁当を消費'
+    autoEatIcon.value = '🍱'
     await store.eatPrepared(targetIndex)
-    setTimeout(() => emit('done'), 1000)
+    showAutoEatModal.value = true
     return
   }
 
@@ -46,22 +51,33 @@ async function autoSelectLunch() {
   if (nonCaffeine.length > 0) {
     const first = nonCaffeine[0]!
     autoEatMessage.value = `${first.name}を食べました`
+    autoEatDetail.value = '食糧を消費'
+    autoEatIcon.value = '🥫'
     await store.eatProvision([first.name])
-    setTimeout(() => emit('done'), 1000)
+    showAutoEatModal.value = true
     return
   }
 
   // 3. 社食
   if ((state.value.player.money ?? 0) >= 500) {
     autoEatMessage.value = '社食で食べました'
+    autoEatDetail.value = '500円を支払いました'
+    autoEatIcon.value = '🍽️'
     await store.eatCafeteria()
-    setTimeout(() => emit('done'), 1000)
+    showAutoEatModal.value = true
     return
   }
 
   // 4. スキップ
   autoEatMessage.value = '食べるものがありませんでした'
-  setTimeout(() => emit('done'), 1000)
+  autoEatDetail.value = '昼食を抜きました'
+  autoEatIcon.value = '😢'
+  showAutoEatModal.value = true
+}
+
+function closeAutoEatModal() {
+  showAutoEatModal.value = false
+  emit('done')
 }
 
 // マウント時に自動選択を実行
@@ -117,11 +133,21 @@ function backToMenu() {
 
 <template>
   <div class="lunch-panel">
-    <!-- 自動選択中 -->
-    <template v-if="isAutoEating">
-      <div class="auto-eat-message">
-        <div class="auto-eat-icon">🍱</div>
-        <p>{{ autoEatMessage || '昼食を選択中...' }}</p>
+    <!-- 自動選択モーダル -->
+    <div v-if="showAutoEatModal" class="auto-eat-modal-overlay" @click="closeAutoEatModal">
+      <div class="auto-eat-modal" @click.stop>
+        <div class="auto-eat-icon">{{ autoEatIcon }}</div>
+        <h3>昼食</h3>
+        <p class="auto-eat-message-text">{{ autoEatMessage }}</p>
+        <p class="auto-eat-detail">{{ autoEatDetail }}</p>
+        <button class="auto-eat-close-btn" @click="closeAutoEatModal">OK</button>
+      </div>
+    </div>
+
+    <!-- 自動選択中（ローディング） -->
+    <template v-if="isAutoEating && !showAutoEatModal">
+      <div class="auto-eat-loading">
+        <p>昼食を選択中...</p>
       </div>
     </template>
 
@@ -286,23 +312,76 @@ function backToMenu() {
   background: #219a52;
 }
 
-.auto-eat-message {
+.auto-eat-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.auto-eat-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  max-width: 300px;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.auto-eat-icon {
+  font-size: 3em;
+  margin-bottom: 10px;
+}
+
+.auto-eat-modal h3 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+}
+
+.auto-eat-message-text {
+  font-size: 1.1em;
+  color: #2c3e50;
+  margin: 0 0 5px 0;
+  font-weight: bold;
+}
+
+.auto-eat-detail {
+  font-size: 0.9em;
+  color: #e67e22;
+  margin: 0 0 20px 0;
+}
+
+.auto-eat-close-btn {
+  padding: 10px 40px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.auto-eat-close-btn:hover {
+  background: #2980b9;
+}
+
+.auto-eat-loading {
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
   text-align: center;
 }
 
-.auto-eat-icon {
-  font-size: 4em;
-  margin-bottom: 15px;
-}
-
-.auto-eat-message p {
+.auto-eat-loading p {
   font-size: 1.2em;
-  color: #2c3e50;
-  margin: 0;
+  color: #7f8c8d;
 }
 </style>
