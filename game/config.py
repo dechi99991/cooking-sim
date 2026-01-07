@@ -27,6 +27,10 @@ class GameConfig:
     penalty_mental: int = 2     # 心力素不足: 気力回復ペナルティ
     penalty_sustain: int = 2    # 持続素不足: 満腹感減少ペナルティ
 
+    # === 栄養素による上限増加イベント ===
+    nutrition_high_threshold: int = 8  # 「高い」と判定する閾値
+    nutrition_streak_for_cap: int = 3  # 上限増加イベント発生に必要な連続日数
+
     # === アクション消費 ===
     cooking_energy_cost: int = 2      # 調理の気力消費
     bento_energy_cost: int = 3        # 弁当作成の気力消費

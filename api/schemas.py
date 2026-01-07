@@ -55,6 +55,8 @@ class PlayerState(BaseModel):
     stamina: int
     fullness: int
     card_debt: int
+    max_energy: int
+    max_stamina: int
 
 
 class StockItem(BaseModel):

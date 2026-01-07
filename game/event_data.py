@@ -1,6 +1,7 @@
 """ランダムイベントデータ（280種類）"""
 import random
 from .events import RandomEvent, EventTiming, Weather
+from .constants import NUTRITION_STREAK_FOR_CAP
 
 
 # === イベント効果関数 ===
@@ -15,6 +16,9 @@ def effect_energy(amount: int):
         else:
             gm.player.consume_energy(-amount)
             return f"気力が{-amount}減少... ({old} → {gm.player.energy})"
+    # マイナス効果の場合はタグを設定
+    if amount < 0:
+        effect._effect_type = 'energy_negative'
     return effect
 
 
@@ -28,6 +32,9 @@ def effect_stamina(amount: int):
         else:
             gm.player.consume_stamina(-amount)
             return f"体力が{-amount}減少... ({old} → {gm.player.stamina})"
+    # マイナス効果の場合はタグを設定
+    if amount < 0:
+        effect._effect_type = 'stamina_negative'
     return effect
 
 
@@ -106,6 +113,14 @@ def effect_combined(*effects):
         for eff in effects:
             results.append(eff(gm))
         return "\n".join(results)
+    # 子効果からタグを継承（体力マイナスを優先）
+    for eff in effects:
+        if hasattr(eff, '_effect_type'):
+            if eff._effect_type == 'stamina_negative':
+                effect._effect_type = 'stamina_negative'
+                break
+            elif eff._effect_type == 'energy_negative' and not hasattr(effect, '_effect_type'):
+                effect._effect_type = 'energy_negative'
     return effect
 
 
@@ -158,6 +173,42 @@ def cond_early_month(ctx):
 
 def cond_late_month(ctx):
     return ctx.get('day', 1) >= 20
+
+
+def cond_vitality_streak(ctx):
+    """活力素の連続高値が条件を満たしているか"""
+    streak = ctx.get('nutrition_streak', {})
+    return streak.get('vitality', 0) >= NUTRITION_STREAK_FOR_CAP
+
+
+def cond_awakening_streak(ctx):
+    """覚醒素の連続高値が条件を満たしているか"""
+    streak = ctx.get('nutrition_streak', {})
+    return streak.get('awakening', 0) >= NUTRITION_STREAK_FOR_CAP
+
+
+# === 上限増加イベント効果 ===
+
+def effect_increase_max_stamina():
+    """体力上限を増加（活力素連続高値による）"""
+    def effect(gm):
+        old_max = gm.player.max_stamina
+        gm.player.increase_max_stamina(1)
+        # ストリークをリセット
+        gm.nutrition_streak.reset('vitality')
+        return f"体力上限が増加！ ({old_max} → {gm.player.max_stamina})"
+    return effect
+
+
+def effect_increase_max_energy():
+    """気力上限を増加（覚醒素連続高値による）"""
+    def effect(gm):
+        old_max = gm.player.max_energy
+        gm.player.increase_max_energy(1)
+        # ストリークをリセット
+        gm.nutrition_streak.reset('awakening')
+        return f"気力上限が増加！ ({old_max} → {gm.player.max_energy})"
+    return effect
 
 
 # === 起床時イベント (40種類) ===
@@ -458,6 +509,25 @@ WAKE_UP_EVENTS = [
         timing=EventTiming.WAKE_UP, probability=0.04,
         effect=effect_energy(-1),
         reason='ニュースアプリで悲しい記事を見た'
+    ),
+    # === 栄養素連続高値による上限増加イベント ===
+    RandomEvent(
+        id='wake_vitality_boost', name='体力増強',
+        description='栄養バランスの良い食事が続き、体が丈夫になった',
+        timing=EventTiming.WAKE_UP, probability=1.0,  # 条件を満たせば必ず発生
+        condition=cond_vitality_streak,
+        effect=effect_increase_max_stamina(),
+        reason=f'活力素の高い食事が{NUTRITION_STREAK_FOR_CAP}日続いた',
+        once_per_day=True
+    ),
+    RandomEvent(
+        id='wake_awakening_boost', name='気力増強',
+        description='栄養バランスの良い食事が続き、精神的にタフになった',
+        timing=EventTiming.WAKE_UP, probability=1.0,  # 条件を満たせば必ず発生
+        condition=cond_awakening_streak,
+        effect=effect_increase_max_energy(),
+        reason=f'覚醒素の高い食事が{NUTRITION_STREAK_FOR_CAP}日続いた',
+        once_per_day=True
     ),
 ]
 

@@ -14,6 +14,10 @@ class Player:
     stamina: int = INITIAL_STAMINA    # 体力
     fullness: int = INITIAL_FULLNESS  # 満腹感
 
+    # 上限値（栄養素イベントで増加可能）
+    max_energy: int = MAX_ENERGY
+    max_stamina: int = MAX_STAMINA
+
     # 翌日へのペナルティ（栄養不足による）
     energy_recovery_penalty: int = 0
     stamina_recovery_penalty: int = 0
@@ -56,12 +60,24 @@ class Player:
     def recover_energy(self, amount: int):
         """気力を回復する（ペナルティ適用後）"""
         actual = max(0, amount - self.energy_recovery_penalty)
-        self.energy = min(self.energy + actual, MAX_ENERGY)
+        self.energy = min(self.energy + actual, self.max_energy)
 
     def recover_stamina(self, amount: int):
         """体力を回復する（ペナルティ適用後）"""
         actual = max(0, amount - self.stamina_recovery_penalty)
-        self.stamina = min(self.stamina + actual, MAX_STAMINA)
+        self.stamina = min(self.stamina + actual, self.max_stamina)
+
+    def increase_max_energy(self, amount: int = 1):
+        """気力上限を増加させる"""
+        self.max_energy += amount
+        # 現在値も回復
+        self.energy = min(self.energy + amount, self.max_energy)
+
+    def increase_max_stamina(self, amount: int = 1):
+        """体力上限を増加させる"""
+        self.max_stamina += amount
+        # 現在値も回復
+        self.stamina = min(self.stamina + amount, self.max_stamina)
 
     def apply_penalties(self, energy_penalty: int, stamina_penalty: int, fullness_penalty: int):
         """翌日へのペナルティを設定する"""

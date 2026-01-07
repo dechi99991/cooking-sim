@@ -14,6 +14,8 @@ export interface PlayerState {
   stamina: number
   fullness: number
   card_debt: number
+  max_energy: number
+  max_stamina: number
 }
 
 export interface StockItem {

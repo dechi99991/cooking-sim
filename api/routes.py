@@ -185,6 +185,8 @@ def _build_game_state(session_id: str, game) -> GameState:
             stamina=player.stamina,
             fullness=player.fullness,
             card_debt=player.card_debt,
+            max_energy=player.max_energy,
+            max_stamina=player.max_stamina,
         ),
         stock=stock_items,
         provisions=provision_items,

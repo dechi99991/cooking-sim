@@ -62,6 +62,7 @@ class RandomEvent:
     effect: Callable[[Any], str] | None = None       # 効果（GameManagerを受け取る）
     once_per_day: bool = True   # 1日1回のみか
     reason: str = ""            # イベント発生の根拠（「小指をぶつけた！」など）
+    effect_type: str | None = None  # 効果タイプ: "energy_negative", "stamina_negative" など
 
     def check_condition(self, context: dict) -> bool:
         """イベント発生条件をチェック"""
@@ -157,6 +158,11 @@ class EventManager:
         # コンテキストに天気を追加
         context['weather'] = self.weather
 
+        # 栄養素による確率補正を計算
+        daily_nutrition = context.get('daily_nutrition', {})
+        mental = daily_nutrition.get('mental', 0)
+        defense = daily_nutrition.get('defense', 0)
+
         for event_id, event in self._events.items():
             # タイミングが一致しない場合はスキップ
             if event.timing != timing:
@@ -170,8 +176,25 @@ class EventManager:
             if not event.check_condition(context):
                 continue
 
+            # 確率を計算（栄養素による補正を適用）
+            probability = event.probability
+
+            # effect_typeを取得（明示的指定 > effect関数のタグ）
+            effect_type = event.effect_type
+            if effect_type is None and event.effect is not None:
+                effect_type = getattr(event.effect, '_effect_type', None)
+
+            if effect_type == 'energy_negative' and mental > 0:
+                # 心力素が高いほど気力マイナスイベントの確率が下がる（最大50%減）
+                reduction = min(0.5, mental * 0.05)
+                probability *= (1 - reduction)
+            elif effect_type == 'stamina_negative' and defense > 0:
+                # 防衛素が高いほど体力マイナスイベントの確率が下がる（最大50%減）
+                reduction = min(0.5, defense * 0.05)
+                probability *= (1 - reduction)
+
             # 確率判定
-            if random.random() >= event.probability:
+            if random.random() >= probability:
                 continue
 
             # イベント発生

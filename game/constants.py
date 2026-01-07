@@ -26,6 +26,10 @@ PENALTY_VITALITY = DEFAULT_CONFIG.penalty_vitality
 PENALTY_MENTAL = DEFAULT_CONFIG.penalty_mental
 PENALTY_SUSTAIN = DEFAULT_CONFIG.penalty_sustain
 
+# 栄養素による上限増加イベント
+NUTRITION_HIGH_THRESHOLD = DEFAULT_CONFIG.nutrition_high_threshold
+NUTRITION_STREAK_FOR_CAP = DEFAULT_CONFIG.nutrition_streak_for_cap
+
 # アクション消費
 COOKING_ENERGY_COST = DEFAULT_CONFIG.cooking_energy_cost
 BENTO_ENERGY_COST = DEFAULT_CONFIG.bento_energy_cost

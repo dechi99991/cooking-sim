@@ -17,7 +17,8 @@ from .constants import (
     SHOPPING_ENERGY_COST, SHOPPING_STAMINA_COST, SHOPPING_MIN_ENERGY,
     SHOPPING_BAG_CAPACITY,
     SALARY_AMOUNT, SALARY_DAY, BONUS_AMOUNT, BONUS_MONTHS,
-    CAFFEINE_INSOMNIA_THRESHOLD, CAFFEINE_ENERGY_PENALTY, CAFFEINE_STAMINA_PENALTY
+    CAFFEINE_INSOMNIA_THRESHOLD, CAFFEINE_ENERGY_PENALTY, CAFFEINE_STAMINA_PENALTY,
+    NUTRITION_HIGH_THRESHOLD, NUTRITION_STREAK_FOR_CAP
 )
 
 
@@ -136,6 +137,41 @@ class AutoConsumeResult:
     will_cause_insomnia: bool
 
 
+@dataclass
+class NutritionStreak:
+    """栄養素の連続日数トラッキング
+
+    各栄養素が「高い」状態（閾値以上）を何日連続で達成したかを追跡する。
+    活力素・覚醒素の連続高値は上限増加イベントの条件となる。
+    """
+    vitality: int = 0   # 活力素の連続高値日数
+    mental: int = 0     # 心力素の連続高値日数
+    awakening: int = 0  # 覚醒素の連続高値日数
+    sustain: int = 0    # 持続素の連続高値日数
+    defense: int = 0    # 防衛素の連続高値日数
+
+    def update(self, daily_nutrition: Nutrition, threshold: int = NUTRITION_HIGH_THRESHOLD):
+        """1日の栄養に基づいてストリークを更新"""
+        self.vitality = self.vitality + 1 if daily_nutrition.vitality >= threshold else 0
+        self.mental = self.mental + 1 if daily_nutrition.mental >= threshold else 0
+        self.awakening = self.awakening + 1 if daily_nutrition.awakening >= threshold else 0
+        self.sustain = self.sustain + 1 if daily_nutrition.sustain >= threshold else 0
+        self.defense = self.defense + 1 if daily_nutrition.defense >= threshold else 0
+
+    def reset(self, nutrient: str):
+        """特定の栄養素のストリークをリセット（イベント発生後など）"""
+        if nutrient == 'vitality':
+            self.vitality = 0
+        elif nutrient == 'mental':
+            self.mental = 0
+        elif nutrient == 'awakening':
+            self.awakening = 0
+        elif nutrient == 'sustain':
+            self.sustain = 0
+        elif nutrient == 'defense':
+            self.defense = 0
+
+
 class GameManager:
     """ゲーム全体を管理するクラス"""
 
@@ -156,6 +192,7 @@ class GameManager:
         self.events = EventManager()  # イベント管理
         register_all_events(self.events)  # 全イベントを登録
         self.has_bonus = has_bonus  # ボーナスの有無（キャラ設定用）
+        self.nutrition_streak = NutritionStreak()  # 栄養素連続高値トラッキング
         # キャラクター別の給料・ボーナス・家賃
         self._salary_amount = salary_amount if salary_amount is not None else SALARY_AMOUNT
         self._bonus_amount = bonus_amount if bonus_amount is not None else BONUS_AMOUNT
@@ -341,6 +378,9 @@ class GameManager:
 
     def start_new_day(self):
         """新しい日を開始"""
+        # 栄養ストリークを更新（栄養リセット前に）
+        self.nutrition_streak.update(self.day_state.daily_nutrition)
+
         self.player.clear_penalties()
         self.player.reset_fullness()
         self.day_state.start_new_day()
@@ -463,6 +503,8 @@ class GameManager:
 
     def get_event_context(self) -> dict:
         """イベント判定用のコンテキストを取得"""
+        daily = self.day_state.daily_nutrition
+        streak = self.nutrition_streak
         return {
             'day': self.day_state.day,
             'month': self.day_state.month,
@@ -473,4 +515,20 @@ class GameManager:
             'energy': self.player.energy,
             'stamina': self.player.stamina,
             'fullness': self.player.fullness,
+            # 栄養素情報
+            'daily_nutrition': {
+                'vitality': daily.vitality,
+                'mental': daily.mental,
+                'awakening': daily.awakening,
+                'sustain': daily.sustain,
+                'defense': daily.defense,
+            },
+            # 連続高値日数（上限増加イベント用）
+            'nutrition_streak': {
+                'vitality': streak.vitality,
+                'mental': streak.mental,
+                'awakening': streak.awakening,
+                'sustain': streak.sustain,
+                'defense': streak.defense,
+            },
         }
