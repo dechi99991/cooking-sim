@@ -477,7 +477,7 @@ def get_recipes(session_id: str) -> RecipesResponse:
         available=[
             NamedRecipeInfo(
                 name=r.name,
-                required_ingredients=list(r.required_ingredients),
+                required_ingredients=list(r.ingredients),
                 nutrition_multiplier=r.nutrition_multiplier,
                 fullness_bonus=r.fullness_bonus,
                 can_make=True,
