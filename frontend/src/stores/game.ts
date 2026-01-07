@@ -255,6 +255,19 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
+  async function eatDelivery() {
+    if (!sessionId.value) return
+    loading.value = true
+    error.value = null
+    try {
+      state.value = await api.eatDelivery(sessionId.value)
+    } catch (e: any) {
+      error.value = e.message
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function makeBento(ingredientNames: string[]) {
     if (!sessionId.value) return
     loading.value = true
@@ -388,6 +401,7 @@ export const useGameStore = defineStore('game', () => {
     cookPreview,
     cookConfirm,
     eatCafeteria,
+    eatDelivery,
     makeBento,
     eatProvision,
     eatPrepared,

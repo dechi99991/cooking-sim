@@ -36,6 +36,11 @@ CAFETERIA_PRICE = DEFAULT_CONFIG.cafeteria_price
 CAFETERIA_NUTRITION = DEFAULT_CONFIG.cafeteria_nutrition
 CAFETERIA_FULLNESS = DEFAULT_CONFIG.cafeteria_fullness
 
+# デリバリー（うぼあデリバリ）
+DELIVERY_PRICE = DEFAULT_CONFIG.delivery_price
+DELIVERY_NUTRITION = DEFAULT_CONFIG.delivery_nutrition
+DELIVERY_FULLNESS = DEFAULT_CONFIG.delivery_fullness
+
 # 買い出し
 SHOPPING_ENERGY_COST = DEFAULT_CONFIG.shopping_energy_cost
 SHOPPING_STAMINA_COST = DEFAULT_CONFIG.shopping_stamina_cost

@@ -37,6 +37,11 @@ class GameConfig:
     cafeteria_nutrition: int = 3  # 各栄養素
     cafeteria_fullness: int = 5
 
+    # === デリバリー（うぼあデリバリ） ===
+    delivery_price: int = 700  # 社食より割高
+    delivery_nutrition: int = 2  # 栄養は社食より劣る
+    delivery_fullness: int = 6  # 量は多め
+
     # === 買い出し ===
     shopping_energy_cost: int = 2     # 買い出しの気力消費
     shopping_stamina_cost: int = 1    # 買い出しの体力消費

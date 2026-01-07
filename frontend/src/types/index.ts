@@ -76,6 +76,9 @@ export interface GameState {
   can_cook: boolean
   can_go_shopping: boolean
   is_office_worker: boolean  // 出勤キャラかどうか（昼食自動化用）
+  // 体力警告フラグ
+  commute_will_cause_game_over: boolean
+  shopping_will_cause_game_over: boolean
 }
 
 export interface CharacterInfo {

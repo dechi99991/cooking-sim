@@ -4,6 +4,7 @@ import { useGameStore } from '../stores/game'
 import { storeToRefs } from 'pinia'
 import CookingFlow from './CookingFlow.vue'
 import ProvisionPanel from './ProvisionPanel.vue'
+import StaminaWarningModal from './StaminaWarningModal.vue'
 
 const props = defineProps<{
   isHoliday: boolean
@@ -14,7 +15,10 @@ const emit = defineEmits<{
 }>()
 
 const store = useGameStore()
-const { loading } = storeToRefs(store)
+const { state, loading } = storeToRefs(store)
+
+// 体力警告モーダル
+const showStaminaWarning = ref(false)
 
 type MenuChoice = 'none' | 'cook' | 'cook-bento' | 'provision' | 'skip'
 const currentChoice = ref<MenuChoice>('none')
@@ -38,10 +42,30 @@ const holidayMenu = [
 
 const menu = computed(() => props.isHoliday ? holidayMenu : weekdayMenu)
 
+// 出勤で体力が0になる場合は確認を求める
+function tryAdvance() {
+  // 平日かつオフィスワーカーかつ出勤でゲームオーバーになる場合は警告モーダル
+  // フリーランスは出勤しないので体力警告は不要
+  if (!props.isHoliday && state.value?.is_office_worker && state.value?.commute_will_cause_game_over) {
+    showStaminaWarning.value = true
+    return
+  }
+  emit('done')
+}
+
+function onStaminaWarningConfirm() {
+  showStaminaWarning.value = false
+  emit('done')
+}
+
+function onStaminaWarningCancel() {
+  showStaminaWarning.value = false
+}
+
 function selectChoice(id: string) {
   currentChoice.value = id as MenuChoice
   if (id === 'skip') {
-    emit('done')
+    tryAdvance()
   }
 }
 
@@ -50,13 +74,13 @@ function onCookingDone() {
     // 弁当作成フェーズへ
     cookingDone.value = true
   } else {
-    emit('done')
+    tryAdvance()
   }
 }
 
 function onBentoDone() {
   bentoDone.value = true
-  emit('done')
+  tryAdvance()
 }
 
 function backToMenu() {
@@ -68,6 +92,15 @@ function backToMenu() {
 
 <template>
   <div class="breakfast-panel">
+    <!-- 体力警告モーダル -->
+    <StaminaWarningModal
+      :show="showStaminaWarning"
+      action-type="commute"
+      :current-stamina="state?.player.stamina ?? 0"
+      @confirm="onStaminaWarningConfirm"
+      @cancel="onStaminaWarningCancel"
+    />
+
     <!-- メニュー選択 -->
     <template v-if="currentChoice === 'none'">
       <div class="menu-header">
@@ -116,7 +149,7 @@ function backToMenu() {
         <button class="back-btn" @click="backToMenu">← メニューに戻る</button>
       </div>
       <ProvisionPanel />
-      <button class="done-btn" @click="emit('done')">完了</button>
+      <button class="done-btn" @click="tryAdvance">完了</button>
     </template>
   </div>
 </template>

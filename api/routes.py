@@ -13,6 +13,7 @@ from game.relic import generate_daily_relic_items, get_relic
 from game.provisions import get_all_provisions
 from game.day_cycle import GamePhase
 from game.events import EventTiming
+from game.constants import COMMUTE_STAMINA_COST, SHOPPING_STAMINA_COST
 
 from .session import create_session, get_session
 from .schemas import (
@@ -165,6 +166,10 @@ def _build_game_state(session_id: str, game) -> GameState:
         GamePhase.DAY_END: "1日終了",
     }
 
+    # 体力警告チェック（アクション後に体力が0以下になるか）
+    commute_will_cause_game_over = player.stamina <= COMMUTE_STAMINA_COST
+    shopping_will_cause_game_over = player.stamina <= SHOPPING_STAMINA_COST
+
     return GameState(
         session_id=session_id,
         day=day_state.day,
@@ -196,6 +201,8 @@ def _build_game_state(session_id: str, game) -> GameState:
         can_cook=game.can_cook(),
         can_go_shopping=game.can_go_shopping(),
         is_office_worker=game.character_id != 'freelance',
+        commute_will_cause_game_over=commute_will_cause_game_over,
+        shopping_will_cause_game_over=shopping_will_cause_game_over,
     )
 
 
@@ -749,6 +756,31 @@ def eat_cafeteria(session_id: str) -> GameState:
 
     game.player.add_fullness(cafeteria_fullness)
     game.day_state.daily_nutrition.add(cafeteria_nutrition)
+    game.stats.record_meal_eaten()
+
+    return _build_game_state(session_id, game)
+
+
+@router.post("/game/{session_id}/eat-delivery")
+def eat_delivery(session_id: str) -> GameState:
+    """うぼあデリバリで食べる（フリーランス等の昼食用）"""
+    game = _get_game_or_404(session_id)
+
+    from game.constants import DELIVERY_PRICE
+
+    if game.player.money < DELIVERY_PRICE:
+        raise HTTPException(status_code=400, detail="Not enough money for delivery")
+
+    # デリバリーを食べる
+    game.player.money -= DELIVERY_PRICE
+
+    # デリバリーの栄養（社食より劣るが量は多め）
+    from game.nutrition import Nutrition
+    delivery_nutrition = Nutrition(vitality=2, mental=2, awakening=1, sustain=2, defense=1)
+    delivery_fullness = 6
+
+    game.player.add_fullness(delivery_fullness)
+    game.day_state.daily_nutrition.add(delivery_nutrition)
     game.stats.record_meal_eaten()
 
     return _build_game_state(session_id, game)

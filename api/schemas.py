@@ -154,6 +154,10 @@ class GameState(BaseModel):
     can_go_shopping: bool
     is_office_worker: bool  # 出勤キャラかどうか（昼食自動化用）
 
+    # 体力警告フラグ
+    commute_will_cause_game_over: bool  # 出勤で体力が0になるか
+    shopping_will_cause_game_over: bool  # 買い出しで体力が0になるか
+
 
 class StartGameResponse(BaseModel):
     session_id: str

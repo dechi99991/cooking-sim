@@ -123,6 +123,12 @@ export async function eatCafeteria(sessionId: string): Promise<GameState> {
   return res.data
 }
 
+// デリバリー（うぼあデリバリ）
+export async function eatDelivery(sessionId: string): Promise<GameState> {
+  const res = await api.post(`/api/game/${sessionId}/eat-delivery`)
+  return res.data
+}
+
 // 弁当作成
 export async function makeBento(sessionId: string, ingredientNames: string[]): Promise<MakeBentoResponse> {
   const res = await api.post(`/api/game/${sessionId}/make-bento`, { ingredient_names: ingredientNames })

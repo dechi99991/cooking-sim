@@ -37,6 +37,15 @@ function startGame() {
       <div class="release-notes">
         <h3>📝 更新情報</h3>
         <div class="release-entry">
+          <div class="release-date">2025/01/07（その3）</div>
+          <ul>
+            <li>体力が0になる行動の前に確認モーダルが表示されます</li>
+            <li>フリーランス向けに「うぼあデリバリ」を追加（700円）</li>
+            <li>フリーランスの平日昼食で自炊が選べるようになりました</li>
+            <li>フリーランスの朝食スキップ時のバグを修正</li>
+          </ul>
+        </div>
+        <div class="release-entry">
           <div class="release-date">2025/01/07（その2）</div>
           <ul>
             <li>昼食自動選択時に何を消費したか表示されるようになりました</li>

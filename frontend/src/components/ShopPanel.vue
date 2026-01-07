@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useGameStore } from '../stores/game'
 import { storeToRefs } from 'pinia'
 import AutoConsumeModal from './AutoConsumeModal.vue'
+import StaminaWarningModal from './StaminaWarningModal.vue'
 
 defineProps<{
   isDistant?: boolean
@@ -17,6 +18,9 @@ const { state, shopData, lastAutoConsume, loading } = storeToRefs(store)
 
 // カフェイン自動消費モーダル
 const showAutoConsumeModal = ref(false)
+
+// 体力警告モーダル
+const showStaminaWarning = ref(false)
 
 // 状態: 'menu' | 'shopping'
 type ShopState = 'menu' | 'shopping'
@@ -76,7 +80,16 @@ function removeFromCart(name: string) {
   }
 }
 
-async function goShopping() {
+// 買い出しで体力が0になる場合は確認を求める
+function tryGoShopping() {
+  if (state.value?.shopping_will_cause_game_over) {
+    showStaminaWarning.value = true
+    return
+  }
+  doGoShopping()
+}
+
+async function doGoShopping() {
   // 買い出しに行く（気力・体力消費）
   await store.goShopping()
   // カフェイン自動消費があった場合はモーダルを表示
@@ -87,6 +100,15 @@ async function goShopping() {
   cart.value = {}
   purchasedCount.value = 0  // 新しい買い物トリップ開始
   shopState.value = 'shopping'
+}
+
+function onStaminaWarningConfirm() {
+  showStaminaWarning.value = false
+  doGoShopping()
+}
+
+function onStaminaWarningCancel() {
+  showStaminaWarning.value = false
 }
 
 function closeAutoConsumeModal() {
@@ -148,6 +170,15 @@ const itemsByCategory = computed(() => {
       @close="closeAutoConsumeModal"
     />
 
+    <!-- 体力警告モーダル -->
+    <StaminaWarningModal
+      :show="showStaminaWarning"
+      action-type="shopping"
+      :current-stamina="state?.player.stamina ?? 0"
+      @confirm="onStaminaWarningConfirm"
+      @cancel="onStaminaWarningCancel"
+    />
+
     <!-- メニュー選択 -->
     <template v-if="shopState === 'menu'">
       <div class="menu-header">
@@ -163,7 +194,7 @@ const itemsByCategory = computed(() => {
         <button
           class="menu-btn"
           :disabled="!canGoShopping || loading"
-          @click="goShopping"
+          @click="tryGoShopping"
         >
           <span class="icon">🛒</span>
           <span class="label">買い出しに行く</span>

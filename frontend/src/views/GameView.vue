@@ -92,7 +92,8 @@ const phaseTitle = computed(() => {
 const advanceButtonText = computed(() => {
   switch (currentPhase.value) {
     case 'BREAKFAST':
-      return isHoliday.value ? '次へ' : '出勤する'
+      if (isHoliday.value) return '次へ'
+      return state.value?.is_office_worker ? '出勤する' : '次へ'
     case 'LUNCH':
       return '次へ'
     case 'HOLIDAY_SHOPPING_1':

@@ -87,12 +87,23 @@ onMounted(() => {
   }
 })
 
-type MenuChoice = 'none' | 'cafeteria' | 'cook' | 'provision' | 'skip'
+type MenuChoice = 'none' | 'cafeteria' | 'delivery' | 'cook' | 'provision' | 'skip'
 const currentChoice = ref<MenuChoice>('none')
 
-// 平日メニュー（社食あり）
-const weekdayMenu = [
+// オフィスワーカーかどうか
+const isOfficeWorker = computed(() => state.value?.is_office_worker ?? true)
+
+// 平日メニュー（オフィスワーカー：社食あり）
+const weekdayOfficeMenu = [
   { id: 'cafeteria', label: '社食（500円）', icon: '🍽️', description: '社員食堂で食べる' },
+  { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費' },
+  { id: 'skip', label: '食べない', icon: '❌', description: '何も食べずに次へ' },
+]
+
+// 平日メニュー（フリーランス：デリバリーあり）
+const weekdayFreelanceMenu = [
+  { id: 'delivery', label: 'うぼあデリバリ（700円）', icon: '🛵', description: 'デリバリーで食べる' },
+  { id: 'cook', label: '自炊する', icon: '🍳', description: '食材を使って料理を作る' },
   { id: 'provision', label: '食糧を食べる', icon: '🥫', description: 'ストックの食糧を消費' },
   { id: 'skip', label: '食べない', icon: '❌', description: '何も食べずに次へ' },
 ]
@@ -104,16 +115,27 @@ const holidayMenu = [
   { id: 'skip', label: '食べない', icon: '❌', description: '何も食べずに次へ' },
 ]
 
-const menu = computed(() => props.isHoliday ? holidayMenu : weekdayMenu)
+const menu = computed(() => {
+  if (props.isHoliday) return holidayMenu
+  return isOfficeWorker.value ? weekdayOfficeMenu : weekdayFreelanceMenu
+})
 
 const canAffordCafeteria = computed(() => {
   return (state.value?.player.money ?? 0) >= 500
+})
+
+const canAffordDelivery = computed(() => {
+  return (state.value?.player.money ?? 0) >= 700
 })
 
 async function selectChoice(id: string) {
   if (id === 'cafeteria') {
     if (!canAffordCafeteria.value) return
     await store.eatCafeteria()
+    emit('done')
+  } else if (id === 'delivery') {
+    if (!canAffordDelivery.value) return
+    await store.eatDelivery()
     emit('done')
   } else if (id === 'skip') {
     emit('done')
@@ -163,8 +185,8 @@ function backToMenu() {
           v-for="item in menu"
           :key="item.id"
           class="menu-btn"
-          :disabled="loading || (item.id === 'cafeteria' && !canAffordCafeteria)"
-          :class="{ disabled: item.id === 'cafeteria' && !canAffordCafeteria }"
+          :disabled="loading || (item.id === 'cafeteria' && !canAffordCafeteria) || (item.id === 'delivery' && !canAffordDelivery)"
+          :class="{ disabled: (item.id === 'cafeteria' && !canAffordCafeteria) || (item.id === 'delivery' && !canAffordDelivery) }"
           @click="selectChoice(item.id)"
         >
           <span class="icon">{{ item.icon }}</span>
@@ -172,6 +194,9 @@ function backToMenu() {
           <span class="desc">
             {{ item.description }}
             <template v-if="item.id === 'cafeteria' && !canAffordCafeteria">
+              （お金が足りません）
+            </template>
+            <template v-if="item.id === 'delivery' && !canAffordDelivery">
               （お金が足りません）
             </template>
           </span>
@@ -183,7 +208,7 @@ function backToMenu() {
       </div>
     </template>
 
-    <!-- 自炊（休日のみ） -->
+    <!-- 自炊（休日またはフリーランス） -->
     <template v-else-if="currentChoice === 'cook'">
       <div class="back-link">
         <button class="back-btn" @click="backToMenu">← メニューに戻る</button>
