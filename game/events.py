@@ -168,6 +168,11 @@ class EventManager:
             if event.timing != timing:
                 continue
 
+            # オフィス勤め限定イベントのチェック（通勤・退勤イベント）
+            if timing in (EventTiming.GO_TO_WORK, EventTiming.LEAVE_WORK):
+                if not context.get('is_office_worker', True):
+                    continue
+
             # 1日1回制限のチェック
             if event.once_per_day and event_id in self._triggered_today:
                 continue

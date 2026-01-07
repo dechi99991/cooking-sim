@@ -17,6 +17,7 @@ class Character:
     initial_energy: int = 10
     initial_stamina: int = 10
     rent_amount: int = 60000   # 家賃（給料から天引き）
+    is_office_worker: bool = True  # オフィス勤めか（通勤イベント発生有無）
 
 
 # キャラクターマスターデータ
@@ -52,6 +53,7 @@ CHARACTERS = {
         initial_energy=8,
         initial_stamina=8,
         rent_amount=70000,
+        is_office_worker=False,  # 通勤イベントなし
     ),
 }
 

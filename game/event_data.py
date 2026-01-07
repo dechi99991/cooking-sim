@@ -187,6 +187,16 @@ def cond_awakening_streak(ctx):
     return streak.get('awakening', 0) >= NUTRITION_STREAK_FOR_CAP
 
 
+def cond_is_office_worker(ctx):
+    """オフィス勤めのキャラクターのみ"""
+    return ctx.get('is_office_worker', True)
+
+
+def cond_weekday_office(ctx):
+    """平日かつオフィス勤め"""
+    return cond_weekday(ctx) and cond_is_office_worker(ctx)
+
+
 # === 上限増加イベント効果 ===
 
 def effect_increase_max_stamina():

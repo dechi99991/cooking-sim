@@ -10,6 +10,7 @@ from .relic import RelicInventory
 from .provisions import ProvisionStock
 from .events import EventManager
 from .event_data import register_all_events
+from .character import get_character
 from .constants import (
     COOKING_ENERGY_COST, BENTO_ENERGY_COST, COMMUTE_STAMINA_COST,
     CAFETERIA_PRICE, SLEEP_ENERGY_RECOVERY, SLEEP_STAMINA_RECOVERY,
@@ -508,6 +509,9 @@ class GameManager:
         """イベント判定用のコンテキストを取得"""
         daily = self.day_state.daily_nutrition
         streak = self.nutrition_streak
+        # キャラクター情報を取得
+        character = get_character(self.character_id)
+        is_office_worker = character.is_office_worker if character else True
         return {
             'day': self.day_state.day,
             'month': self.day_state.month,
@@ -518,6 +522,7 @@ class GameManager:
             'energy': self.player.energy,
             'stamina': self.player.stamina,
             'fullness': self.player.fullness,
+            'is_office_worker': is_office_worker,  # オフィス勤めか
             # 栄養素情報
             'daily_nutrition': {
                 'vitality': daily.vitality,
