@@ -48,8 +48,10 @@ export async function goShopping(sessionId: string): Promise<GoShoppingResponse>
 }
 
 // ショップ情報
-export async function getShop(sessionId: string): Promise<ShopResponse> {
-  const res = await api.get(`/api/game/${sessionId}/shop`)
+export async function getShop(sessionId: string, isDistant: boolean = false): Promise<ShopResponse> {
+  const res = await api.get(`/api/game/${sessionId}/shop`, {
+    params: { is_distant: isDistant }
+  })
   return res.data
 }
 

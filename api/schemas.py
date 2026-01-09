@@ -128,6 +128,21 @@ class TemperamentInfo(BaseModel):
     icon: str
 
 
+class WeeklyEvaluation(BaseModel):
+    """週間評価結果（金曜ボスイベント）"""
+    rank: str  # SS, S, A, B, C, F
+    nutrition_grade: str  # S, A, B, C, D, E
+    nutrients_ok: int  # 閾値達成数 (0-5)
+    saving_success: bool
+    overspending: bool
+    food_spending: int
+    meals_cooked: int
+    energy_change: int
+    stamina_change: int
+    money_change: int
+    message: str
+
+
 class GameState(BaseModel):
     session_id: str
 
@@ -138,6 +153,8 @@ class GameState(BaseModel):
     phase_display: str
     weather: str
     is_holiday: bool
+    is_friday: bool  # 金曜日かどうか
+    is_weekend: bool  # 週末かどうか
     weekday_name: str
 
     # プレイヤー状態
@@ -202,6 +219,7 @@ class ShopItemInfo(BaseModel):
     nutrition: NutritionState
     fullness: int
     expiry_days: int
+    is_distant_only: bool = False  # 遠くのスーパー限定食材フラグ
 
 
 class ShopResponse(BaseModel):
@@ -288,3 +306,4 @@ class AdvancePhaseResponse(BaseModel):
     salary_info: dict | None = None
     bonus_info: dict | None = None
     encouragement_message: str | None = None
+    weekly_evaluation: WeeklyEvaluation | None = None  # 金曜ボスイベント結果

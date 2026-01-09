@@ -91,13 +91,24 @@ class DayState:
         return (self.day) % 7
 
     def get_weekday_name(self) -> str:
-        """曜日名を取得"""
-        return WEEKDAY_NAMES[self.get_weekday()]
+        """曜日名を取得（土日は「週末」）"""
+        weekday = self.get_weekday()
+        if weekday >= 5:  # 土日
+            return '週末'
+        return WEEKDAY_NAMES[weekday]
 
     def is_holiday(self) -> bool:
         """休日かどうか (土日)"""
         weekday = self.get_weekday()
         return weekday >= 5  # 5=土, 6=日
+
+    def is_weekend(self) -> bool:
+        """週末かどうか（土日）- is_holidayのエイリアス"""
+        return self.is_holiday()
+
+    def is_friday(self) -> bool:
+        """金曜日かどうか"""
+        return self.get_weekday() == 4
 
     def get_current_phases(self) -> list:
         """現在の日のフェーズ順序を取得"""
@@ -111,8 +122,12 @@ class DayState:
             self.phase = phases[current_index + 1]
 
     def start_new_day(self):
-        """新しい日を開始"""
-        self.day += 1
+        """新しい日を開始（土曜日は日曜をスキップして2日進む）"""
+        # 土曜日（weekday=5）の場合、日曜をスキップして月曜へ
+        if self.get_weekday() == 5:
+            self.day += 2  # 土→月
+        else:
+            self.day += 1
         self.phase = GamePhase.BREAKFAST
         self.daily_nutrition.reset()
         self.caffeine = 0
@@ -137,6 +152,64 @@ class AutoConsumeResult:
     caffeine_amount: int
     energy_restored: int
     will_cause_insomnia: bool
+
+
+@dataclass
+class WeeklyStats:
+    """週間統計を管理（金曜ボスイベント用）"""
+    nutrition: Nutrition = field(default_factory=Nutrition)  # 週間累計栄養
+    food_spending: int = 0  # 週間食費支出
+    meals_cooked: int = 0   # 自炊回数
+    days_tracked: int = 0   # 追跡日数
+
+    def add_daily(self, daily_nutrition: Nutrition, daily_spending: int, cooked: bool):
+        """1日分を追加"""
+        self.nutrition.add(daily_nutrition)
+        self.food_spending += daily_spending
+        if cooked:
+            self.meals_cooked += 1
+        self.days_tracked += 1
+
+    def reset(self):
+        """週の開始時にリセット"""
+        self.nutrition = Nutrition()
+        self.food_spending = 0
+        self.meals_cooked = 0
+        self.days_tracked = 0
+
+    def evaluate(self) -> dict:
+        """週間評価を計算"""
+        # 栄養評価: 各栄養素が閾値(25)以上かチェック
+        threshold = 25  # 5日 * 5
+        nutrients_ok = 0
+        if self.nutrition.vitality >= threshold:
+            nutrients_ok += 1
+        if self.nutrition.mental >= threshold:
+            nutrients_ok += 1
+        if self.nutrition.awakening >= threshold:
+            nutrients_ok += 1
+        if self.nutrition.sustain >= threshold:
+            nutrients_ok += 1
+        if self.nutrition.defense >= threshold:
+            nutrients_ok += 1
+
+        nutrition_grades = ['E', 'D', 'C', 'B', 'A', 'S']
+        nutrition_grade = nutrition_grades[nutrients_ok]
+
+        # 節約評価
+        budget = 7000  # 週間予算
+        saving_success = self.food_spending <= budget
+        overspending = self.food_spending > budget * 1.5
+
+        return {
+            'nutrition_grade': nutrition_grade,
+            'nutrients_ok': nutrients_ok,
+            'saving_success': saving_success,
+            'overspending': overspending,
+            'food_spending': self.food_spending,
+            'meals_cooked': self.meals_cooked,
+            'days_tracked': self.days_tracked,
+        }
 
 
 @dataclass
@@ -196,6 +269,9 @@ class GameManager:
         self.has_bonus = has_bonus  # ボーナスの有無（キャラ設定用）
         self.nutrition_streak = NutritionStreak()  # 栄養素連続高値トラッキング
         self.behavior_tracker = BehaviorTracker()  # 行動トラッカー（気質判定用）
+        self.weekly_stats = WeeklyStats()  # 週間統計（金曜ボスイベント用）
+        self._daily_food_spending = 0  # 1日の食費追跡
+        self._daily_cooked = False  # 1日に自炊したか
         self.temperament_id: str | None = None  # 判定された気質ID
         self.temperament_just_revealed: bool = False  # 気質が今発表されたかどうか
         # キャラクター別の給料・ボーナス・家賃
@@ -394,9 +470,31 @@ class GameManager:
             balance = calculate_nutrition_balance(self.day_state.daily_nutrition)
             self.behavior_tracker.record_nutrition_balance(balance)
 
+        # 週間統計に本日分を追加（平日のみ: 月～金）
+        weekday = self.day_state.get_weekday()
+        if weekday < 5:  # 月～金
+            self.weekly_stats.add_daily(
+                self.day_state.daily_nutrition,
+                self._daily_food_spending,
+                self._daily_cooked
+            )
+
         self.player.clear_penalties()
         self.player.reset_fullness()
+
+        # 現在の曜日を保存（日付進行後の判定に使用）
+        was_weekend = weekday >= 5
+
         self.day_state.start_new_day()
+
+        # 週末から月曜日に移行したら週間統計をリセット
+        if was_weekend:
+            self.weekly_stats.reset()
+
+        # 日次の食費・自炊フラグをリセット
+        self._daily_food_spending = 0
+        self._daily_cooked = False
+
         # 期限切れの弁当などを削除
         self.provisions.remove_expired_prepared(self.day_state.day)
         # イベントの日次リセット
@@ -446,6 +544,22 @@ class GameManager:
         """休日かどうか"""
         return self.day_state.is_holiday()
 
+    def is_friday(self) -> bool:
+        """金曜日かどうか"""
+        return self.day_state.is_friday()
+
+    def is_weekend(self) -> bool:
+        """週末かどうか"""
+        return self.day_state.is_weekend()
+
+    def record_food_spending(self, amount: int):
+        """食費支出を記録"""
+        self._daily_food_spending += amount
+
+    def record_daily_cook(self):
+        """本日自炊したことを記録"""
+        self._daily_cooked = True
+
     def get_freshness_extend(self) -> int:
         """レリック効果による鮮度延長日数を取得"""
         return self.relics.get_freshness_extend()
@@ -460,8 +574,92 @@ class GameManager:
         return SHOPPING_BAG_CAPACITY + self.relics.get_bag_capacity_boost(current_day)
 
     def is_payday(self) -> bool:
-        """今日が給料日かどうか"""
-        return self.day_state.day == SALARY_DAY
+        """今日が給料日かどうか（25日が週末の場合は金曜に前倒し）"""
+        day = self.day_state.day
+
+        # 通常の25日チェック
+        if day == SALARY_DAY:
+            return True
+
+        # 25日が土曜(weekday=5)の場合、24日(金)に前倒し
+        # 25日が日曜(weekday=6)の場合、23日(金)に前倒し
+        # ただし日曜日は実際にはスキップされるので、土曜日のケースのみ考慮
+        if day == 24:
+            # 25日の曜日を計算
+            salary_weekday = (SALARY_DAY) % 7
+            if salary_weekday == 5:  # 25日が土曜日
+                return self.day_state.get_weekday() == 4  # 今日が金曜なら給料日
+
+        return False
+
+    def execute_friday_boss_event(self) -> dict:
+        """金曜ボスイベントを実行し、評価結果を返す"""
+        eval_result = self.weekly_stats.evaluate()
+        grade = eval_result['nutrition_grade']
+        saving = eval_result['saving_success']
+        overspending = eval_result['overspending']
+
+        energy_change = 0
+        stamina_change = 0
+        money_change = 0
+        message = ""
+
+        # 総合評価
+        if grade == 'S' and saving:
+            rank = 'SS'
+            energy_change = 3
+            stamina_change = 2
+            money_change = 1000
+            message = "完璧な一週間！栄養バランスも節約もバッチリ！"
+        elif grade in ['S', 'A'] and saving:
+            rank = 'S'
+            energy_change = 2
+            stamina_change = 1
+            message = "素晴らしい一週間！よく頑張りました！"
+        elif grade in ['A', 'B'] or (grade in ['S', 'A'] and not saving):
+            rank = 'A'
+            energy_change = 1
+            message = "まずまずの一週間。この調子で！"
+        elif grade in ['B', 'C']:
+            rank = 'B'
+            message = "可もなく不可もなく。来週も頑張ろう。"
+        elif grade == 'D':
+            rank = 'C'
+            energy_change = -1
+            message = "ちょっと栄養が偏ってるかも...来週は気をつけよう。"
+        else:  # E grade or E with overspending
+            rank = 'F'
+            energy_change = -2
+            stamina_change = -1
+            message = "うーん...栄養も節約もちょっと厳しい結果に...来週こそ！"
+
+        # 効果を適用
+        if energy_change > 0:
+            self.player.recover_energy(energy_change)
+        elif energy_change < 0:
+            self.player.consume_energy(abs(energy_change))
+
+        if stamina_change > 0:
+            self.player.recover_stamina(stamina_change)
+        elif stamina_change < 0:
+            self.player.consume_stamina(abs(stamina_change))
+
+        if money_change > 0:
+            self.player.money += money_change
+
+        return {
+            'rank': rank,
+            'nutrition_grade': grade,
+            'nutrients_ok': eval_result['nutrients_ok'],
+            'saving_success': saving,
+            'overspending': overspending,
+            'food_spending': eval_result['food_spending'],
+            'meals_cooked': eval_result['meals_cooked'],
+            'energy_change': energy_change,
+            'stamina_change': stamina_change,
+            'money_change': money_change,
+            'message': message,
+        }
 
     def is_bonus_day(self) -> bool:
         """今日がボーナス支給日かどうか"""

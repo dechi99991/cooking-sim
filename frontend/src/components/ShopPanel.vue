@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia'
 import AutoConsumeModal from './AutoConsumeModal.vue'
 import StaminaWarningModal from './StaminaWarningModal.vue'
 
-defineProps<{
+const props = defineProps<{
   isDistant?: boolean
 }>()
 
@@ -96,7 +96,7 @@ async function doGoShopping() {
   if (lastAutoConsume.value) {
     showAutoConsumeModal.value = true
   }
-  await store.fetchShop()
+  await store.fetchShop(props.isDistant ?? false)
   cart.value = {}
   purchasedCount.value = 0  // 新しい買い物トリップ開始
   shopState.value = 'shopping'
@@ -130,7 +130,7 @@ async function checkout() {
   purchasedCount.value += cartCount.value
   await store.buyFromShop(items)
   cart.value = {}
-  await store.fetchShop()
+  await store.fetchShop(props.isDistant ?? false)
 }
 
 function finishShopping() {
@@ -215,7 +215,7 @@ const itemsByCategory = computed(() => {
 
     <!-- ショップ画面 -->
     <template v-else-if="shopState === 'shopping'">
-      <h3>ショップ</h3>
+      <h3>{{ props.isDistant ? '遠くのスーパー' : 'ショップ' }}</h3>
 
       <div v-if="!shopData" class="loading">読み込み中...</div>
 
@@ -238,11 +238,14 @@ const itemsByCategory = computed(() => {
                 v-for="item in items"
                 :key="item.name"
                 class="item"
-                :class="{ sale: item.is_sale, soldout: item.quantity === 0 }"
+                :class="{ sale: item.is_sale, soldout: item.quantity === 0, 'distant-only': item.is_distant_only }"
               >
                 <div class="item-header">
                   <span class="name">{{ item.name }}</span>
-                  <span v-if="item.is_sale" class="sale-badge">SALE</span>
+                  <div class="badges">
+                    <span v-if="item.is_distant_only" class="distant-badge">遠方限定</span>
+                    <span v-if="item.is_sale" class="sale-badge">SALE</span>
+                  </div>
                 </div>
                 <div class="item-info">
                   <span class="price">¥{{ item.price }}</span>
@@ -446,6 +449,11 @@ h4 {
   background: #fef5f5;
 }
 
+.item.distant-only {
+  border-color: #9b59b6;
+  background: #f5eeff;
+}
+
 .item.soldout {
   opacity: 0.5;
 }
@@ -453,6 +461,7 @@ h4 {
 .item-header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 5px;
 }
 
@@ -460,8 +469,22 @@ h4 {
   font-weight: bold;
 }
 
+.badges {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 .sale-badge {
   background: #e74c3c;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7em;
+}
+
+.distant-badge {
+  background: #9b59b6;
   color: white;
   padding: 2px 6px;
   border-radius: 4px;

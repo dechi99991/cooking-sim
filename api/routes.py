@@ -7,7 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from game.character import get_all_characters, get_character
-from game.ingredients import generate_daily_shop_items, get_ingredient
+from game.ingredients import generate_daily_shop_items, generate_distant_shop_items, get_ingredient
 from game.cooking import cook, find_named_recipe, get_available_named_recipes, evaluate_cooking
 from game.relic import generate_daily_relic_items, get_relic
 from game.provisions import get_all_provisions
@@ -24,7 +24,7 @@ from .schemas import (
     OnlineShopBuyRequest, OnlineShopResponse, OnlineProvisionInfo, OnlineRelicInfo,
     EatProvisionRequest,
     HolidayActionRequest,
-    AdvancePhaseResponse,
+    AdvancePhaseResponse, WeeklyEvaluation,
     RecipesResponse, NamedRecipeInfo,
     GameState, PlayerState, NutritionState, StockItem, ProvisionItem,
     PreparedItem, PendingDeliveryItem, EventInfo, DishInfo, CharacterInfo,
@@ -178,6 +178,8 @@ def _build_game_state(session_id: str, game) -> GameState:
         phase_display=phase_names.get(day_state.phase, day_state.phase.name),
         weather=game.get_weather_display(),
         is_holiday=game.is_holiday(),
+        is_friday=game.is_friday(),
+        is_weekend=game.is_weekend(),
         weekday_name=day_state.get_weekday_name(),
         player=PlayerState(
             money=player.money,
@@ -322,13 +324,20 @@ def go_shopping(session_id: str) -> GoShoppingResponse:
 
 
 @router.get("/game/{session_id}/shop")
-def get_shop(session_id: str) -> ShopResponse:
-    """ショップ情報を取得"""
+def get_shop(session_id: str, is_distant: bool = False) -> ShopResponse:
+    """ショップ情報を取得
+
+    Args:
+        is_distant: True の場合は遠くのスーパー（限定食材あり、セール多め）
+    """
     game = _get_game_or_404(session_id)
     current_day = game.day_state.day
 
-    # 日付をシードにしてショップアイテム生成
-    shop_items = generate_daily_shop_items(seed=current_day)
+    # 遠くのスーパーか近所のスーパーかで商品を切り替え
+    if is_distant:
+        shop_items = generate_distant_shop_items(seed=current_day)
+    else:
+        shop_items = generate_daily_shop_items(seed=current_day)
 
     items = []
     for item in shop_items:
@@ -348,6 +357,7 @@ def get_shop(session_id: str) -> ShopResponse:
             ),
             fullness=ing.fullness,
             expiry_days=item.freshness_days_left,
+            is_distant_only=ing.distant_only,  # 限定フラグを追加
         ))
 
     return ShopResponse(
@@ -402,6 +412,7 @@ def buy_from_shop(session_id: str, request: ShopBuyRequest) -> GameState:
     game.stats.record_shopping(total_cost, total_items)
     game.record_behavior_shop()  # 気質判定用
     game.record_behavior_spending(total_cost)
+    game.record_food_spending(total_cost)  # 週間食費追跡
 
     return _build_game_state(session_id, game)
 
@@ -670,6 +681,7 @@ def cook_confirm(session_id: str, request: CookRequest) -> CookResponse:
     game.stats.record_meal_eaten()
     game.stats.record_cooking()
     game.record_behavior_cook()  # 気質判定用
+    game.record_daily_cook()  # 週間自炊追跡
 
     # 自動消費情報を変換
     auto_consume = None
@@ -783,6 +795,7 @@ def eat_cafeteria(session_id: str) -> GameState:
     game.player.add_fullness(cafeteria_fullness)
     game.day_state.daily_nutrition.add(cafeteria_nutrition)
     game.stats.record_meal_eaten()
+    game.record_food_spending(CAFETERIA_COST)  # 週間食費追跡
 
     return _build_game_state(session_id, game)
 
@@ -808,6 +821,7 @@ def eat_delivery(session_id: str) -> GameState:
     game.player.add_fullness(delivery_fullness)
     game.day_state.daily_nutrition.add(delivery_nutrition)
     game.stats.record_meal_eaten()
+    game.record_food_spending(DELIVERY_PRICE)  # 週間食費追跡
 
     return _build_game_state(session_id, game)
 
@@ -865,6 +879,7 @@ def advance_phase(session_id: str) -> AdvancePhaseResponse:
     salary_info = None
     bonus_info = None
     encouragement_message = None
+    weekly_evaluation = None
 
     # UIが不要なフェーズは自動スキップ（出勤・退勤のみ）
     auto_skip_phases = [
@@ -896,6 +911,23 @@ def advance_phase(session_id: str) -> AdvancePhaseResponse:
             # 退勤イベント
             events.extend(_trigger_events(game, EventTiming.LEAVE_WORK))
             game.commute()
+
+            # 金曜日なら週の総決算（ボスイベント）
+            if game.is_friday():
+                eval_result = game.execute_friday_boss_event()
+                weekly_evaluation = WeeklyEvaluation(
+                    rank=eval_result['rank'],
+                    nutrition_grade=eval_result['nutrition_grade'],
+                    nutrients_ok=eval_result['nutrients_ok'],
+                    saving_success=eval_result['saving_success'],
+                    overspending=eval_result['overspending'],
+                    food_spending=eval_result['food_spending'],
+                    meals_cooked=eval_result['meals_cooked'],
+                    energy_change=eval_result['energy_change'],
+                    stamina_change=eval_result['stamina_change'],
+                    money_change=eval_result['money_change'],
+                    message=eval_result['message'],
+                )
 
         elif current_phase == GamePhase.SLEEP:
             # 就寝処理
@@ -937,6 +969,7 @@ def advance_phase(session_id: str) -> AdvancePhaseResponse:
         salary_info=salary_info,
         bonus_info=bonus_info,
         encouragement_message=encouragement_message,
+        weekly_evaluation=weekly_evaluation,
     )
 
 

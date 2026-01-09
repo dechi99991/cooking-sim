@@ -69,6 +69,8 @@ export interface GameState {
   phase_display: string
   weather: string
   is_holiday: boolean
+  is_friday: boolean
+  is_weekend: boolean
   weekday_name: string
   player: PlayerState
   stock: StockItem[]
@@ -116,6 +118,7 @@ export interface ShopItemInfo {
   nutrition: NutritionState
   fullness: number
   expiry_days: number
+  is_distant_only: boolean
 }
 
 export interface ShopResponse {
@@ -190,6 +193,20 @@ export interface CookResponse {
   auto_consume: AutoConsumeInfo | null
 }
 
+export interface WeeklyEvaluation {
+  rank: string  // SS, S, A, B, C, F
+  nutrition_grade: string  // S, A, B, C, D, E
+  nutrients_ok: number  // 閾値達成数 (0-5)
+  saving_success: boolean
+  overspending: boolean
+  food_spending: number
+  meals_cooked: number
+  energy_change: number
+  stamina_change: number
+  money_change: number
+  message: string
+}
+
 export interface AdvancePhaseResponse {
   events: EventInfo[]
   state: GameState
@@ -197,6 +214,7 @@ export interface AdvancePhaseResponse {
   salary_info: { gross: number; rent: number; net: number } | null
   bonus_info: { amount: number } | null
   encouragement_message: string | null
+  weekly_evaluation: WeeklyEvaluation | null
 }
 
 export interface CookPreviewResponse {

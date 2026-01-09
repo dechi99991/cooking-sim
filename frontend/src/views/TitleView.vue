@@ -37,6 +37,15 @@ function startGame() {
       <div class="release-notes">
         <h3>📝 更新情報</h3>
         <div class="release-entry">
+          <div class="release-date">2025/01/10</div>
+          <ul>
+            <li>【大型更新】金曜ボスイベント「週の総決算」を導入！</li>
+            <li>毎週金曜日に週間の栄養バランスと食費を評価</li>
+            <li>SS〜F評価に応じて気力・体力・お金にボーナス/ペナルティ</li>
+            <li>土日を「週末」として1ターンに統合（ゲーム期間: 約26ターン）</li>
+          </ul>
+        </div>
+        <div class="release-entry">
           <div class="release-date">2025/01/07（その10）</div>
           <ul>
             <li>休日の買い物画面の文字色バグを修正</li>

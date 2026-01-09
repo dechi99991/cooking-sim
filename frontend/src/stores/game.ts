@@ -12,6 +12,7 @@ import type {
   CookPreviewResponse,
   NutritionState,
   AutoConsumeInfo,
+  WeeklyEvaluation,
 } from '../types'
 import * as api from '../api/game'
 
@@ -34,6 +35,7 @@ export const useGameStore = defineStore('game', () => {
   const lastBonusInfo = ref<{ amount: number } | null>(null)
   const lastEncouragementMessage = ref<string | null>(null)
   const lastAutoConsume = ref<AutoConsumeInfo | null>(null)
+  const lastWeeklyEvaluation = ref<WeeklyEvaluation | null>(null)
 
   // ショップデータ
   const shopData = ref<ShopResponse | null>(null)
@@ -87,6 +89,7 @@ export const useGameStore = defineStore('game', () => {
       lastDeliveries.value = []
       lastSalaryInfo.value = null
       lastBonusInfo.value = null
+      lastWeeklyEvaluation.value = null
     } catch (e: any) {
       error.value = e.message
     } finally {
@@ -121,11 +124,11 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
-  async function fetchShop() {
+  async function fetchShop(isDistant: boolean = false) {
     if (!sessionId.value) return
     loading.value = true
     try {
-      shopData.value = await api.getShop(sessionId.value)
+      shopData.value = await api.getShop(sessionId.value, isDistant)
     } catch (e: any) {
       error.value = e.message
     } finally {
@@ -325,6 +328,7 @@ export const useGameStore = defineStore('game', () => {
       lastSalaryInfo.value = result.salary_info
       lastBonusInfo.value = result.bonus_info
       lastEncouragementMessage.value = result.encouragement_message ?? null
+      lastWeeklyEvaluation.value = result.weekly_evaluation ?? null
     } catch (e: any) {
       error.value = e.message
     } finally {
@@ -355,6 +359,7 @@ export const useGameStore = defineStore('game', () => {
     lastDeliveries.value = []
     lastSalaryInfo.value = null
     lastBonusInfo.value = null
+    lastWeeklyEvaluation.value = null
     shopData.value = null
     onlineShopData.value = null
     recipesData.value = []
@@ -377,6 +382,7 @@ export const useGameStore = defineStore('game', () => {
     lastBonusInfo,
     lastEncouragementMessage,
     lastAutoConsume,
+    lastWeeklyEvaluation,
     shopData,
     onlineShopData,
     recipesData,

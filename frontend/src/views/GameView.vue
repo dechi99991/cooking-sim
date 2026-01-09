@@ -15,6 +15,7 @@ import EventModal from '../components/EventModal.vue'
 import GritRecoveryModal from '../components/GritRecoveryModal.vue'
 import ExhaustedModal from '../components/ExhaustedModal.vue'
 import TemperamentRevealModal from '../components/TemperamentRevealModal.vue'
+import FridayBossModal from '../components/FridayBossModal.vue'
 
 const router = useRouter()
 const store = useGameStore()
@@ -31,12 +32,14 @@ const {
   lastSalaryInfo,
   lastBonusInfo,
   lastEncouragementMessage,
+  lastWeeklyEvaluation,
 } = storeToRefs(store)
 
 const showEventModal = ref(false)
 const showGritModal = ref(false)
 const showExhaustedModal = ref(false)
 const showTemperamentModal = ref(false)
+const showFridayBossModal = ref(false)
 
 // ゲームが開始されていない場合はキャラクター選択へ
 onMounted(() => {
@@ -76,8 +79,12 @@ watch(() => state.value?.temperament_just_revealed, (revealed) => {
 // フェーズ進行
 async function advance() {
   await store.advancePhase()
-  // イベントがある場合はモーダル表示
-  if (lastEvents.value.length > 0 || lastDeliveries.value.length > 0 || lastSalaryInfo.value || lastBonusInfo.value || lastEncouragementMessage.value) {
+  // 金曜ボスイベントがある場合は先に表示
+  if (lastWeeklyEvaluation.value) {
+    showFridayBossModal.value = true
+  }
+  // イベントがある場合はモーダル表示（金曜ボスモーダル閉じた後に表示）
+  else if (lastEvents.value.length > 0 || lastDeliveries.value.length > 0 || lastSalaryInfo.value || lastBonusInfo.value || lastEncouragementMessage.value) {
     showEventModal.value = true
   }
 }
@@ -97,6 +104,14 @@ function closeExhaustedModal() {
 
 function closeTemperamentModal() {
   showTemperamentModal.value = false
+}
+
+function closeFridayBossModal() {
+  showFridayBossModal.value = false
+  // 金曜ボスモーダル閉じた後に他のイベントがあれば表示
+  if (lastEvents.value.length > 0 || lastDeliveries.value.length > 0 || lastSalaryInfo.value || lastBonusInfo.value || lastEncouragementMessage.value) {
+    showEventModal.value = true
+  }
 }
 
 // 各パネルの完了ハンドラ
@@ -291,6 +306,13 @@ const advanceButtonText = computed(() => {
       :show="showTemperamentModal"
       :temperament="state?.temperament ?? null"
       @close="closeTemperamentModal"
+    />
+
+    <!-- 金曜ボスイベントモーダル -->
+    <FridayBossModal
+      :show="showFridayBossModal"
+      :evaluation="lastWeeklyEvaluation"
+      @close="closeFridayBossModal"
     />
   </div>
 </template>

@@ -19,6 +19,7 @@ class Ingredient:
     freshness_days: int = 7  # 鮮度維持日数（この日数までは劣化なし）
     decay_rate: float = 0.1  # 1日あたりの栄養減衰率
     category: str = "その他"  # カテゴリ
+    distant_only: bool = False  # 遠くのスーパー限定フラグ
 
     def __hash__(self):
         return hash(self.name)
@@ -149,6 +150,34 @@ INGREDIENTS = {
     'こんにゃく': Ingredient(name='こんにゃく', price=80, nutrition=create_nutrition(0, 0, 0, 1, 1), fullness=2, freshness_days=30, decay_rate=0.02, category='調味料'),
     '春雨': Ingredient(name='春雨', price=150, nutrition=create_nutrition(1, 0, 0, 2, 0), fullness=2, freshness_days=60, decay_rate=0.01, category='調味料'),
 }
+
+
+# 遠くのスーパー限定食材（15種類）
+DISTANT_ONLY_INGREDIENTS = {
+    # === 輸入品 (6種類) ===
+    'オリーブオイル': Ingredient(name='オリーブオイル', price=600, nutrition=create_nutrition(1, 2, 1, 2, 2), fullness=0, freshness_days=90, decay_rate=0.01, category='調味料', distant_only=True),
+    'パルメザンチーズ': Ingredient(name='パルメザンチーズ', price=800, nutrition=create_nutrition(4, 2, 1, 3, 3), fullness=1, freshness_days=30, decay_rate=0.02, category='卵乳', distant_only=True),
+    '生ハム': Ingredient(name='生ハム', price=700, nutrition=create_nutrition(4, 2, 2, 2, 2), fullness=2, freshness_days=14, decay_rate=0.05, category='肉', distant_only=True),
+    'アボカド': Ingredient(name='アボカド', price=250, nutrition=create_nutrition(2, 3, 2, 2, 3), fullness=2, freshness_days=5, decay_rate=0.12, category='野菜', distant_only=True),
+    'マンゴー': Ingredient(name='マンゴー', price=400, nutrition=create_nutrition(2, 2, 3, 1, 3), fullness=2, freshness_days=5, decay_rate=0.12, category='果物', distant_only=True),
+    'ココナッツミルク': Ingredient(name='ココナッツミルク', price=300, nutrition=create_nutrition(1, 1, 1, 2, 1), fullness=1, freshness_days=30, decay_rate=0.02, category='調味料', distant_only=True),
+
+    # === 産直・高級品 (5種類) ===
+    '有機野菜セット': Ingredient(name='有機野菜セット', price=500, nutrition=create_nutrition(2, 3, 2, 2, 5), fullness=2, freshness_days=5, decay_rate=0.12, category='野菜', distant_only=True),
+    '地鶏': Ingredient(name='地鶏', price=450, nutrition=create_nutrition(5, 2, 2, 2, 3), fullness=3, freshness_days=2, decay_rate=0.20, category='肉', distant_only=True),
+    '天然鯛': Ingredient(name='天然鯛', price=600, nutrition=create_nutrition(5, 3, 2, 2, 4), fullness=3, freshness_days=2, decay_rate=0.20, category='魚', distant_only=True),
+    '産直たまご': Ingredient(name='産直たまご', price=350, nutrition=create_nutrition(4, 3, 3, 2, 3), fullness=2, freshness_days=14, decay_rate=0.05, category='卵乳', distant_only=True),
+    'ブランド牛': Ingredient(name='ブランド牛', price=1200, nutrition=create_nutrition(6, 3, 2, 3, 4), fullness=4, freshness_days=2, decay_rate=0.20, category='肉', distant_only=True),
+
+    # === エスニック食材 (4種類) ===
+    'パクチー': Ingredient(name='パクチー', price=150, nutrition=create_nutrition(1, 2, 2, 1, 3), fullness=0, freshness_days=3, decay_rate=0.18, category='野菜', distant_only=True),
+    'レモングラス': Ingredient(name='レモングラス', price=200, nutrition=create_nutrition(1, 2, 2, 1, 2), fullness=0, freshness_days=7, decay_rate=0.10, category='調味料', distant_only=True),
+    'ナンプラー': Ingredient(name='ナンプラー', price=350, nutrition=create_nutrition(1, 2, 1, 1, 2), fullness=0, freshness_days=90, decay_rate=0.01, category='調味料', distant_only=True),
+    'フォー麺': Ingredient(name='フォー麺', price=250, nutrition=create_nutrition(1, 1, 1, 3, 1), fullness=3, freshness_days=30, decay_rate=0.02, category='穀物', distant_only=True),
+}
+
+# 全食材（通常 + 限定）を統合した辞書
+ALL_INGREDIENTS = {**INGREDIENTS, **DISTANT_ONLY_INGREDIENTS}
 
 
 class Stock:
@@ -328,8 +357,8 @@ class Stock:
 
 
 def get_ingredient(name: str) -> Ingredient | None:
-    """食材名から食材データを取得"""
-    return INGREDIENTS.get(name)
+    """食材名から食材データを取得（限定食材含む）"""
+    return ALL_INGREDIENTS.get(name)
 
 
 def get_all_ingredient_names() -> list[str]:
@@ -420,6 +449,78 @@ def generate_daily_shop_items(seed: int | None = None) -> list[ShopItem]:
             # 半額だが期限近い（残り1日）
             price = int(ing.price * 0.5)
             shop_items.append(ShopItem(ing, price, "near_expiry", 1))
+        else:
+            # 通常価格
+            shop_items.append(ShopItem(ing, ing.price, "none", ing.freshness_days))
+
+    return shop_items
+
+
+def generate_distant_shop_items(seed: int | None = None) -> list[ShopItem]:
+    """遠くのスーパーの店頭商品を生成（7種類、限定食材含む、セール多め）
+
+    特徴:
+    - 通常食材5種類 + 限定食材2種類
+    - セール率が高い（50%の確率でセール）
+    - 限定食材は必ず含まれる
+    """
+    if seed is not None:
+        random.seed(seed + 1000)  # 近所と異なるシードを使用
+
+    # カテゴリ別に食材を分類（通常食材のみ）
+    by_category: dict[str, list[Ingredient]] = {}
+    for ing in INGREDIENTS.values():
+        if ing.category not in by_category:
+            by_category[ing.category] = []
+        by_category[ing.category].append(ing)
+
+    selected = []
+
+    # 1. 穀物から1つ
+    if '穀物' in by_category:
+        selected.append(random.choice(by_category['穀物']))
+
+    # 2. 野菜から1つ
+    if '野菜' in by_category:
+        selected.append(random.choice(by_category['野菜']))
+
+    # 3. 肉か魚から1つ
+    meat_fish = by_category.get('肉', []) + by_category.get('魚', [])
+    if meat_fish:
+        selected.append(random.choice(meat_fish))
+
+    # 4. 卵乳か豆から1つ
+    egg_bean = by_category.get('卵乳', []) + by_category.get('豆', [])
+    if egg_bean:
+        selected.append(random.choice(egg_bean))
+
+    # 5. その他から1つ
+    others = by_category.get('きのこ', []) + by_category.get('果物', []) + by_category.get('調味料', [])
+    if others:
+        selected.append(random.choice(others))
+
+    # 6-7. 限定食材から2つ
+    distant_list = list(DISTANT_ONLY_INGREDIENTS.values())
+    random.shuffle(distant_list)
+    selected.extend(distant_list[:2])
+
+    # シャッフル
+    random.shuffle(selected)
+
+    # 価格設定（セール率50%）
+    shop_items = []
+    sale_count = 0
+    max_sales = 3  # 最大3つまでセール
+
+    for ing in selected:
+        # 50%の確率でセール（最大3つまで）
+        is_sale = random.random() < 0.5 and sale_count < max_sales
+
+        if is_sale:
+            sale_count += 1
+            # 2割引
+            price = int(ing.price * 0.8)
+            shop_items.append(ShopItem(ing, price, "sale", ing.freshness_days))
         else:
             # 通常価格
             shop_items.append(ShopItem(ing, ing.price, "none", ing.freshness_days))
