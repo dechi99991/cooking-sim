@@ -128,7 +128,7 @@ async function checkout() {
   }))
   // カート内の個数を購入済みカウントに加算
   purchasedCount.value += cartCount.value
-  await store.buyFromShop(items)
+  await store.buyFromShop(items, props.isDistant ?? false)
   cart.value = {}
   await store.fetchShop(props.isDistant ?? false)
 }

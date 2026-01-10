@@ -136,11 +136,11 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
-  async function buyFromShop(items: { ingredient_name: string; quantity: number }[]) {
+  async function buyFromShop(items: { ingredient_name: string; quantity: number }[], isDistant: boolean = false) {
     if (!sessionId.value) return
     loading.value = true
     try {
-      state.value = await api.buyFromShop(sessionId.value, items)
+      state.value = await api.buyFromShop(sessionId.value, items, isDistant)
     } catch (e: any) {
       error.value = e.message
     } finally {

@@ -19,6 +19,7 @@ class CookRequest(BaseModel):
 
 class ShopBuyRequest(BaseModel):
     items: list[dict]  # [{ingredient_name: str, quantity: int}]
+    is_distant: bool = False  # 遠くのスーパーからの購入かどうか
 
 
 class OnlineShopBuyRequest(BaseModel):

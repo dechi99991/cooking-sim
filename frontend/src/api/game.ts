@@ -58,9 +58,10 @@ export async function getShop(sessionId: string, isDistant: boolean = false): Pr
 // 買い物
 export async function buyFromShop(
   sessionId: string,
-  items: { ingredient_name: string; quantity: number }[]
+  items: { ingredient_name: string; quantity: number }[],
+  isDistant: boolean = false
 ): Promise<GameState> {
-  const res = await api.post(`/api/game/${sessionId}/shop/buy`, { items })
+  const res = await api.post(`/api/game/${sessionId}/shop/buy`, { items, is_distant: isDistant })
   return res.data
 }
 

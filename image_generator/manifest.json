@@ -1,0 +1,1200 @@
+{
+  "provisions": {
+    "カップ麺": {
+      "path": "provisions/カップ麺.png",
+      "generated_at": "2026-01-08T15:25:33.428833",
+      "subcategory": "食糧"
+    },
+    "レトルトカレー": {
+      "path": "provisions/レトルトカレー.png",
+      "generated_at": "2026-01-08T15:25:39.874642",
+      "subcategory": "食糧"
+    },
+    "冷凍弁当": {
+      "path": "provisions/冷凍弁当.png",
+      "generated_at": "2026-01-08T15:25:48.276886",
+      "subcategory": "食糧"
+    },
+    "パン": {
+      "path": "provisions/パン.png",
+      "generated_at": "2026-01-08T15:25:54.922023",
+      "subcategory": "食糧"
+    },
+    "おにぎり": {
+      "path": "provisions/おにぎり.png",
+      "generated_at": "2026-01-08T15:26:03.357091",
+      "subcategory": "食糧"
+    },
+    "缶コーヒー": {
+      "path": "provisions/缶コーヒー.png",
+      "generated_at": "2026-01-08T15:26:09.198031",
+      "subcategory": "食糧"
+    },
+    "エナジードリンク": {
+      "path": "provisions/エナジードリンク.png",
+      "generated_at": "2026-01-08T15:26:15.436749",
+      "subcategory": "食糧"
+    },
+    "インスタントコーヒー": {
+      "path": "provisions/インスタントコーヒー.png",
+      "generated_at": "2026-01-08T15:26:22.574410",
+      "subcategory": "食糧"
+    }
+  },
+  "ingredients": {
+    "米": {
+      "path": "ingredients/米.png",
+      "generated_at": "2026-01-08T15:30:18.903404",
+      "subcategory": "穀物"
+    },
+    "パン": {
+      "path": "ingredients/パン.png",
+      "generated_at": "2026-01-08T15:30:24.820987",
+      "subcategory": "穀物"
+    },
+    "うどん": {
+      "path": "ingredients/うどん.png",
+      "generated_at": "2026-01-08T15:30:33.014265",
+      "subcategory": "穀物"
+    },
+    "そば": {
+      "path": "ingredients/そば.png",
+      "generated_at": "2026-01-08T15:30:39.978763",
+      "subcategory": "穀物"
+    },
+    "パスタ": {
+      "path": "ingredients/パスタ.png",
+      "generated_at": "2026-01-08T15:30:47.491774",
+      "subcategory": "穀物"
+    },
+    "ラーメン": {
+      "path": "ingredients/ラーメン.png",
+      "generated_at": "2026-01-08T15:30:53.414739",
+      "subcategory": "穀物"
+    },
+    "もち": {
+      "path": "ingredients/もち.png",
+      "generated_at": "2026-01-08T15:30:59.713751",
+      "subcategory": "穀物"
+    },
+    "シリアル": {
+      "path": "ingredients/シリアル.png",
+      "generated_at": "2026-01-08T15:31:05.916840",
+      "subcategory": "穀物"
+    },
+    "オートミール": {
+      "path": "ingredients/オートミール.png",
+      "generated_at": "2026-01-08T15:31:13.798720",
+      "subcategory": "穀物"
+    },
+    "食パン": {
+      "path": "ingredients/食パン.png",
+      "generated_at": "2026-01-08T15:31:19.787611",
+      "subcategory": "穀物"
+    },
+    "キャベツ": {
+      "path": "ingredients/キャベツ.png",
+      "generated_at": "2026-01-08T15:31:26.118616",
+      "subcategory": "野菜"
+    },
+    "にんじん": {
+      "path": "ingredients/にんじん.png",
+      "generated_at": "2026-01-08T15:31:32.642763",
+      "subcategory": "野菜"
+    },
+    "たまねぎ": {
+      "path": "ingredients/たまねぎ.png",
+      "generated_at": "2026-01-08T15:31:40.701639",
+      "subcategory": "野菜"
+    },
+    "じゃがいも": {
+      "path": "ingredients/じゃがいも.png",
+      "generated_at": "2026-01-08T15:31:47.940099",
+      "subcategory": "野菜"
+    },
+    "トマト": {
+      "path": "ingredients/トマト.png",
+      "generated_at": "2026-01-08T15:31:53.815154",
+      "subcategory": "野菜"
+    },
+    "ほうれん草": {
+      "path": "ingredients/ほうれん草.png",
+      "generated_at": "2026-01-08T15:31:59.562307",
+      "subcategory": "野菜"
+    },
+    "レタス": {
+      "path": "ingredients/レタス.png",
+      "generated_at": "2026-01-08T15:32:08.526758",
+      "subcategory": "野菜"
+    },
+    "ピーマン": {
+      "path": "ingredients/ピーマン.png",
+      "generated_at": "2026-01-08T15:32:15.119281",
+      "subcategory": "野菜"
+    },
+    "なす": {
+      "path": "ingredients/なす.png",
+      "generated_at": "2026-01-08T15:32:21.290316",
+      "subcategory": "野菜"
+    },
+    "きゅうり": {
+      "path": "ingredients/きゅうり.png",
+      "generated_at": "2026-01-08T15:32:28.358518",
+      "subcategory": "野菜"
+    },
+    "もやし": {
+      "path": "ingredients/もやし.png",
+      "generated_at": "2026-01-08T15:32:36.300026",
+      "subcategory": "野菜"
+    },
+    "ねぎ": {
+      "path": "ingredients/ねぎ.png",
+      "generated_at": "2026-01-08T15:32:42.126613",
+      "subcategory": "野菜"
+    },
+    "だいこん": {
+      "path": "ingredients/だいこん.png",
+      "generated_at": "2026-01-08T15:32:49.773118",
+      "subcategory": "野菜"
+    },
+    "かぼちゃ": {
+      "path": "ingredients/かぼちゃ.png",
+      "generated_at": "2026-01-08T15:32:55.780696",
+      "subcategory": "野菜"
+    },
+    "ブロッコリー": {
+      "path": "ingredients/ブロッコリー.png",
+      "generated_at": "2026-01-08T15:33:02.006121",
+      "subcategory": "野菜"
+    },
+    "アスパラガス": {
+      "path": "ingredients/アスパラガス.png",
+      "generated_at": "2026-01-08T15:33:09.667402",
+      "subcategory": "野菜"
+    },
+    "ごぼう": {
+      "path": "ingredients/ごぼう.png",
+      "generated_at": "2026-01-08T15:33:15.272378",
+      "subcategory": "野菜"
+    },
+    "れんこん": {
+      "path": "ingredients/れんこん.png",
+      "generated_at": "2026-01-08T15:33:22.602396",
+      "subcategory": "野菜"
+    },
+    "にら": {
+      "path": "ingredients/にら.png",
+      "generated_at": "2026-01-08T15:33:33.440558",
+      "subcategory": "野菜"
+    },
+    "白菜": {
+      "path": "ingredients/白菜.png",
+      "generated_at": "2026-01-08T15:33:41.309318",
+      "subcategory": "野菜"
+    },
+    "鶏むね肉": {
+      "path": "ingredients/鶏むね肉.png",
+      "generated_at": "2026-01-08T15:33:50.037814",
+      "subcategory": "肉"
+    },
+    "鶏もも肉": {
+      "path": "ingredients/鶏もも肉.png",
+      "generated_at": "2026-01-08T15:33:58.127467",
+      "subcategory": "肉"
+    },
+    "豚バラ肉": {
+      "path": "ingredients/豚バラ肉.png",
+      "generated_at": "2026-01-08T15:34:05.151949",
+      "subcategory": "肉"
+    },
+    "豚ロース": {
+      "path": "ingredients/豚ロース.png",
+      "generated_at": "2026-01-08T15:34:14.691660",
+      "subcategory": "肉"
+    },
+    "牛切り落とし": {
+      "path": "ingredients/牛切り落とし.png",
+      "generated_at": "2026-01-08T15:34:20.530253",
+      "subcategory": "肉"
+    },
+    "牛ステーキ": {
+      "path": "ingredients/牛ステーキ.png",
+      "generated_at": "2026-01-08T15:34:27.113118",
+      "subcategory": "肉"
+    },
+    "ひき肉": {
+      "path": "ingredients/ひき肉.png",
+      "generated_at": "2026-01-08T15:34:34.144999",
+      "subcategory": "肉"
+    },
+    "ベーコン": {
+      "path": "ingredients/ベーコン.png",
+      "generated_at": "2026-01-08T15:34:40.075837",
+      "subcategory": "肉"
+    },
+    "ハム": {
+      "path": "ingredients/ハム.png",
+      "generated_at": "2026-01-08T15:34:46.301213",
+      "subcategory": "肉"
+    },
+    "ソーセージ": {
+      "path": "ingredients/ソーセージ.png",
+      "generated_at": "2026-01-08T15:34:54.620690",
+      "subcategory": "肉"
+    },
+    "鶏ささみ": {
+      "path": "ingredients/鶏ささみ.png",
+      "generated_at": "2026-01-08T15:35:00.906294",
+      "subcategory": "肉"
+    },
+    "手羽先": {
+      "path": "ingredients/手羽先.png",
+      "generated_at": "2026-01-08T15:35:06.941699",
+      "subcategory": "肉"
+    },
+    "レバー": {
+      "path": "ingredients/レバー.png",
+      "generated_at": "2026-01-08T15:35:14.689005",
+      "subcategory": "肉"
+    },
+    "ラム肉": {
+      "path": "ingredients/ラム肉.png",
+      "generated_at": "2026-01-08T15:35:22.965968",
+      "subcategory": "肉"
+    },
+    "鶏レバー": {
+      "path": "ingredients/鶏レバー.png",
+      "generated_at": "2026-01-08T15:35:36.042987",
+      "subcategory": "肉"
+    },
+    "サーモン": {
+      "path": "ingredients/サーモン.png",
+      "generated_at": "2026-01-08T15:35:44.283352",
+      "subcategory": "魚"
+    },
+    "マグロ": {
+      "path": "ingredients/マグロ.png",
+      "generated_at": "2026-01-08T15:35:52.257669",
+      "subcategory": "魚"
+    },
+    "サバ": {
+      "path": "ingredients/サバ.png",
+      "generated_at": "2026-01-08T15:36:02.946070",
+      "subcategory": "魚"
+    },
+    "アジ": {
+      "path": "ingredients/アジ.png",
+      "generated_at": "2026-01-08T15:36:09.145011",
+      "subcategory": "魚"
+    },
+    "イワシ": {
+      "path": "ingredients/イワシ.png",
+      "generated_at": "2026-01-08T15:36:16.345833",
+      "subcategory": "魚"
+    },
+    "タラ": {
+      "path": "ingredients/タラ.png",
+      "generated_at": "2026-01-08T15:36:22.764467",
+      "subcategory": "魚"
+    },
+    "エビ": {
+      "path": "ingredients/エビ.png",
+      "generated_at": "2026-01-08T15:36:29.539372",
+      "subcategory": "魚"
+    },
+    "イカ": {
+      "path": "ingredients/イカ.png",
+      "generated_at": "2026-01-08T15:36:35.625633",
+      "subcategory": "魚"
+    },
+    "タコ": {
+      "path": "ingredients/タコ.png",
+      "generated_at": "2026-01-08T15:36:42.429100",
+      "subcategory": "魚"
+    },
+    "ホタテ": {
+      "path": "ingredients/ホタテ.png",
+      "generated_at": "2026-01-08T15:36:49.220455",
+      "subcategory": "魚"
+    },
+    "アサリ": {
+      "path": "ingredients/アサリ.png",
+      "generated_at": "2026-01-08T15:36:55.560543",
+      "subcategory": "魚"
+    },
+    "シジミ": {
+      "path": "ingredients/シジミ.png",
+      "generated_at": "2026-01-08T15:37:02.597075",
+      "subcategory": "魚"
+    },
+    "カキ": {
+      "path": "ingredients/カキ.png",
+      "generated_at": "2026-01-08T15:37:08.495408",
+      "subcategory": "魚"
+    },
+    "ししゃも": {
+      "path": "ingredients/ししゃも.png",
+      "generated_at": "2026-01-08T15:37:14.651440",
+      "subcategory": "魚"
+    },
+    "しらす": {
+      "path": "ingredients/しらす.png",
+      "generated_at": "2026-01-08T15:37:21.650215",
+      "subcategory": "魚"
+    },
+    "卵": {
+      "path": "ingredients/卵.png",
+      "generated_at": "2026-01-08T15:37:27.554379",
+      "subcategory": "卵乳"
+    },
+    "牛乳": {
+      "path": "ingredients/牛乳.png",
+      "generated_at": "2026-01-08T15:37:36.401203",
+      "subcategory": "卵乳"
+    },
+    "ヨーグルト": {
+      "path": "ingredients/ヨーグルト.png",
+      "generated_at": "2026-01-08T15:37:42.517364",
+      "subcategory": "卵乳"
+    },
+    "チーズ": {
+      "path": "ingredients/チーズ.png",
+      "generated_at": "2026-01-08T15:37:49.872506",
+      "subcategory": "卵乳"
+    },
+    "バター": {
+      "path": "ingredients/バター.png",
+      "generated_at": "2026-01-08T15:37:55.674161",
+      "subcategory": "卵乳"
+    },
+    "生クリーム": {
+      "path": "ingredients/生クリーム.png",
+      "generated_at": "2026-01-08T15:38:02.767923",
+      "subcategory": "卵乳"
+    },
+    "クリームチーズ": {
+      "path": "ingredients/クリームチーズ.png",
+      "generated_at": "2026-01-08T15:38:18.171792",
+      "subcategory": "卵乳"
+    },
+    "スライスチーズ": {
+      "path": "ingredients/スライスチーズ.png",
+      "generated_at": "2026-01-08T15:38:24.626997",
+      "subcategory": "卵乳"
+    },
+    "モッツァレラ": {
+      "path": "ingredients/モッツァレラ.png",
+      "generated_at": "2026-01-08T15:38:33.791352",
+      "subcategory": "卵乳"
+    },
+    "うずら卵": {
+      "path": "ingredients/うずら卵.png",
+      "generated_at": "2026-01-08T15:38:39.941843",
+      "subcategory": "卵乳"
+    },
+    "納豆": {
+      "path": "ingredients/納豆.png",
+      "generated_at": "2026-01-08T15:38:48.477763",
+      "subcategory": "豆"
+    },
+    "豆腐": {
+      "path": "ingredients/豆腐.png",
+      "generated_at": "2026-01-08T15:38:55.251134",
+      "subcategory": "豆"
+    },
+    "油揚げ": {
+      "path": "ingredients/油揚げ.png",
+      "generated_at": "2026-01-08T15:39:01.497902",
+      "subcategory": "豆"
+    },
+    "厚揚げ": {
+      "path": "ingredients/厚揚げ.png",
+      "generated_at": "2026-01-08T15:39:08.307735",
+      "subcategory": "豆"
+    },
+    "豆乳": {
+      "path": "ingredients/豆乳.png",
+      "generated_at": "2026-01-08T15:39:14.598132",
+      "subcategory": "豆"
+    },
+    "枝豆": {
+      "path": "ingredients/枝豆.png",
+      "generated_at": "2026-01-08T15:39:32.861295",
+      "subcategory": "豆"
+    },
+    "ひよこ豆": {
+      "path": "ingredients/ひよこ豆.png",
+      "generated_at": "2026-01-08T15:39:39.902553",
+      "subcategory": "豆"
+    },
+    "大豆": {
+      "path": "ingredients/大豆.png",
+      "generated_at": "2026-01-08T15:39:45.736217",
+      "subcategory": "豆"
+    },
+    "がんもどき": {
+      "path": "ingredients/がんもどき.png",
+      "generated_at": "2026-01-08T15:39:52.500775",
+      "subcategory": "豆"
+    },
+    "おから": {
+      "path": "ingredients/おから.png",
+      "generated_at": "2026-01-08T15:39:59.432547",
+      "subcategory": "豆"
+    },
+    "しいたけ": {
+      "path": "ingredients/しいたけ.png",
+      "generated_at": "2026-01-08T15:40:05.515068",
+      "subcategory": "きのこ"
+    },
+    "えのき": {
+      "path": "ingredients/えのき.png",
+      "generated_at": "2026-01-08T15:40:13.458825",
+      "subcategory": "きのこ"
+    },
+    "しめじ": {
+      "path": "ingredients/しめじ.png",
+      "generated_at": "2026-01-08T15:40:20.983663",
+      "subcategory": "きのこ"
+    },
+    "まいたけ": {
+      "path": "ingredients/まいたけ.png",
+      "generated_at": "2026-01-08T15:40:28.170550",
+      "subcategory": "きのこ"
+    },
+    "エリンギ": {
+      "path": "ingredients/エリンギ.png",
+      "generated_at": "2026-01-08T15:40:34.591128",
+      "subcategory": "きのこ"
+    },
+    "りんご": {
+      "path": "ingredients/りんご.png",
+      "generated_at": "2026-01-08T15:40:42.121912",
+      "subcategory": "果物"
+    },
+    "バナナ": {
+      "path": "ingredients/バナナ.png",
+      "generated_at": "2026-01-08T15:40:48.124753",
+      "subcategory": "果物"
+    },
+    "レモン": {
+      "path": "ingredients/レモン.png",
+      "generated_at": "2026-01-08T15:40:58.289240",
+      "subcategory": "果物"
+    },
+    "キウイ": {
+      "path": "ingredients/キウイ.png",
+      "generated_at": "2026-01-08T15:41:05.027527",
+      "subcategory": "果物"
+    },
+    "にんにく": {
+      "path": "ingredients/にんにく.png",
+      "generated_at": "2026-01-08T15:41:11.183106",
+      "subcategory": "調味料"
+    },
+    "しょうが": {
+      "path": "ingredients/しょうが.png",
+      "generated_at": "2026-01-08T15:41:18.227787",
+      "subcategory": "調味料"
+    },
+    "わかめ": {
+      "path": "ingredients/わかめ.png",
+      "generated_at": "2026-01-08T15:41:27.125951",
+      "subcategory": "調味料"
+    },
+    "昆布": {
+      "path": "ingredients/昆布.png",
+      "generated_at": "2026-01-08T15:41:33.628502",
+      "subcategory": "調味料"
+    },
+    "かつお節": {
+      "path": "ingredients/かつお節.png",
+      "generated_at": "2026-01-08T15:41:40.364806",
+      "subcategory": "調味料"
+    },
+    "梅干し": {
+      "path": "ingredients/梅干し.png",
+      "generated_at": "2026-01-08T15:41:46.546621",
+      "subcategory": "調味料"
+    },
+    "キムチ": {
+      "path": "ingredients/キムチ.png",
+      "generated_at": "2026-01-08T15:41:53.006676",
+      "subcategory": "調味料"
+    },
+    "漬物": {
+      "path": "ingredients/漬物.png",
+      "generated_at": "2026-01-08T15:42:00.281047",
+      "subcategory": "調味料"
+    },
+    "こんにゃく": {
+      "path": "ingredients/こんにゃく.png",
+      "generated_at": "2026-01-08T15:42:08.335064",
+      "subcategory": "調味料"
+    },
+    "春雨": {
+      "path": "ingredients/春雨.png",
+      "generated_at": "2026-01-08T15:42:14.607860",
+      "subcategory": "調味料"
+    }
+  },
+  "relics": {
+    "フライパン": {
+      "path": "relics/フライパン.png",
+      "generated_at": "2026-01-08T15:42:22.533583",
+      "subcategory": "調理器具"
+    },
+    "中華鍋": {
+      "path": "relics/中華鍋.png",
+      "generated_at": "2026-01-08T15:42:29.591059",
+      "subcategory": "調理器具"
+    },
+    "片手鍋": {
+      "path": "relics/片手鍋.png",
+      "generated_at": "2026-01-08T15:42:35.921973",
+      "subcategory": "調理器具"
+    },
+    "両手鍋": {
+      "path": "relics/両手鍋.png",
+      "generated_at": "2026-01-08T15:42:42.663349",
+      "subcategory": "調理器具"
+    },
+    "圧力鍋": {
+      "path": "relics/圧力鍋.png",
+      "generated_at": "2026-01-08T15:42:49.431148",
+      "subcategory": "調理器具"
+    },
+    "土鍋": {
+      "path": "relics/土鍋.png",
+      "generated_at": "2026-01-08T15:42:56.478376",
+      "subcategory": "調理器具"
+    },
+    "卵焼き器": {
+      "path": "relics/卵焼き器.png",
+      "generated_at": "2026-01-08T15:43:04.393044",
+      "subcategory": "調理器具"
+    },
+    "グリルパン": {
+      "path": "relics/グリルパン.png",
+      "generated_at": "2026-01-08T15:43:10.631449",
+      "subcategory": "調理器具"
+    },
+    "ホーロー鍋": {
+      "path": "relics/ホーロー鍋.png",
+      "generated_at": "2026-01-08T15:43:16.880398",
+      "subcategory": "調理器具"
+    },
+    "すき焼き鍋": {
+      "path": "relics/すき焼き鍋.png",
+      "generated_at": "2026-01-08T15:43:23.504573",
+      "subcategory": "調理器具"
+    },
+    "天ぷら鍋": {
+      "path": "relics/天ぷら鍋.png",
+      "generated_at": "2026-01-08T15:43:31.422843",
+      "subcategory": "調理器具"
+    },
+    "ミルクパン": {
+      "path": "relics/ミルクパン.png",
+      "generated_at": "2026-01-08T15:43:37.758472",
+      "subcategory": "調理器具"
+    },
+    "パスタ鍋": {
+      "path": "relics/パスタ鍋.png",
+      "generated_at": "2026-01-08T15:43:45.527317",
+      "subcategory": "調理器具"
+    },
+    "蒸し器": {
+      "path": "relics/蒸し器.png",
+      "generated_at": "2026-01-08T15:43:52.032259",
+      "subcategory": "調理器具"
+    },
+    "タジン鍋": {
+      "path": "relics/タジン鍋.png",
+      "generated_at": "2026-01-08T15:43:59.528998",
+      "subcategory": "調理器具"
+    },
+    "炊飯器": {
+      "path": "relics/炊飯器.png",
+      "generated_at": "2026-01-08T15:44:06.028221",
+      "subcategory": "家電"
+    },
+    "電子レンジ": {
+      "path": "relics/電子レンジ.png",
+      "generated_at": "2026-01-08T15:44:12.869620",
+      "subcategory": "家電"
+    },
+    "冷蔵庫": {
+      "path": "relics/冷蔵庫.png",
+      "generated_at": "2026-01-08T15:44:19.470582",
+      "subcategory": "家電"
+    },
+    "オーブン": {
+      "path": "relics/オーブン.png",
+      "generated_at": "2026-01-08T15:44:31.046686",
+      "subcategory": "家電"
+    },
+    "トースター": {
+      "path": "relics/トースター.png",
+      "generated_at": "2026-01-08T15:44:37.930980",
+      "subcategory": "家電"
+    },
+    "オーブンレンジ": {
+      "path": "relics/オーブンレンジ.png",
+      "generated_at": "2026-01-08T15:44:46.737119",
+      "subcategory": "家電"
+    },
+    "電気ケトル": {
+      "path": "relics/電気ケトル.png",
+      "generated_at": "2026-01-08T15:44:54.340624",
+      "subcategory": "家電"
+    },
+    "ホットプレート": {
+      "path": "relics/ホットプレート.png",
+      "generated_at": "2026-01-08T15:45:01.318880",
+      "subcategory": "家電"
+    },
+    "IHクッキングヒーター": {
+      "path": "relics/IHクッキングヒーター.png",
+      "generated_at": "2026-01-08T15:45:09.148195",
+      "subcategory": "家電"
+    },
+    "フードプロセッサー": {
+      "path": "relics/フードプロセッサー.png",
+      "generated_at": "2026-01-08T15:45:15.418900",
+      "subcategory": "家電"
+    },
+    "ミキサー": {
+      "path": "relics/ミキサー.png",
+      "generated_at": "2026-01-08T15:45:22.242851",
+      "subcategory": "家電"
+    },
+    "ジューサー": {
+      "path": "relics/ジューサー.png",
+      "generated_at": "2026-01-08T15:45:29.892054",
+      "subcategory": "家電"
+    },
+    "コーヒーメーカー": {
+      "path": "relics/コーヒーメーカー.png",
+      "generated_at": "2026-01-08T15:45:37.229969",
+      "subcategory": "家電"
+    },
+    "電気圧力鍋": {
+      "path": "relics/電気圧力鍋.png",
+      "generated_at": "2026-01-08T15:45:44.175882",
+      "subcategory": "家電"
+    },
+    "スチームオーブン": {
+      "path": "relics/スチームオーブン.png",
+      "generated_at": "2026-01-08T15:45:53.829548",
+      "subcategory": "家電"
+    },
+    "冷凍庫": {
+      "path": "relics/冷凍庫.png",
+      "generated_at": "2026-01-08T15:46:00.443276",
+      "subcategory": "家電"
+    },
+    "ヨーグルトメーカー": {
+      "path": "relics/ヨーグルトメーカー.png",
+      "generated_at": "2026-01-08T15:46:07.045778",
+      "subcategory": "家電"
+    },
+    "パン焼き機": {
+      "path": "relics/パン焼き機.png",
+      "generated_at": "2026-01-08T15:46:16.635906",
+      "subcategory": "家電"
+    },
+    "精米機": {
+      "path": "relics/精米機.png",
+      "generated_at": "2026-01-08T15:46:24.851473",
+      "subcategory": "家電"
+    },
+    "低温調理器": {
+      "path": "relics/低温調理器.png",
+      "generated_at": "2026-01-08T15:46:31.536688",
+      "subcategory": "家電"
+    },
+    "三徳包丁": {
+      "path": "relics/三徳包丁.png",
+      "generated_at": "2026-01-08T15:46:40.871921",
+      "subcategory": "刃物"
+    },
+    "出刃包丁": {
+      "path": "relics/出刃包丁.png",
+      "generated_at": "2026-01-08T15:46:48.917159",
+      "subcategory": "刃物"
+    },
+    "柳刃包丁": {
+      "path": "relics/柳刃包丁.png",
+      "generated_at": "2026-01-08T15:46:58.052543",
+      "subcategory": "刃物"
+    },
+    "菜切り包丁": {
+      "path": "relics/菜切り包丁.png",
+      "generated_at": "2026-01-08T15:47:04.694313",
+      "subcategory": "刃物"
+    },
+    "ペティナイフ": {
+      "path": "relics/ペティナイフ.png",
+      "generated_at": "2026-01-08T15:47:13.744631",
+      "subcategory": "刃物"
+    },
+    "パン切り包丁": {
+      "path": "relics/パン切り包丁.png",
+      "generated_at": "2026-01-08T15:47:19.762387",
+      "subcategory": "刃物"
+    },
+    "骨スキ包丁": {
+      "path": "relics/骨スキ包丁.png",
+      "generated_at": "2026-01-08T15:47:26.168180",
+      "subcategory": "刃物"
+    },
+    "キッチンバサミ": {
+      "path": "relics/キッチンバサミ.png",
+      "generated_at": "2026-01-08T15:47:33.489097",
+      "subcategory": "刃物"
+    },
+    "ピーラー": {
+      "path": "relics/ピーラー.png",
+      "generated_at": "2026-01-08T15:47:40.994391",
+      "subcategory": "刃物"
+    },
+    "スライサー": {
+      "path": "relics/スライサー.png",
+      "generated_at": "2026-01-08T15:47:46.957604",
+      "subcategory": "刃物"
+    },
+    "おろし金": {
+      "path": "relics/おろし金.png",
+      "generated_at": "2026-01-08T15:47:53.275748",
+      "subcategory": "刃物"
+    },
+    "千切りスライサー": {
+      "path": "relics/千切りスライサー.png",
+      "generated_at": "2026-01-08T15:48:00.225919",
+      "subcategory": "刃物"
+    },
+    "みじん切り器": {
+      "path": "relics/みじん切り器.png",
+      "generated_at": "2026-01-08T15:48:06.406952",
+      "subcategory": "刃物"
+    },
+    "うろこ取り": {
+      "path": "relics/うろこ取り.png",
+      "generated_at": "2026-01-08T15:48:13.909644",
+      "subcategory": "刃物"
+    },
+    "肉たたき": {
+      "path": "relics/肉たたき.png",
+      "generated_at": "2026-01-08T15:48:20.562461",
+      "subcategory": "刃物"
+    },
+    "計量カップ": {
+      "path": "relics/計量カップ.png",
+      "generated_at": "2026-01-08T15:48:27.144550",
+      "subcategory": "計量"
+    },
+    "計量スプーン": {
+      "path": "relics/計量スプーン.png",
+      "generated_at": "2026-01-08T15:48:34.673053",
+      "subcategory": "計量"
+    },
+    "キッチンスケール": {
+      "path": "relics/キッチンスケール.png",
+      "generated_at": "2026-01-08T15:48:44.945990",
+      "subcategory": "計量"
+    },
+    "キッチンタイマー": {
+      "path": "relics/キッチンタイマー.png",
+      "generated_at": "2026-01-08T15:48:52.561202",
+      "subcategory": "計量"
+    },
+    "温度計": {
+      "path": "relics/温度計.png",
+      "generated_at": "2026-01-08T15:49:03.147774",
+      "subcategory": "計量"
+    },
+    "ボウル（大）": {
+      "path": "relics/ボウル（大）.png",
+      "generated_at": "2026-01-08T15:49:13.469051",
+      "subcategory": "計量"
+    },
+    "ボウル（小）": {
+      "path": "relics/ボウル（小）.png",
+      "generated_at": "2026-01-08T15:49:20.851631",
+      "subcategory": "計量"
+    },
+    "ざる": {
+      "path": "relics/ざる.png",
+      "generated_at": "2026-01-08T15:49:27.648362",
+      "subcategory": "計量"
+    },
+    "バット": {
+      "path": "relics/バット.png",
+      "generated_at": "2026-01-08T15:49:37.185073",
+      "subcategory": "計量"
+    },
+    "泡立て器": {
+      "path": "relics/泡立て器.png",
+      "generated_at": "2026-01-08T15:49:42.998100",
+      "subcategory": "計量"
+    },
+    "木べら": {
+      "path": "relics/木べら.png",
+      "generated_at": "2026-01-08T15:49:50.969942",
+      "subcategory": "計量"
+    },
+    "フライ返し": {
+      "path": "relics/フライ返し.png",
+      "generated_at": "2026-01-08T15:49:59.369191",
+      "subcategory": "計量"
+    },
+    "おたま": {
+      "path": "relics/おたま.png",
+      "generated_at": "2026-01-08T15:50:05.783164",
+      "subcategory": "計量"
+    },
+    "トング": {
+      "path": "relics/トング.png",
+      "generated_at": "2026-01-08T15:50:12.095070",
+      "subcategory": "計量"
+    },
+    "菜箸": {
+      "path": "relics/菜箸.png",
+      "generated_at": "2026-01-08T15:50:19.307720",
+      "subcategory": "計量"
+    },
+    "保存容器セット": {
+      "path": "relics/保存容器セット.png",
+      "generated_at": "2026-01-08T15:50:25.536366",
+      "subcategory": "保存"
+    },
+    "ラップ": {
+      "path": "relics/ラップ.png",
+      "generated_at": "2026-01-08T15:50:32.530431",
+      "subcategory": "保存"
+    },
+    "アルミホイル": {
+      "path": "relics/アルミホイル.png",
+      "generated_at": "2026-01-08T15:50:38.686880",
+      "subcategory": "保存"
+    },
+    "ジップロック": {
+      "path": "relics/ジップロック.png",
+      "generated_at": "2026-01-08T15:50:45.307489",
+      "subcategory": "保存"
+    },
+    "真空パック機": {
+      "path": "relics/真空パック機.png",
+      "generated_at": "2026-01-08T15:50:51.595333",
+      "subcategory": "保存"
+    },
+    "漬物容器": {
+      "path": "relics/漬物容器.png",
+      "generated_at": "2026-01-08T15:50:57.864637",
+      "subcategory": "保存"
+    },
+    "米びつ": {
+      "path": "relics/米びつ.png",
+      "generated_at": "2026-01-08T15:51:04.909531",
+      "subcategory": "保存"
+    },
+    "オイルポット": {
+      "path": "relics/オイルポット.png",
+      "generated_at": "2026-01-08T15:51:14.136204",
+      "subcategory": "保存"
+    },
+    "調味料ラック": {
+      "path": "relics/調味料ラック.png",
+      "generated_at": "2026-01-08T15:51:21.278118",
+      "subcategory": "保存"
+    },
+    "スパイスラック": {
+      "path": "relics/スパイスラック.png",
+      "generated_at": "2026-01-08T15:51:27.474810",
+      "subcategory": "保存"
+    },
+    "野菜ストッカー": {
+      "path": "relics/野菜ストッカー.png",
+      "generated_at": "2026-01-08T15:51:33.978648",
+      "subcategory": "保存"
+    },
+    "ブレッドケース": {
+      "path": "relics/ブレッドケース.png",
+      "generated_at": "2026-01-08T15:51:43.130311",
+      "subcategory": "保存"
+    },
+    "乾物入れ": {
+      "path": "relics/乾物入れ.png",
+      "generated_at": "2026-01-08T15:51:49.515430",
+      "subcategory": "保存"
+    },
+    "果物かご": {
+      "path": "relics/果物かご.png",
+      "generated_at": "2026-01-08T15:51:56.442454",
+      "subcategory": "保存"
+    },
+    "ワインセラー": {
+      "path": "relics/ワインセラー.png",
+      "generated_at": "2026-01-08T15:52:02.607446",
+      "subcategory": "保存"
+    },
+    "寿司桶": {
+      "path": "relics/寿司桶.png",
+      "generated_at": "2026-01-08T15:52:13.170893",
+      "subcategory": "専門"
+    },
+    "蕎麦打ちセット": {
+      "path": "relics/蕎麦打ちセット.png",
+      "generated_at": "2026-01-08T15:52:20.418275",
+      "subcategory": "専門"
+    },
+    "製麺機": {
+      "path": "relics/製麺機.png",
+      "generated_at": "2026-01-08T15:52:28.584598",
+      "subcategory": "専門"
+    },
+    "燻製器": {
+      "path": "relics/燻製器.png",
+      "generated_at": "2026-01-08T15:52:34.717864",
+      "subcategory": "専門"
+    },
+    "チーズフォンデュ鍋": {
+      "path": "relics/チーズフォンデュ鍋.png",
+      "generated_at": "2026-01-08T15:52:41.267622",
+      "subcategory": "専門"
+    },
+    "ワッフルメーカー": {
+      "path": "relics/ワッフルメーカー.png",
+      "generated_at": "2026-01-08T15:52:53.246463",
+      "subcategory": "専門"
+    },
+    "ピザストーン": {
+      "path": "relics/ピザストーン.png",
+      "generated_at": "2026-01-08T15:52:59.361073",
+      "subcategory": "専門"
+    },
+    "餅つき機": {
+      "path": "relics/餅つき機.png",
+      "generated_at": "2026-01-08T15:53:05.546143",
+      "subcategory": "専門"
+    },
+    "アイスクリームメーカー": {
+      "path": "relics/アイスクリームメーカー.png",
+      "generated_at": "2026-01-08T15:53:11.759558",
+      "subcategory": "専門"
+    },
+    "シリコンスチーマー": {
+      "path": "relics/シリコンスチーマー.png",
+      "generated_at": "2026-01-08T15:53:18.377591",
+      "subcategory": "便利"
+    },
+    "レンジ用蒸し器": {
+      "path": "relics/レンジ用蒸し器.png",
+      "generated_at": "2026-01-08T15:53:24.861834",
+      "subcategory": "便利"
+    },
+    "電子レンジパスタ調理器": {
+      "path": "relics/電子レンジパスタ調理器.png",
+      "generated_at": "2026-01-08T15:53:32.236125",
+      "subcategory": "便利"
+    },
+    "野菜水切り器": {
+      "path": "relics/野菜水切り器.png",
+      "generated_at": "2026-01-08T15:53:40.331595",
+      "subcategory": "便利"
+    },
+    "にんにく絞り器": {
+      "path": "relics/にんにく絞り器.png",
+      "generated_at": "2026-01-08T15:53:49.443131",
+      "subcategory": "便利"
+    },
+    "レモン絞り器": {
+      "path": "relics/レモン絞り器.png",
+      "generated_at": "2026-01-08T15:53:57.248790",
+      "subcategory": "便利"
+    },
+    "エッグスライサー": {
+      "path": "relics/エッグスライサー.png",
+      "generated_at": "2026-01-08T15:54:05.214566",
+      "subcategory": "便利"
+    },
+    "バターケース": {
+      "path": "relics/バターケース.png",
+      "generated_at": "2026-01-08T15:54:13.717597",
+      "subcategory": "便利"
+    },
+    "まな板スタンド": {
+      "path": "relics/まな板スタンド.png",
+      "generated_at": "2026-01-08T15:54:21.997108",
+      "subcategory": "便利"
+    },
+    "包丁スタンド": {
+      "path": "relics/包丁スタンド.png",
+      "generated_at": "2026-01-08T15:54:28.509286",
+      "subcategory": "便利"
+    },
+    "エコバッグ": {
+      "path": "relics/エコバッグ.png",
+      "generated_at": "2026-01-08T15:54:35.134550",
+      "subcategory": "バッグ"
+    },
+    "保冷バッグ": {
+      "path": "relics/保冷バッグ.png",
+      "generated_at": "2026-01-08T15:54:45.227639",
+      "subcategory": "バッグ"
+    },
+    "マイバスケット": {
+      "path": "relics/マイバスケット.png",
+      "generated_at": "2026-01-08T15:54:52.879962",
+      "subcategory": "バッグ"
+    },
+    "キャリーカート": {
+      "path": "relics/キャリーカート.png",
+      "generated_at": "2026-01-08T15:54:59.025142",
+      "subcategory": "バッグ"
+    },
+    "リュックサック": {
+      "path": "relics/リュックサック.png",
+      "generated_at": "2026-01-08T15:55:04.764400",
+      "subcategory": "バッグ"
+    }
+  },
+  "recipes": {
+    "カレーライス": {
+      "path": "recipes/カレーライス.png",
+      "generated_at": "2026-01-08T15:55:19.122003",
+      "subcategory": "料理"
+    },
+    "肉じゃが": {
+      "path": "recipes/肉じゃが.png",
+      "generated_at": "2026-01-08T15:55:25.887496",
+      "subcategory": "料理"
+    },
+    "親子丼": {
+      "path": "recipes/親子丼.png",
+      "generated_at": "2026-01-08T15:55:32.057140",
+      "subcategory": "料理"
+    },
+    "豚キムチ": {
+      "path": "recipes/豚キムチ.png",
+      "generated_at": "2026-01-08T15:55:39.182047",
+      "subcategory": "料理"
+    },
+    "麻婆豆腐": {
+      "path": "recipes/麻婆豆腐.png",
+      "generated_at": "2026-01-08T15:55:45.625747",
+      "subcategory": "料理"
+    },
+    "TKG（卵かけごはん）": {
+      "path": "recipes/TKG（卵かけごはん）.png",
+      "generated_at": "2026-01-08T15:55:51.513646",
+      "subcategory": "料理"
+    },
+    "納豆ごはん": {
+      "path": "recipes/納豆ごはん.png",
+      "generated_at": "2026-01-08T15:56:01.271637",
+      "subcategory": "料理"
+    },
+    "目玉焼き定食": {
+      "path": "recipes/目玉焼き定食.png",
+      "generated_at": "2026-01-08T15:56:08.119986",
+      "subcategory": "料理"
+    },
+    "ナポリタン": {
+      "path": "recipes/ナポリタン.png",
+      "generated_at": "2026-01-08T15:56:16.280559",
+      "subcategory": "料理"
+    },
+    "焼きうどん": {
+      "path": "recipes/焼きうどん.png",
+      "generated_at": "2026-01-08T15:56:22.523491",
+      "subcategory": "料理"
+    },
+    "カルボナーラ": {
+      "path": "recipes/カルボナーラ.png",
+      "generated_at": "2026-01-08T15:56:29.638835",
+      "subcategory": "料理"
+    },
+    "豚しゃぶサラダ": {
+      "path": "recipes/豚しゃぶサラダ.png",
+      "generated_at": "2026-01-08T15:56:38.372280",
+      "subcategory": "料理"
+    },
+    "ほうれん草のおひたし": {
+      "path": "recipes/ほうれん草のおひたし.png",
+      "generated_at": "2026-01-08T15:56:46.573432",
+      "subcategory": "料理"
+    },
+    "サーモン丼": {
+      "path": "recipes/サーモン丼.png",
+      "generated_at": "2026-01-08T15:56:53.889322",
+      "subcategory": "料理"
+    },
+    "アジフライ定食": {
+      "path": "recipes/アジフライ定食.png",
+      "generated_at": "2026-01-08T15:57:01.118663",
+      "subcategory": "料理"
+    },
+    "豚汁": {
+      "path": "recipes/豚汁.png",
+      "generated_at": "2026-01-08T15:57:07.701674",
+      "subcategory": "料理"
+    },
+    "味噌汁": {
+      "path": "recipes/味噌汁.png",
+      "generated_at": "2026-01-08T15:57:14.368383",
+      "subcategory": "料理"
+    },
+    "オムライス": {
+      "path": "recipes/オムライス.png",
+      "generated_at": "2026-01-08T15:57:20.375076",
+      "subcategory": "料理"
+    },
+    "チャーハン": {
+      "path": "recipes/チャーハン.png",
+      "generated_at": "2026-01-08T15:57:27.145769",
+      "subcategory": "料理"
+    },
+    "野菜炒め": {
+      "path": "recipes/野菜炒め.png",
+      "generated_at": "2026-01-08T15:57:34.343116",
+      "subcategory": "料理"
+    },
+    "豚の生姜焼き": {
+      "path": "recipes/豚の生姜焼き.png",
+      "generated_at": "2026-01-08T15:57:41.226471",
+      "subcategory": "料理"
+    },
+    "ニラレバ炒め": {
+      "path": "recipes/ニラレバ炒め.png",
+      "generated_at": "2026-01-08T15:57:49.595884",
+      "subcategory": "料理"
+    },
+    "シーフードサラダ": {
+      "path": "recipes/シーフードサラダ.png",
+      "generated_at": "2026-01-08T15:57:57.432908",
+      "subcategory": "料理"
+    },
+    "きのこの炊き込みご飯": {
+      "path": "recipes/きのこの炊き込みご飯.png",
+      "generated_at": "2026-01-08T15:58:04.059299",
+      "subcategory": "料理"
+    },
+    "オムレツ": {
+      "path": "recipes/オムレツ.png",
+      "generated_at": "2026-01-08T15:58:10.515316",
+      "subcategory": "料理"
+    },
+    "鶏そぼろ丼": {
+      "path": "recipes/鶏そぼろ丼.png",
+      "generated_at": "2026-01-08T15:58:17.396318",
+      "subcategory": "料理"
+    },
+    "肉うどん": {
+      "path": "recipes/肉うどん.png",
+      "generated_at": "2026-01-08T15:58:23.731717",
+      "subcategory": "料理"
+    }
+  }
+}

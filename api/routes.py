@@ -373,7 +373,11 @@ def buy_from_shop(session_id: str, request: ShopBuyRequest) -> GameState:
     game = _get_game_or_404(session_id)
     current_day = game.day_state.day
 
-    shop_items = generate_daily_shop_items(seed=current_day)
+    # 遠くのスーパーか通常のスーパーかでアイテムリストを切り替え
+    if request.is_distant:
+        shop_items = generate_distant_shop_items(seed=current_day)
+    else:
+        shop_items = generate_daily_shop_items(seed=current_day)
     shop_dict = {item.ingredient.name: item for item in shop_items}
 
     total_cost = 0
