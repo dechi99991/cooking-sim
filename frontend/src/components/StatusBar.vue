@@ -4,6 +4,17 @@ import { storeToRefs } from 'pinia'
 
 const store = useGameStore()
 const { state } = storeToRefs(store)
+
+// カテゴリ別アイコン
+function getCategoryIcon(category: string): string {
+  const icons: Record<string, string> = {
+    event: '🎉',
+    work: '💼',
+    life: '🏠',
+    nutrition: '🥗',
+  }
+  return icons[category] || '❓'
+}
 </script>
 
 <template>
@@ -13,6 +24,11 @@ const { state } = storeToRefs(store)
       <span class="weather">{{ state.weather }}</span>
       <span class="phase">{{ state.phase_display }}</span>
       <span v-if="state.is_holiday" class="holiday">休日</span>
+      <!-- ボス情報 -->
+      <span v-if="state.current_boss" class="boss-indicator" :class="state.current_boss.category">
+        <span class="boss-icon">{{ getCategoryIcon(state.current_boss.category) }}</span>
+        <span class="boss-name">{{ state.current_boss.name }}</span>
+      </span>
     </div>
     <div class="stats">
       <div class="stat">
@@ -115,5 +131,44 @@ const { state } = storeToRefs(store)
 .debt {
   color: #e74c3c;
   font-size: 0.9em;
+}
+
+.boss-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  animation: pulse 2s infinite;
+}
+
+.boss-indicator.event {
+  background: #9b59b6;
+}
+
+.boss-indicator.work {
+  background: #2980b9;
+}
+
+.boss-indicator.life {
+  background: #27ae60;
+}
+
+.boss-indicator.nutrition {
+  background: #f39c12;
+}
+
+.boss-icon {
+  font-size: 1em;
+}
+
+.boss-name {
+  font-size: 0.9em;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
 }
 </style>

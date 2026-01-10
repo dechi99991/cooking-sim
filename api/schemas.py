@@ -129,8 +129,37 @@ class TemperamentInfo(BaseModel):
     icon: str
 
 
+class WeeklyBossInfo(BaseModel):
+    """週間ボス情報（月曜予告用）"""
+    id: str
+    name: str
+    description: str  # 予告文
+    category: str  # event, work, life, nutrition
+    requirements_text: str  # 条件の人間可読形式
+    required_money: int = 0
+    required_energy: int = 0
+    required_stamina: int = 0
+    required_item: str | None = None
+    required_nutrition: dict = {}  # {"mental": 20} など
+    required_all_nutrients: int = 0
+
+
+class BossResult(BaseModel):
+    """金曜ボスイベント結果"""
+    boss_id: str
+    boss_name: str
+    category: str
+    success: bool
+    requirements_text: str
+    energy_change: int
+    stamina_change: int
+    money_change: int  # 報酬 - 借金
+    message: str
+    weekly_nutrition: NutritionState  # 週間累計栄養
+
+
 class WeeklyEvaluation(BaseModel):
-    """週間評価結果（金曜ボスイベント）"""
+    """週間評価結果（金曜ボスイベント）- 旧互換用"""
     rank: str  # SS, S, A, B, C, F
     nutrition_grade: str  # S, A, B, C, D, E
     nutrients_ok: int  # 閾値達成数 (0-5)
@@ -191,6 +220,10 @@ class GameState(BaseModel):
     # 気質システム
     temperament: TemperamentInfo | None  # 判定された気質（4日目以降）
     temperament_just_revealed: bool  # 気質が今回発表されたか
+
+    # 週間ボスシステム
+    current_boss: WeeklyBossInfo | None = None  # 今週のボス
+    should_show_boss_preview: bool = False  # ボス予告を表示すべきか
 
 
 class StartGameResponse(BaseModel):
@@ -307,4 +340,5 @@ class AdvancePhaseResponse(BaseModel):
     salary_info: dict | None = None
     bonus_info: dict | None = None
     encouragement_message: str | None = None
-    weekly_evaluation: WeeklyEvaluation | None = None  # 金曜ボスイベント結果
+    weekly_evaluation: WeeklyEvaluation | None = None  # 旧互換用
+    boss_result: BossResult | None = None  # 金曜ボスイベント結果（新）

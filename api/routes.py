@@ -24,7 +24,7 @@ from .schemas import (
     OnlineShopBuyRequest, OnlineShopResponse, OnlineProvisionInfo, OnlineRelicInfo,
     EatProvisionRequest,
     HolidayActionRequest,
-    AdvancePhaseResponse, WeeklyEvaluation,
+    AdvancePhaseResponse, WeeklyEvaluation, BossResult, WeeklyBossInfo,
     RecipesResponse, NamedRecipeInfo,
     GameState, PlayerState, NutritionState, StockItem, ProvisionItem,
     PreparedItem, PendingDeliveryItem, EventInfo, DishInfo, CharacterInfo,
@@ -210,6 +210,8 @@ def _build_game_state(session_id: str, game) -> GameState:
         shopping_will_cause_game_over=shopping_will_cause_game_over,
         temperament=_build_temperament_info(game),
         temperament_just_revealed=game.temperament_just_revealed,
+        current_boss=_build_boss_info(game),
+        should_show_boss_preview=game.should_show_boss_preview(),
     )
 
 
@@ -224,6 +226,26 @@ def _build_temperament_info(game):
         name=temp_info['name'],
         description=temp_info['description'],
         icon=temp_info['icon'],
+    )
+
+
+def _build_boss_info(game):
+    """週間ボス情報を構築"""
+    boss_info = game.get_boss_info()
+    if boss_info is None:
+        return None
+    return WeeklyBossInfo(
+        id=boss_info['id'],
+        name=boss_info['name'],
+        description=boss_info['description'],
+        category=boss_info['category'],
+        requirements_text=boss_info['requirements_text'],
+        required_money=boss_info['required_money'],
+        required_energy=boss_info['required_energy'],
+        required_stamina=boss_info['required_stamina'],
+        required_item=boss_info['required_item'],
+        required_nutrition=boss_info['required_nutrition'],
+        required_all_nutrients=boss_info['required_all_nutrients'],
     )
 
 
@@ -884,6 +906,7 @@ def advance_phase(session_id: str) -> AdvancePhaseResponse:
     bonus_info = None
     encouragement_message = None
     weekly_evaluation = None
+    boss_result = None
 
     # UIが不要なフェーズは自動スキップ（出勤・退勤のみ）
     auto_skip_phases = [
@@ -916,22 +939,28 @@ def advance_phase(session_id: str) -> AdvancePhaseResponse:
             events.extend(_trigger_events(game, EventTiming.LEAVE_WORK))
             game.commute()
 
-            # 金曜日なら週の総決算（ボスイベント）
-            if game.is_friday():
-                eval_result = game.execute_friday_boss_event()
-                weekly_evaluation = WeeklyEvaluation(
-                    rank=eval_result['rank'],
-                    nutrition_grade=eval_result['nutrition_grade'],
-                    nutrients_ok=eval_result['nutrients_ok'],
-                    saving_success=eval_result['saving_success'],
-                    overspending=eval_result['overspending'],
-                    food_spending=eval_result['food_spending'],
-                    meals_cooked=eval_result['meals_cooked'],
-                    energy_change=eval_result['energy_change'],
-                    stamina_change=eval_result['stamina_change'],
-                    money_change=eval_result['money_change'],
-                    message=eval_result['message'],
-                )
+            # 金曜日なら週間ボスイベント
+            if game.is_friday() and game.current_boss is not None:
+                result = game.execute_friday_boss_event()
+                if result:
+                    boss_result = BossResult(
+                        boss_id=result['boss_id'],
+                        boss_name=result['boss_name'],
+                        category=result['category'],
+                        success=result['success'],
+                        requirements_text=result['requirements_text'],
+                        energy_change=result['energy_change'],
+                        stamina_change=result['stamina_change'],
+                        money_change=result['money_change'],
+                        message=result['message'],
+                        weekly_nutrition=NutritionState(
+                            vitality=result['weekly_nutrition']['vitality'],
+                            mental=result['weekly_nutrition']['mental'],
+                            awakening=result['weekly_nutrition']['awakening'],
+                            sustain=result['weekly_nutrition']['sustain'],
+                            defense=result['weekly_nutrition']['defense'],
+                        ),
+                    )
 
         elif current_phase == GamePhase.SLEEP:
             # 就寝処理
@@ -974,7 +1003,18 @@ def advance_phase(session_id: str) -> AdvancePhaseResponse:
         bonus_info=bonus_info,
         encouragement_message=encouragement_message,
         weekly_evaluation=weekly_evaluation,
+        boss_result=boss_result,
     )
+
+
+# === ボス関連 ===
+
+@router.post("/game/{session_id}/boss-preview-shown")
+def mark_boss_preview_shown(session_id: str) -> GameState:
+    """ボス予告を表示済みにする"""
+    game = _get_game_or_404(session_id)
+    game.mark_boss_preview_shown()
+    return _build_game_state(session_id, game)
 
 
 # === 休日アクション ===

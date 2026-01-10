@@ -12,6 +12,7 @@ from .events import EventManager
 from .event_data import register_all_events
 from .character import get_character
 from .temperament import BehaviorTracker, get_temperament, calculate_nutrition_balance
+from .weekly_boss import WeeklyBoss, select_weekly_boss, get_week_number
 from .constants import (
     COOKING_ENERGY_COST, BENTO_ENERGY_COST, COMMUTE_STAMINA_COST,
     CAFETERIA_PRICE, SLEEP_ENERGY_RECOVERY, SLEEP_STAMINA_RECOVERY,
@@ -274,6 +275,10 @@ class GameManager:
         self._daily_cooked = False  # 1日に自炊したか
         self.temperament_id: str | None = None  # 判定された気質ID
         self.temperament_just_revealed: bool = False  # 気質が今発表されたかどうか
+        # 週間ボス関連
+        self.current_boss: WeeklyBoss | None = None  # 今週のボス
+        self.boss_preview_shown: bool = False  # 月曜にボス予告を表示したか
+        self.boss_result: dict | None = None  # 金曜のボス結果
         # キャラクター別の給料・ボーナス・家賃
         self._salary_amount = salary_amount if salary_amount is not None else SALARY_AMOUNT
         self._bonus_amount = bonus_amount if bonus_amount is not None else BONUS_AMOUNT
@@ -487,9 +492,14 @@ class GameManager:
 
         self.day_state.start_new_day()
 
-        # 週末から月曜日に移行したら週間統計をリセット
+        # 週末から月曜日に移行したら週間統計をリセット & 新しいボスを選択
         if was_weekend:
             self.weekly_stats.reset()
+            # 週番号を計算してボスを選択（2週目以降）
+            week_number = get_week_number(self.day_state.day)
+            self.current_boss = select_weekly_boss(week_number, seed=self.day_state.day)
+            self.boss_preview_shown = False
+            self.boss_result = None
 
         # 日次の食費・自炊フラグをリセット
         self._daily_food_spending = 0
@@ -592,46 +602,107 @@ class GameManager:
 
         return False
 
-    def execute_friday_boss_event(self) -> dict:
-        """金曜ボスイベントを実行し、評価結果を返す"""
-        eval_result = self.weekly_stats.evaluate()
-        grade = eval_result['nutrition_grade']
-        saving = eval_result['saving_success']
-        overspending = eval_result['overspending']
+    def should_show_boss_preview(self) -> bool:
+        """ボス予告を表示すべきか（月曜朝、未表示、ボスあり）"""
+        if self.current_boss is None:
+            return False
+        if self.boss_preview_shown:
+            return False
+        # 月曜日（weekday=0）かつ朝食フェーズ
+        return (self.day_state.get_weekday() == 0 and
+                self.day_state.phase == GamePhase.BREAKFAST)
+
+    def mark_boss_preview_shown(self):
+        """ボス予告を表示済みにする"""
+        self.boss_preview_shown = True
+
+    def get_boss_info(self) -> dict | None:
+        """現在のボス情報を取得"""
+        if self.current_boss is None:
+            return None
+        return {
+            'id': self.current_boss.id,
+            'name': self.current_boss.name,
+            'description': self.current_boss.description,
+            'category': self.current_boss.category,
+            'requirements_text': self.current_boss.get_requirements_text(),
+            'required_money': self.current_boss.required_money,
+            'required_energy': self.current_boss.required_energy,
+            'required_stamina': self.current_boss.required_stamina,
+            'required_item': self.current_boss.required_item,
+            'required_nutrition': self.current_boss.required_nutrition,
+            'required_all_nutrients': self.current_boss.required_all_nutrients,
+        }
+
+    def check_boss_conditions(self) -> bool:
+        """ボスの条件を満たしているか確認"""
+        boss = self.current_boss
+        if boss is None:
+            return True
+
+        # 資金チェック
+        if boss.required_money > 0 and self.player.money < boss.required_money:
+            return False
+
+        # 気力チェック
+        if boss.required_energy > 0 and self.player.energy < boss.required_energy:
+            return False
+
+        # 体力チェック
+        if boss.required_stamina > 0 and self.player.stamina < boss.required_stamina:
+            return False
+
+        # アイテムチェック（将来拡張用）
+        if boss.required_item:
+            # TODO: アイテム所持チェック
+            pass
+
+        # 栄養条件チェック（週間累計）
+        if boss.required_nutrition:
+            weekly = self.weekly_stats.nutrition
+            for nutrient, required in boss.required_nutrition.items():
+                actual = getattr(weekly, nutrient, 0)
+                if actual < required:
+                    return False
+
+        # 全栄養素条件チェック
+        if boss.required_all_nutrients > 0:
+            weekly = self.weekly_stats.nutrition
+            threshold = boss.required_all_nutrients
+            if (weekly.vitality < threshold or
+                weekly.mental < threshold or
+                weekly.awakening < threshold or
+                weekly.sustain < threshold or
+                weekly.defense < threshold):
+                return False
+
+        return True
+
+    def execute_friday_boss_event(self) -> dict | None:
+        """金曜ボスイベントを実行し、結果を返す"""
+        boss = self.current_boss
+        if boss is None:
+            return None
+
+        success = self.check_boss_conditions()
 
         energy_change = 0
         stamina_change = 0
         money_change = 0
-        message = ""
+        debt_change = 0
 
-        # 総合評価
-        if grade == 'S' and saving:
-            rank = 'SS'
-            energy_change = 3
-            stamina_change = 2
-            money_change = 1000
-            message = "完璧な一週間！栄養バランスも節約もバッチリ！"
-        elif grade in ['S', 'A'] and saving:
-            rank = 'S'
-            energy_change = 2
-            stamina_change = 1
-            message = "素晴らしい一週間！よく頑張りました！"
-        elif grade in ['A', 'B'] or (grade in ['S', 'A'] and not saving):
-            rank = 'A'
-            energy_change = 1
-            message = "まずまずの一週間。この調子で！"
-        elif grade in ['B', 'C']:
-            rank = 'B'
-            message = "可もなく不可もなく。来週も頑張ろう。"
-        elif grade == 'D':
-            rank = 'C'
-            energy_change = -1
-            message = "ちょっと栄養が偏ってるかも...来週は気をつけよう。"
-        else:  # E grade or E with overspending
-            rank = 'F'
-            energy_change = -2
-            stamina_change = -1
-            message = "うーん...栄養も節約もちょっと厳しい結果に...来週こそ！"
+        if success:
+            # 報酬適用
+            energy_change = boss.reward_energy
+            stamina_change = boss.reward_stamina
+            money_change = boss.reward_money
+            message = boss.success_message
+        else:
+            # ペナルティ適用
+            energy_change = -boss.penalty_energy
+            stamina_change = -boss.penalty_stamina
+            debt_change = boss.penalty_debt
+            message = boss.failure_message
 
         # 効果を適用
         if energy_change > 0:
@@ -647,19 +718,32 @@ class GameManager:
         if money_change > 0:
             self.player.money += money_change
 
-        return {
-            'rank': rank,
-            'nutrition_grade': grade,
-            'nutrients_ok': eval_result['nutrients_ok'],
-            'saving_success': saving,
-            'overspending': overspending,
-            'food_spending': eval_result['food_spending'],
-            'meals_cooked': eval_result['meals_cooked'],
+        # 借金（ペナルティ）: 所持金から引く、マイナスになる可能性あり
+        if debt_change > 0:
+            self.player.money -= debt_change
+
+        result = {
+            'boss_id': boss.id,
+            'boss_name': boss.name,
+            'category': boss.category,
+            'success': success,
+            'requirements_text': boss.get_requirements_text(),
             'energy_change': energy_change,
             'stamina_change': stamina_change,
-            'money_change': money_change,
+            'money_change': money_change - debt_change,  # 正味の金銭変動
             'message': message,
+            # 詳細情報
+            'weekly_nutrition': {
+                'vitality': self.weekly_stats.nutrition.vitality,
+                'mental': self.weekly_stats.nutrition.mental,
+                'awakening': self.weekly_stats.nutrition.awakening,
+                'sustain': self.weekly_stats.nutrition.sustain,
+                'defense': self.weekly_stats.nutrition.defense,
+            },
         }
+
+        self.boss_result = result
+        return result
 
     def is_bonus_day(self) -> bool:
         """今日がボーナス支給日かどうか"""

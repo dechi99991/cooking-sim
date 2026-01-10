@@ -161,3 +161,9 @@ export async function holidayAction(sessionId: string, action: string): Promise<
   const res = await api.post(`/api/game/${sessionId}/holiday-action`, { action })
   return res.data
 }
+
+// ボス予告を表示済みにする
+export async function markBossPreviewShown(sessionId: string): Promise<GameState> {
+  const res = await api.post(`/api/game/${sessionId}/boss-preview-shown`)
+  return res.data
+}

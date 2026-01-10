@@ -13,6 +13,7 @@ import type {
   NutritionState,
   AutoConsumeInfo,
   WeeklyEvaluation,
+  BossResult,
 } from '../types'
 import * as api from '../api/game'
 
@@ -36,6 +37,7 @@ export const useGameStore = defineStore('game', () => {
   const lastEncouragementMessage = ref<string | null>(null)
   const lastAutoConsume = ref<AutoConsumeInfo | null>(null)
   const lastWeeklyEvaluation = ref<WeeklyEvaluation | null>(null)
+  const lastBossResult = ref<BossResult | null>(null)
 
   // ショップデータ
   const shopData = ref<ShopResponse | null>(null)
@@ -90,6 +92,7 @@ export const useGameStore = defineStore('game', () => {
       lastSalaryInfo.value = null
       lastBonusInfo.value = null
       lastWeeklyEvaluation.value = null
+      lastBossResult.value = null
     } catch (e: any) {
       error.value = e.message
     } finally {
@@ -329,6 +332,7 @@ export const useGameStore = defineStore('game', () => {
       lastBonusInfo.value = result.bonus_info
       lastEncouragementMessage.value = result.encouragement_message ?? null
       lastWeeklyEvaluation.value = result.weekly_evaluation ?? null
+      lastBossResult.value = result.boss_result ?? null
     } catch (e: any) {
       error.value = e.message
     } finally {
@@ -348,6 +352,18 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
+  async function markBossPreviewShown() {
+    if (!sessionId.value) return
+    loading.value = true
+    try {
+      state.value = await api.markBossPreviewShown(sessionId.value)
+    } catch (e: any) {
+      error.value = e.message
+    } finally {
+      loading.value = false
+    }
+  }
+
   function resetGame() {
     sessionId.value = null
     state.value = null
@@ -360,6 +376,7 @@ export const useGameStore = defineStore('game', () => {
     lastSalaryInfo.value = null
     lastBonusInfo.value = null
     lastWeeklyEvaluation.value = null
+    lastBossResult.value = null
     shopData.value = null
     onlineShopData.value = null
     recipesData.value = []
@@ -383,6 +400,7 @@ export const useGameStore = defineStore('game', () => {
     lastEncouragementMessage,
     lastAutoConsume,
     lastWeeklyEvaluation,
+    lastBossResult,
     shopData,
     onlineShopData,
     recipesData,
@@ -413,6 +431,7 @@ export const useGameStore = defineStore('game', () => {
     eatPrepared,
     advancePhase,
     doHolidayAction,
+    markBossPreviewShown,
     resetGame,
   }
 })

@@ -16,6 +16,8 @@ import GritRecoveryModal from '../components/GritRecoveryModal.vue'
 import ExhaustedModal from '../components/ExhaustedModal.vue'
 import TemperamentRevealModal from '../components/TemperamentRevealModal.vue'
 import FridayBossModal from '../components/FridayBossModal.vue'
+import BossPreviewModal from '../components/BossPreviewModal.vue'
+import BossResultModal from '../components/BossResultModal.vue'
 
 const router = useRouter()
 const store = useGameStore()
@@ -33,6 +35,7 @@ const {
   lastBonusInfo,
   lastEncouragementMessage,
   lastWeeklyEvaluation,
+  lastBossResult,
 } = storeToRefs(store)
 
 const showEventModal = ref(false)
@@ -40,6 +43,8 @@ const showGritModal = ref(false)
 const showExhaustedModal = ref(false)
 const showTemperamentModal = ref(false)
 const showFridayBossModal = ref(false)
+const showBossPreviewModal = ref(false)
+const showBossResultModal = ref(false)
 
 // ゲームが開始されていない場合はキャラクター選択へ
 onMounted(() => {
@@ -76,14 +81,25 @@ watch(() => state.value?.temperament_just_revealed, (revealed) => {
   }
 })
 
+// ボス予告モーダル表示（月曜朝）
+watch(() => state.value?.should_show_boss_preview, (shouldShow) => {
+  if (shouldShow && state.value?.current_boss) {
+    showBossPreviewModal.value = true
+  }
+})
+
 // フェーズ進行
 async function advance() {
   await store.advancePhase()
-  // 金曜ボスイベントがある場合は先に表示
-  if (lastWeeklyEvaluation.value) {
+  // 新ボス結果がある場合は先に表示
+  if (lastBossResult.value) {
+    showBossResultModal.value = true
+  }
+  // 旧互換: 金曜ボスイベントがある場合は先に表示
+  else if (lastWeeklyEvaluation.value) {
     showFridayBossModal.value = true
   }
-  // イベントがある場合はモーダル表示（金曜ボスモーダル閉じた後に表示）
+  // イベントがある場合はモーダル表示（ボスモーダル閉じた後に表示）
   else if (lastEvents.value.length > 0 || lastDeliveries.value.length > 0 || lastSalaryInfo.value || lastBonusInfo.value || lastEncouragementMessage.value) {
     showEventModal.value = true
   }
@@ -109,6 +125,20 @@ function closeTemperamentModal() {
 function closeFridayBossModal() {
   showFridayBossModal.value = false
   // 金曜ボスモーダル閉じた後に他のイベントがあれば表示
+  if (lastEvents.value.length > 0 || lastDeliveries.value.length > 0 || lastSalaryInfo.value || lastBonusInfo.value || lastEncouragementMessage.value) {
+    showEventModal.value = true
+  }
+}
+
+async function closeBossPreviewModal() {
+  showBossPreviewModal.value = false
+  // ボス予告を表示済みにする
+  await store.markBossPreviewShown()
+}
+
+function closeBossResultModal() {
+  showBossResultModal.value = false
+  // ボス結果モーダル閉じた後に他のイベントがあれば表示
   if (lastEvents.value.length > 0 || lastDeliveries.value.length > 0 || lastSalaryInfo.value || lastBonusInfo.value || lastEncouragementMessage.value) {
     showEventModal.value = true
   }
@@ -308,11 +338,25 @@ const advanceButtonText = computed(() => {
       @close="closeTemperamentModal"
     />
 
-    <!-- 金曜ボスイベントモーダル -->
+    <!-- 金曜ボスイベントモーダル（旧互換） -->
     <FridayBossModal
       :show="showFridayBossModal"
       :evaluation="lastWeeklyEvaluation"
       @close="closeFridayBossModal"
+    />
+
+    <!-- ボス予告モーダル（新） -->
+    <BossPreviewModal
+      :show="showBossPreviewModal"
+      :boss="state?.current_boss ?? null"
+      @close="closeBossPreviewModal"
+    />
+
+    <!-- ボス結果モーダル（新） -->
+    <BossResultModal
+      :show="showBossResultModal"
+      :result="lastBossResult"
+      @close="closeBossResultModal"
     />
   </div>
 </template>

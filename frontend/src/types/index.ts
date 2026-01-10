@@ -61,6 +61,33 @@ export interface TemperamentInfo {
   icon: string
 }
 
+export interface WeeklyBossInfo {
+  id: string
+  name: string
+  description: string  // 予告文
+  category: string  // event, work, life, nutrition
+  requirements_text: string  // 条件の人間可読形式
+  required_money: number
+  required_energy: number
+  required_stamina: number
+  required_item: string | null
+  required_nutrition: Record<string, number>  // {"mental": 20} など
+  required_all_nutrients: number
+}
+
+export interface BossResult {
+  boss_id: string
+  boss_name: string
+  category: string
+  success: boolean
+  requirements_text: string
+  energy_change: number
+  stamina_change: number
+  money_change: number  // 報酬 - 借金
+  message: string
+  weekly_nutrition: NutritionState
+}
+
 export interface GameState {
   session_id: string
   day: number
@@ -94,6 +121,9 @@ export interface GameState {
   // 気質システム
   temperament: TemperamentInfo | null
   temperament_just_revealed: boolean
+  // 週間ボスシステム
+  current_boss: WeeklyBossInfo | null
+  should_show_boss_preview: boolean
 }
 
 export interface CharacterInfo {
@@ -214,7 +244,8 @@ export interface AdvancePhaseResponse {
   salary_info: { gross: number; rent: number; net: number } | null
   bonus_info: { amount: number } | null
   encouragement_message: string | null
-  weekly_evaluation: WeeklyEvaluation | null
+  weekly_evaluation: WeeklyEvaluation | null  // 旧互換用
+  boss_result: BossResult | null  // 新ボスイベント結果
 }
 
 export interface CookPreviewResponse {
