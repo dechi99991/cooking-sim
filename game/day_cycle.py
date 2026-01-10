@@ -261,6 +261,7 @@ class GameManager:
         self.player = player
         self.stock = stock
         self.character_id = character_id  # キャラクターID
+        self.session_seed = random.randint(0, 1000000)  # セッション固有のランダムシード
         self.day_state = DayState()
         self.stats = GameStats()  # 統計収集用
         self.relics = RelicInventory()  # レリック所持

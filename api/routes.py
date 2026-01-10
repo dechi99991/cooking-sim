@@ -354,12 +354,13 @@ def get_shop(session_id: str, is_distant: bool = False) -> ShopResponse:
     """
     game = _get_game_or_404(session_id)
     current_day = game.day_state.day
+    seed = game.session_seed + current_day  # セッション固有のシード
 
     # 遠くのスーパーか近所のスーパーかで商品を切り替え
     if is_distant:
-        shop_items = generate_distant_shop_items(seed=current_day)
+        shop_items = generate_distant_shop_items(seed=seed)
     else:
-        shop_items = generate_daily_shop_items(seed=current_day)
+        shop_items = generate_daily_shop_items(seed=seed)
 
     items = []
     for item in shop_items:
@@ -394,12 +395,13 @@ def buy_from_shop(session_id: str, request: ShopBuyRequest) -> GameState:
     """ショップで購入"""
     game = _get_game_or_404(session_id)
     current_day = game.day_state.day
+    seed = game.session_seed + current_day  # セッション固有のシード
 
     # 遠くのスーパーか通常のスーパーかでアイテムリストを切り替え
     if request.is_distant:
-        shop_items = generate_distant_shop_items(seed=current_day)
+        shop_items = generate_distant_shop_items(seed=seed)
     else:
-        shop_items = generate_daily_shop_items(seed=current_day)
+        shop_items = generate_daily_shop_items(seed=seed)
     shop_dict = {item.ingredient.name: item for item in shop_items}
 
     total_cost = 0
@@ -450,6 +452,7 @@ def get_online_shop(session_id: str) -> OnlineShopResponse:
     """通販情報を取得"""
     game = _get_game_or_404(session_id)
     current_day = game.day_state.day
+    seed = game.session_seed + current_day  # セッション固有のシード
 
     # 食糧
     all_provisions = get_all_provisions()
@@ -479,7 +482,7 @@ def get_online_shop(session_id: str) -> OnlineShopResponse:
     # 所持済み・配送待ちのレリックを除外して生成
     excluded_relics = owned_relics | pending_relics
     relic_items = generate_daily_relic_items(
-        seed=current_day,
+        seed=seed,
         owned_relics=excluded_relics,
     )
 
