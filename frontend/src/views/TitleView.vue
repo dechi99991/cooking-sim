@@ -37,11 +37,19 @@ function startGame() {
       <div class="release-notes">
         <h3>📝 更新情報</h3>
         <div class="release-entry">
+          <div class="release-date">2025/01/10（その2）</div>
+          <ul>
+            <li>【大型更新】週間ボスシステムを刷新！</li>
+            <li>月曜朝に「今週のボス」が予告されます（飲み会、締め切り、健康診断など）</li>
+            <li>ボスには生存条件があり、金曜までに準備が必要</li>
+            <li>条件達成で報酬、失敗でペナルティ（借金など）</li>
+            <li>ステータスバーにボス情報を常時表示</li>
+          </ul>
+        </div>
+        <div class="release-entry">
           <div class="release-date">2025/01/10</div>
           <ul>
-            <li>【大型更新】金曜ボスイベント「週の総決算」を導入！</li>
-            <li>毎週金曜日に週間の栄養バランスと食費を評価</li>
-            <li>SS〜F評価に応じて気力・体力・お金にボーナス/ペナルティ</li>
+            <li>金曜ボスイベント「週の総決算」を導入</li>
             <li>土日を「週末」として1ターンに統合（ゲーム期間: 約26ターン）</li>
           </ul>
         </div>
