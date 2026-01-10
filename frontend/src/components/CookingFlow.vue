@@ -179,7 +179,7 @@ onMounted(async () => {
       <h3>調理</h3>
 
       <div v-if="!state?.can_cook" class="warning">
-        気力が足りません（必要: {{ state?.cooking_energy_cost }}）
+        調理には気力が必要です（現在不足）
       </div>
 
       <!-- 作れるレシピの表示 -->
@@ -310,7 +310,7 @@ onMounted(async () => {
           <div class="continue-prompt">
             <p v-if="canCookMore">もう1品作りますか？</p>
             <p v-else class="cannot-cook-reason">
-              <template v-if="!state?.can_cook">気力が足りません</template>
+              <template v-if="!state?.can_cook">気力不足で調理できません</template>
               <template v-else-if="availableIngredients.length === 0">食材がありません</template>
               <template v-else>お腹がいっぱいです</template>
             </p>

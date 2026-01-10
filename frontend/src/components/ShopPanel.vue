@@ -187,7 +187,7 @@ const itemsByCategory = computed(() => {
       </div>
 
       <div v-if="!canGoShopping" class="warning">
-        気力が足りません（必要: 1）
+        買い物には気力1が必要です
       </div>
 
       <div class="menu-options">

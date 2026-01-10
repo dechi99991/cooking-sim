@@ -57,7 +57,7 @@ async function loadRecipes() {
     <h3>調理</h3>
 
     <div v-if="!state?.can_cook" class="warning">
-      気力が足りません（必要: {{ state?.cooking_energy_cost }}）
+      調理には気力が必要です（現在不足）
     </div>
 
     <div class="section">
