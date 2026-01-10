@@ -197,6 +197,163 @@ NAMED_RECIPES: list[NamedRecipe] = [
         nutrition_multiplier=1.3, fullness_bonus=2,
         description='あったか和風麺'
     ),
+    # === 簡単2食材レシピ（作りやすい！） ===
+    NamedRecipe(
+        name='ベーコンエッグ',
+        ingredients=frozenset(['卵', 'ベーコン']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='朝食の定番コンビ'
+    ),
+    NamedRecipe(
+        name='ハムエッグ',
+        ingredients=frozenset(['卵', 'ハム']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='シンプルで美味しい'
+    ),
+    NamedRecipe(
+        name='釜玉うどん',
+        ingredients=frozenset(['うどん', '卵']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='シンプルなのに絶品'
+    ),
+    NamedRecipe(
+        name='キムチご飯',
+        ingredients=frozenset(['米', 'キムチ']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='ピリ辛でご飯が進む'
+    ),
+    NamedRecipe(
+        name='冷奴',
+        ingredients=frozenset(['豆腐', 'ねぎ']),
+        nutrition_multiplier=1.1, fullness_bonus=0,
+        description='さっぱり副菜'
+    ),
+    NamedRecipe(
+        name='もやし炒め',
+        ingredients=frozenset(['もやし', '卵']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='節約料理の王道'
+    ),
+    NamedRecipe(
+        name='ねぎ玉',
+        ingredients=frozenset(['ねぎ', '卵']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='ふわふわ卵とねぎの相性抜群'
+    ),
+    NamedRecipe(
+        name='チーズトースト',
+        ingredients=frozenset(['パン', 'チーズ']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='とろ〜りチーズ'
+    ),
+    NamedRecipe(
+        name='ハムサンド',
+        ingredients=frozenset(['パン', 'ハム']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='手軽なサンドイッチ'
+    ),
+    NamedRecipe(
+        name='卵サンド',
+        ingredients=frozenset(['パン', '卵']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='ふわふわ卵サンド'
+    ),
+    NamedRecipe(
+        name='納豆トースト',
+        ingredients=frozenset(['パン', '納豆']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='意外と合う！'
+    ),
+    NamedRecipe(
+        name='バナナヨーグルト',
+        ingredients=frozenset(['バナナ', 'ヨーグルト']),
+        nutrition_multiplier=1.3, fullness_bonus=1,
+        description='朝の定番デザート'
+    ),
+    NamedRecipe(
+        name='豚もやし',
+        ingredients=frozenset(['豚バラ肉', 'もやし']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='コスパ最強おかず'
+    ),
+    NamedRecipe(
+        name='グリーンサラダ',
+        ingredients=frozenset(['レタス', 'トマト']),
+        nutrition_multiplier=1.1, fullness_bonus=0,
+        description='さっぱりサラダ'
+    ),
+    NamedRecipe(
+        name='塩サバ定食',
+        ingredients=frozenset(['米', 'サバ']),
+        nutrition_multiplier=1.3, fullness_bonus=2,
+        description='脂ののった塩サバ'
+    ),
+    NamedRecipe(
+        name='しらすご飯',
+        ingredients=frozenset(['米', 'しらす']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='カルシウムたっぷり'
+    ),
+    NamedRecipe(
+        name='梅おにぎり',
+        ingredients=frozenset(['米', '梅干し']),
+        nutrition_multiplier=1.1, fullness_bonus=1,
+        description='疲れた時に'
+    ),
+    NamedRecipe(
+        name='焼きそば',
+        ingredients=frozenset(['キャベツ', '豚バラ肉']),
+        nutrition_multiplier=1.2, fullness_bonus=2,
+        description='屋台の味'
+    ),
+    NamedRecipe(
+        name='回鍋肉',
+        ingredients=frozenset(['キャベツ', '豚バラ肉', 'ピーマン']),
+        nutrition_multiplier=1.3, fullness_bonus=2,
+        description='甘辛味噌炒め'
+    ),
+    NamedRecipe(
+        name='ペペロンチーノ',
+        ingredients=frozenset(['パスタ', 'にんにく']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='にんにく香るシンプルパスタ'
+    ),
+    NamedRecipe(
+        name='きのこソテー',
+        ingredients=frozenset(['しめじ', 'ベーコン']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='香ばしいおかず'
+    ),
+    NamedRecipe(
+        name='卵焼き',
+        ingredients=frozenset(['卵', 'ねぎ']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='お弁当の定番'
+    ),
+    NamedRecipe(
+        name='豚丼',
+        ingredients=frozenset(['米', '豚バラ肉', 'たまねぎ']),
+        nutrition_multiplier=1.3, fullness_bonus=2,
+        description='がっつり丼'
+    ),
+    NamedRecipe(
+        name='牛丼',
+        ingredients=frozenset(['米', '牛切り落とし', 'たまねぎ']),
+        nutrition_multiplier=1.4, fullness_bonus=2,
+        description='王道の丼もの'
+    ),
+    NamedRecipe(
+        name='豆腐ステーキ',
+        ingredients=frozenset(['豆腐', 'バター']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='香ばしい豆腐'
+    ),
+    NamedRecipe(
+        name='キャベツ炒め',
+        ingredients=frozenset(['キャベツ', 'ベーコン']),
+        nutrition_multiplier=1.2, fullness_bonus=1,
+        description='シャキシャキ食感'
+    ),
 ]
 
 
