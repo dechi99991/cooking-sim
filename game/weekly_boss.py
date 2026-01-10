@@ -66,17 +66,38 @@ class WeeklyBoss:
 
 # ボス定義
 WEEKLY_BOSSES: dict[str, WeeklyBoss] = {
-    # === 1週目専用（チュートリアル） ===
-    "first_week_groceries": WeeklyBoss(
-        id="first_week_groceries",
-        name="初めての買い出し",
-        description="一人暮らし1週目！まずは食材を買って料理してみよう。",
+    # === 1週目専用（チュートリアル）===
+    "moving_fatigue": WeeklyBoss(
+        id="moving_fatigue",
+        name="引っ越し疲れ",
+        description="引っ越し直後で体が重い...金曜まで体力を保とう。",
         category="life",
-        required_stamina=1,  # 体力1以上あればOK（ほぼ確実にクリア）
-        reward_money=500,
-        success_message="初めての1週間を乗り切った！ボーナスとして500円ゲット！",
-        failure_message="体調を崩してしまった...無理は禁物だ。",
+        required_stamina=2,
+        reward_energy=1,
+        success_message="引っ越し疲れも取れてきた！新生活頑張ろう。",
         penalty_stamina=1,
+        failure_message="疲れが溜まってダウン...少し休もう。",
+    ),
+    "first_utility_bill": WeeklyBoss(
+        id="first_utility_bill",
+        name="初めての光熱費",
+        description="電気・ガス・水道の請求が来た！1000円用意しよう。",
+        category="life",
+        required_money=1000,
+        success_message="光熱費を無事支払えた！一人暮らしの第一歩。",
+        penalty_debt=1000,
+        failure_message="光熱費が払えず滞納...次は気をつけよう。",
+    ),
+    "unfamiliar_environment": WeeklyBoss(
+        id="unfamiliar_environment",
+        name="慣れない環境",
+        description="新生活で少し不安...気力を保って乗り切ろう。",
+        category="life",
+        required_energy=2,
+        reward_stamina=1,
+        success_message="新しい環境にも慣れてきた！この調子！",
+        penalty_energy=1,
+        failure_message="ホームシックで落ち込む...でも頑張ろう。",
     ),
 
     # === イベント系 ===
@@ -261,16 +282,20 @@ def select_weekly_boss(week_number: int, seed: int | None = None) -> WeeklyBoss 
     Returns:
         選択されたボス
     """
-    # 1週目はチュートリアルボス（固定）
-    if week_number <= 1:
-        return WEEKLY_BOSSES["first_week_groceries"]
+    # チュートリアルボスのIDリスト
+    tutorial_boss_ids = ["moving_fatigue", "first_utility_bill", "unfamiliar_environment"]
 
     # シード設定
     if seed is not None:
         random.seed(seed + week_number * 100)
 
-    # 1週目専用ボスを除外してランダム選択
-    boss_list = [b for b in WEEKLY_BOSSES.values() if b.id != "first_week_groceries"]
+    # 1週目はチュートリアルボスからランダム選択
+    if week_number <= 1:
+        tutorial_bosses = [WEEKLY_BOSSES[bid] for bid in tutorial_boss_ids]
+        return random.choice(tutorial_bosses)
+
+    # 2週目以降はチュートリアルボスを除外してランダム選択
+    boss_list = [b for b in WEEKLY_BOSSES.values() if b.id not in tutorial_boss_ids]
     return random.choice(boss_list)
 
 
