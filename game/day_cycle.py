@@ -278,7 +278,7 @@ class GameManager:
         self.temperament_id: str | None = None  # 判定された気質ID
         self.temperament_just_revealed: bool = False  # 気質が今発表されたかどうか
         # 週間ボス関連
-        self.current_boss: WeeklyBoss | None = None  # 今週のボス
+        self.current_boss: WeeklyBoss | None = select_weekly_boss(1)  # 1週目のボス
         self.boss_preview_shown: bool = False  # 月曜にボス予告を表示したか
         self.boss_result: dict | None = None  # 金曜のボス結果
         # キャラクター別の給料・ボーナス・家賃

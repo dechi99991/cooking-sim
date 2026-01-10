@@ -66,6 +66,19 @@ class WeeklyBoss:
 
 # ボス定義
 WEEKLY_BOSSES: dict[str, WeeklyBoss] = {
+    # === 1週目専用（チュートリアル） ===
+    "first_week_groceries": WeeklyBoss(
+        id="first_week_groceries",
+        name="初めての買い出し",
+        description="一人暮らし1週目！まずは食材を買って料理してみよう。",
+        category="life",
+        required_stamina=1,  # 体力1以上あればOK（ほぼ確実にクリア）
+        reward_money=500,
+        success_message="初めての1週間を乗り切った！ボーナスとして500円ゲット！",
+        failure_message="体調を崩してしまった...無理は禁物だ。",
+        penalty_stamina=1,
+    ),
+
     # === イベント系 ===
     "drinking_party": WeeklyBoss(
         id="drinking_party",
@@ -246,18 +259,18 @@ def select_weekly_boss(week_number: int, seed: int | None = None) -> WeeklyBoss 
         seed: ランダムシード（再現性のため）
 
     Returns:
-        選択されたボス、または1週目はNone
+        選択されたボス
     """
-    # 1週目はチュートリアル（ボスなし）
+    # 1週目はチュートリアルボス（固定）
     if week_number <= 1:
-        return None
+        return WEEKLY_BOSSES["first_week_groceries"]
 
     # シード設定
     if seed is not None:
         random.seed(seed + week_number * 100)
 
-    # 全ボスからランダム選択
-    boss_list = list(WEEKLY_BOSSES.values())
+    # 1週目専用ボスを除外してランダム選択
+    boss_list = [b for b in WEEKLY_BOSSES.values() if b.id != "first_week_groceries"]
     return random.choice(boss_list)
 
 
