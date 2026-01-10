@@ -151,10 +151,18 @@ export interface ShopItemInfo {
   is_distant_only: boolean
 }
 
+export interface ShopRecipeSuggestion {
+  name: string
+  have_ingredients: string[]
+  need_ingredients: string[]
+  total_cost: number
+}
+
 export interface ShopResponse {
   items: ShopItemInfo[]
   bag_capacity: number
   player_money: number
+  recipe_suggestions: ShopRecipeSuggestion[]
 }
 
 export interface OnlineProvisionInfo {

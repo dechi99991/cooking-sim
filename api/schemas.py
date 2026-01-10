@@ -256,10 +256,19 @@ class ShopItemInfo(BaseModel):
     is_distant_only: bool = False  # 遠くのスーパー限定食材フラグ
 
 
+class ShopRecipeSuggestionInfo(BaseModel):
+    """買い物でのレシピサジェスト"""
+    name: str
+    have_ingredients: list[str]
+    need_ingredients: list[str]
+    total_cost: int
+
+
 class ShopResponse(BaseModel):
     items: list[ShopItemInfo]
     bag_capacity: int
     player_money: int
+    recipe_suggestions: list[ShopRecipeSuggestionInfo] = []
 
 
 class OnlineProvisionInfo(BaseModel):

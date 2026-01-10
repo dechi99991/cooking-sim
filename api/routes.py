@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from game.character import get_all_characters, get_character
 from game.ingredients import generate_daily_shop_items, generate_distant_shop_items, get_ingredient
-from game.cooking import cook, find_named_recipe, get_available_named_recipes, evaluate_cooking
+from game.cooking import cook, find_named_recipe, get_available_named_recipes, evaluate_cooking, get_shop_recipe_suggestions
 from game.relic import generate_daily_relic_items, get_relic
 from game.provisions import get_all_provisions
 from game.day_cycle import GamePhase
@@ -20,7 +20,7 @@ from .schemas import (
     StartGameRequest, StartGameResponse,
     CookRequest, CookResponse, CookPreviewResponse,
     MakeBentoRequest, MakeBentoResponse,
-    ShopBuyRequest, ShopResponse, ShopItemInfo,
+    ShopBuyRequest, ShopResponse, ShopItemInfo, ShopRecipeSuggestionInfo,
     OnlineShopBuyRequest, OnlineShopResponse, OnlineProvisionInfo, OnlineRelicInfo,
     EatProvisionRequest,
     HolidayActionRequest,
@@ -383,10 +383,27 @@ def get_shop(session_id: str, is_distant: bool = False) -> ShopResponse:
             is_distant_only=ing.distant_only,  # 限定フラグを追加
         ))
 
+    # レシピサジェストを生成
+    stock_ingredients = game.stock.get_available_ingredients()
+    shop_items_for_suggestion = [
+        {'name': item.name, 'price': item.price, 'quantity': 5}
+        for item in items
+    ]
+    suggestions = get_shop_recipe_suggestions(stock_ingredients, shop_items_for_suggestion)
+
     return ShopResponse(
         items=items,
         bag_capacity=game.get_bag_capacity(),
         player_money=game.player.money,
+        recipe_suggestions=[
+            ShopRecipeSuggestionInfo(
+                name=s.recipe.name,
+                have_ingredients=s.have_ingredients,
+                need_ingredients=s.need_ingredients,
+                total_cost=s.total_cost,
+            )
+            for s in suggestions[:5]  # 上位5件まで
+        ],
     )
 
 

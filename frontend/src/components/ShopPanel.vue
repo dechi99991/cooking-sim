@@ -230,6 +230,29 @@ const itemsByCategory = computed(() => {
           バッグが一杯です！
         </div>
 
+        <!-- レシピサジェスト -->
+        <div v-if="shopData.recipe_suggestions?.length > 0" class="recipe-suggestions">
+          <h4>💡 作れるレシピ</h4>
+          <div class="suggestion-list">
+            <div
+              v-for="suggestion in shopData.recipe_suggestions"
+              :key="suggestion.name"
+              class="suggestion-item"
+            >
+              <span class="suggestion-name">{{ suggestion.name }}</span>
+              <span class="suggestion-detail">
+                <span v-if="suggestion.have_ingredients.length > 0" class="have">
+                  持: {{ suggestion.have_ingredients.join(', ') }}
+                </span>
+                <span class="need">
+                  買: {{ suggestion.need_ingredients.join(', ') }}
+                </span>
+                <span class="cost">¥{{ suggestion.total_cost }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div class="categories">
           <div v-for="(items, category) in itemsByCategory" :key="category" class="category">
             <h4>{{ category }}</h4>
@@ -605,5 +628,61 @@ h4 {
 .done-btn:disabled {
   background: #95a5a6;
   cursor: not-allowed;
+}
+
+.recipe-suggestions {
+  background: #f0fff4;
+  border: 1px solid #27ae60;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 15px;
+}
+
+.recipe-suggestions h4 {
+  margin: 0 0 8px 0;
+  color: #27ae60;
+  font-size: 0.95em;
+}
+
+.suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.suggestion-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.suggestion-name {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.suggestion-detail {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.85em;
+}
+
+.suggestion-detail .have {
+  color: #27ae60;
+}
+
+.suggestion-detail .need {
+  color: #e67e22;
+  font-weight: bold;
+}
+
+.suggestion-detail .cost {
+  color: #3498db;
+  font-weight: bold;
 }
 </style>

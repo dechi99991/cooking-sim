@@ -376,6 +376,66 @@ def get_available_named_recipes(available_ingredients: list[str]) -> list[NamedR
     return result
 
 
+@dataclass
+class ShopRecipeSuggestion:
+    """買い物でのレシピサジェスト"""
+    recipe: NamedRecipe
+    have_ingredients: list[str]  # 既に持っている食材
+    need_ingredients: list[str]  # 買う必要がある食材
+    total_cost: int  # 購入に必要な金額
+
+
+def get_shop_recipe_suggestions(
+    stock_ingredients: list[str],
+    shop_items: list[dict],  # [{name, price, quantity}, ...]
+) -> list[ShopRecipeSuggestion]:
+    """
+    手持ち食材とショップの食材から作れるネームド料理をサジェスト
+
+    Args:
+        stock_ingredients: プレイヤーが持っている食材名のリスト
+        shop_items: ショップの食材リスト（name, price, quantity を持つ辞書）
+
+    Returns:
+        サジェストリスト（既に全部持っているレシピは除外）
+    """
+    stock_set = set(stock_ingredients)
+    shop_dict = {item['name']: item for item in shop_items if item['quantity'] > 0}
+    shop_names = set(shop_dict.keys())
+
+    # 全利用可能な食材（手持ち + ショップ）
+    all_available = stock_set | shop_names
+
+    result = []
+    for recipe in NAMED_RECIPES:
+        # 全部持っている場合はスキップ（調理画面で表示されるため）
+        if recipe.ingredients.issubset(stock_set):
+            continue
+
+        # 手持ち+ショップで作れるか
+        if not recipe.ingredients.issubset(all_available):
+            continue
+
+        # 必要な食材を分類
+        have = [ing for ing in recipe.ingredients if ing in stock_set]
+        need = [ing for ing in recipe.ingredients if ing not in stock_set]
+
+        # コストを計算
+        total_cost = sum(shop_dict[ing]['price'] for ing in need if ing in shop_dict)
+
+        result.append(ShopRecipeSuggestion(
+            recipe=recipe,
+            have_ingredients=have,
+            need_ingredients=need,
+            total_cost=total_cost,
+        ))
+
+    # コストが低い順にソート
+    result.sort(key=lambda x: (len(x.need_ingredients), x.total_cost))
+
+    return result
+
+
 # 旧レシピ定義（後方互換用、ネームドでないときの名前決定に使用）
 SIMPLE_RECIPES = {
     frozenset(['米']): 'ごはん',
