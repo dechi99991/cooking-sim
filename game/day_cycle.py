@@ -1,4 +1,5 @@
 """1日の流れ管理"""
+import random
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from .player import Player
